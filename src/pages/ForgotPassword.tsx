@@ -34,7 +34,8 @@ const ForgotPassword: React.FC = () => {
     try {
       await resetPassword(email);
       setMessage('Password reset instructions have been sent to your email.');
-    } catch (err) {
+    } catch (err: any) {
+      console.error('Password reset error:', err);
       setError('Failed to send reset email. Please try again.');
     } finally {
       setIsLoading(false);

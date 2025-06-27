@@ -1,17 +1,26 @@
 
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Trophy, User, LogOut } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface LayoutProps {
   children: React.ReactNode;
   isAuthenticated?: boolean;
 }
 
-const Layout: React.FC<LayoutProps> = ({ children, isAuthenticated = false }) => {
-  const handleLogout = () => {
-    // This will be connected to Supabase authentication later
-    console.log('Logout functionality will be implemented with Supabase');
+const Layout: React.FC<LayoutProps> = ({ children, isAuthenticated }) => {
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+  const isLoggedIn = isAuthenticated || !!user;
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate('/');
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
   };
 
   return (
@@ -33,7 +42,7 @@ const Layout: React.FC<LayoutProps> = ({ children, isAuthenticated = false }) =>
 
             {/* Navigation */}
             <nav className="flex items-center space-x-4">
-              {isAuthenticated ? (
+              {isLoggedIn ? (
                 <>
                   <Link 
                     to="/dashboard" 
@@ -43,11 +52,11 @@ const Layout: React.FC<LayoutProps> = ({ children, isAuthenticated = false }) =>
                   </Link>
                   
                   {/* User Menu */}
-                  <div className="relative">
-                    <button className="flex items-center space-x-2 bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded-lg transition-colors">
-                      <User className="h-4 w-4" />
-                      <span className="text-sm">Profile</span>
-                    </button>
+                  <div className="flex items-center space-x-2 bg-slate-700 px-3 py-2 rounded-lg">
+                    <User className="h-4 w-4 text-slate-300" />
+                    <span className="text-sm text-slate-300">
+                      {user?.email?.split('@')[0] || 'User'}
+                    </span>
                   </div>
                   
                   <button 

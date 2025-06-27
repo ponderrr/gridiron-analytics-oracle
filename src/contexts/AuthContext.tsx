@@ -1,13 +1,11 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-
-interface User {
-  id: string;
-  email: string;
-}
+import { User, Session } from '@supabase/supabase-js';
+import { supabase } from '@/integrations/supabase/client';
 
 interface AuthContextType {
   user: User | null;
+  session: Session | null;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
   signup: (email: string, password: string) => Promise<void>;
@@ -31,35 +29,43 @@ interface AuthProviderProps {
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // This will be replaced with Supabase session check
-    const initializeAuth = async () => {
-      try {
-        // Placeholder for Supabase session initialization
-        console.log('Auth initialization - will be connected to Supabase');
-        
-        // Simulate auth check
-        setTimeout(() => {
-          setIsLoading(false);
-        }, 1000);
-      } catch (error) {
-        console.error('Auth initialization error:', error);
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        console.log('Auth state changed:', event, session?.user?.email);
+        setSession(session);
+        setUser(session?.user ?? null);
         setIsLoading(false);
       }
-    };
+    );
 
-    initializeAuth();
+    // Check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      setIsLoading(false);
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   const login = async (email: string, password: string) => {
     setIsLoading(true);
     try {
-      // This will be replaced with Supabase auth
-      console.log('Login attempt:', email);
-      // Simulate successful login for now
-      setUser({ id: '1', email });
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      console.log('Login successful:', data.user?.email);
     } catch (error) {
       console.error('Login error:', error);
       throw error;
@@ -71,10 +77,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const signup = async (email: string, password: string) => {
     setIsLoading(true);
     try {
-      // This will be replaced with Supabase auth
-      console.log('Signup attempt:', email);
-      // Simulate successful signup for now
-      setUser({ id: '1', email });
+      const redirectUrl = `${window.location.origin}/`;
+      
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: redirectUrl
+        }
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      console.log('Signup successful:', data.user?.email);
     } catch (error) {
       console.error('Signup error:', error);
       throw error;
@@ -86,8 +103,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const logout = async () => {
     setIsLoading(true);
     try {
-      // This will be replaced with Supabase auth
-      setUser(null);
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        throw error;
+      }
+      console.log('Logout successful');
     } catch (error) {
       console.error('Logout error:', error);
       throw error;
@@ -98,8 +118,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const resetPassword = async (email: string) => {
     try {
-      // This will be replaced with Supabase auth
-      console.log('Password reset for:', email);
+      const redirectUrl = `${window.location.origin}/`;
+      
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: redirectUrl
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      console.log('Password reset email sent to:', email);
     } catch (error) {
       console.error('Password reset error:', error);
       throw error;
@@ -108,6 +137,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const value: AuthContextType = {
     user,
+    session,
     isLoading,
     login,
     signup,
