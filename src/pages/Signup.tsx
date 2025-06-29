@@ -7,6 +7,7 @@ import { useAuth } from "../contexts/AuthContext";
 import {
   validateEmail,
   validatePassword,
+  getPasswordStrength,
   formatErrorMessage,
 } from "../lib/validation";
 
@@ -33,19 +34,23 @@ const Signup: React.FC = () => {
       setError(emailError);
       return;
     }
+
     const passwordErrors = validatePassword(password);
     if (passwordErrors.length > 0) {
       setError(passwordErrors.join(" "));
       return;
     }
+
     if (!confirmPassword) {
       setError("Please confirm your password.");
       return;
     }
+
     if (password !== confirmPassword) {
       setError("Passwords do not match.");
       return;
     }
+
     setIsLoading(true);
     try {
       await signup(email, password);
@@ -62,7 +67,7 @@ const Signup: React.FC = () => {
     }
   };
 
-  const passwordValidation = validatePassword(password);
+  const passwordStrength = getPasswordStrength(password);
 
   return (
     <Layout>
@@ -144,14 +149,14 @@ const Signup: React.FC = () => {
                   <div className="mt-2 space-y-1">
                     <div
                       className={`text-xs flex items-center ${
-                        passwordValidation.minLength
+                        passwordStrength.minLength
                           ? "text-emerald-400"
                           : "text-slate-400"
                       }`}
                     >
                       <div
                         className={`w-1.5 h-1.5 rounded-full mr-2 ${
-                          passwordValidation.minLength
+                          passwordStrength.minLength
                             ? "bg-emerald-400"
                             : "bg-slate-600"
                         }`}
@@ -160,14 +165,14 @@ const Signup: React.FC = () => {
                     </div>
                     <div
                       className={`text-xs flex items-center ${
-                        passwordValidation.hasUpper
+                        passwordStrength.hasUpper
                           ? "text-emerald-400"
                           : "text-slate-400"
                       }`}
                     >
                       <div
                         className={`w-1.5 h-1.5 rounded-full mr-2 ${
-                          passwordValidation.hasUpper
+                          passwordStrength.hasUpper
                             ? "bg-emerald-400"
                             : "bg-slate-600"
                         }`}
@@ -176,14 +181,14 @@ const Signup: React.FC = () => {
                     </div>
                     <div
                       className={`text-xs flex items-center ${
-                        passwordValidation.hasLower
+                        passwordStrength.hasLower
                           ? "text-emerald-400"
                           : "text-slate-400"
                       }`}
                     >
                       <div
                         className={`w-1.5 h-1.5 rounded-full mr-2 ${
-                          passwordValidation.hasLower
+                          passwordStrength.hasLower
                             ? "bg-emerald-400"
                             : "bg-slate-600"
                         }`}
@@ -192,14 +197,14 @@ const Signup: React.FC = () => {
                     </div>
                     <div
                       className={`text-xs flex items-center ${
-                        passwordValidation.hasNumber
+                        passwordStrength.hasNumber
                           ? "text-emerald-400"
                           : "text-slate-400"
                       }`}
                     >
                       <div
                         className={`w-1.5 h-1.5 rounded-full mr-2 ${
-                          passwordValidation.hasNumber
+                          passwordStrength.hasNumber
                             ? "bg-emerald-400"
                             : "bg-slate-600"
                         }`}

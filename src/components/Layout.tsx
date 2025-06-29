@@ -20,7 +20,6 @@ import {
   ERROR_AUTH,
   RETRY_LABEL,
 } from "@/lib/constants";
-import { appConfig } from "@/config/app";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -59,6 +58,23 @@ const Layout: React.FC<LayoutProps> = ({ children, isAuthenticated }) => {
     }
   };
 
+  // Helper function to safely get user display name
+  const getUserDisplayName = () => {
+    if (!user?.email) return "User";
+    try {
+      return user.email.split("@")[0] || "User";
+    } catch (error) {
+      console.error("Error parsing user email:", error);
+      return "User";
+    }
+  };
+
+  // Helper function to safely get user email
+  const getUserEmail = () => {
+    if (!user?.email) return "";
+    return String(user.email);
+  };
+
   // Error state for auth failures
   if (authError) {
     return (
@@ -67,7 +83,9 @@ const Layout: React.FC<LayoutProps> = ({ children, isAuthenticated }) => {
           <div className="text-red-400 font-bold text-lg mb-2">
             {ERROR_AUTH}
           </div>
-          <div className="text-slate-400 mb-4">{authError.message}</div>
+          <div className="text-slate-400 mb-4">
+            {authError?.message || "An authentication error occurred"}
+          </div>
           <button
             className="btn-primary px-6 py-2 rounded font-semibold"
             onClick={() => window.location.reload()}
@@ -135,7 +153,7 @@ const Layout: React.FC<LayoutProps> = ({ children, isAuthenticated }) => {
                       <DropdownMenuTrigger className="flex items-center space-x-2 bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded-lg transition-colors">
                         <User className="h-4 w-4 text-slate-300" />
                         <span className="text-sm text-slate-300 hidden sm:block">
-                          {user?.email?.split("@")[0] || "User"}
+                          {getUserDisplayName()}
                         </span>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent
@@ -143,24 +161,24 @@ const Layout: React.FC<LayoutProps> = ({ children, isAuthenticated }) => {
                         className="w-56 bg-slate-800 border-slate-700"
                       >
                         <div className="px-2 py-1.5 text-sm text-slate-400">
-                          {user?.email}
+                          {getUserEmail()}
                         </div>
                         <DropdownMenuSeparator className="bg-slate-700" />
                         <DropdownMenuItem asChild>
                           <Link
                             to="/settings"
-                            className="text-slate-300 hover:text-white"
+                            className="text-slate-300 hover:text-white cursor-pointer"
                           >
                             Settings
                           </Link>
                         </DropdownMenuItem>
-                        <DropdownMenuItem className="text-slate-300 hover:text-white">
+                        <DropdownMenuItem className="text-slate-300 hover:text-white cursor-pointer">
                           Help & Support
                         </DropdownMenuItem>
                         <DropdownMenuSeparator className="bg-slate-700" />
                         <DropdownMenuItem
                           onClick={handleLogout}
-                          className="text-red-400 hover:text-red-300 hover:bg-red-950/20"
+                          className="text-red-400 hover:text-red-300 hover:bg-red-950/20 cursor-pointer"
                         >
                           <LogOut className="h-4 w-4 mr-2" />
                           Logout

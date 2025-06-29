@@ -28,17 +28,26 @@ export interface ValidationResult {
   score?: number; // For password/email strength
 }
 
+// Password strength interface
+export interface PasswordStrength {
+  minLength: boolean;
+  hasUpper: boolean;
+  hasLower: boolean;
+  hasNumber: boolean;
+  hasSpecial?: boolean;
+}
+
 /**
  * Validates an email address and checks if the domain is whitelisted.
  */
 export function validateEmail(
   email: string,
   options: EmailValidationOptions = {}
-): ValidationResult {
-  const errors: string[] = [];
-  if (!email) errors.push("Email is required.");
-  else if (!isEmail(email)) errors.push("Please enter a valid email address.");
-  else if (options.requireCommonDomain) {
+): string | null {
+  if (!email) return "Email is required.";
+  if (!isEmail(email)) return "Please enter a valid email address.";
+
+  if (options.requireCommonDomain) {
     const domain = email.split("@")[1]?.toLowerCase();
     if (domain) {
       const allowedDomains = [
@@ -46,28 +55,48 @@ export function validateEmail(
         ...(options.customAllowedDomains || []),
       ];
       if (!allowedDomains.includes(domain)) {
-        errors.push("Please use a common email provider (gmail, yahoo, etc.).");
+        return "Please use a common email provider (gmail, yahoo, etc.).";
       }
     }
   }
-  return { valid: errors.length === 0, errors };
+  return null;
 }
 
 /**
- * Validates a password and returns errors if any.
+ * Validates a password and returns error message if any.
  */
-export function validatePassword(password: string): ValidationResult {
+export function validatePassword(password: string): string[] {
   const errors: string[] = [];
-  if (!password) errors.push("Password is required.");
-  if (password.length < MIN_PASSWORD_LENGTH)
+  if (!password) {
+    errors.push("Password is required.");
+    return errors;
+  }
+  if (password.length < MIN_PASSWORD_LENGTH) {
     errors.push(`Password must be at least ${MIN_PASSWORD_LENGTH} characters.`);
-  if (!/[A-Z]/.test(password))
+  }
+  if (!/[A-Z]/.test(password)) {
     errors.push("Password must contain at least one uppercase letter.");
-  if (!/[a-z]/.test(password))
+  }
+  if (!/[a-z]/.test(password)) {
     errors.push("Password must contain at least one lowercase letter.");
-  if (!/\d/.test(password))
+  }
+  if (!/\d/.test(password)) {
     errors.push("Password must contain at least one number.");
-  return { valid: errors.length === 0, errors };
+  }
+  return errors;
+}
+
+/**
+ * Returns a password strength object with individual checks.
+ */
+export function getPasswordStrength(password: string): PasswordStrength {
+  return {
+    minLength: password.length >= MIN_PASSWORD_LENGTH,
+    hasUpper: /[A-Z]/.test(password),
+    hasLower: /[a-z]/.test(password),
+    hasNumber: /\d/.test(password),
+    hasSpecial: /[^A-Za-z0-9]/.test(password),
+  };
 }
 
 /**
@@ -105,16 +134,8 @@ export function validateFields(
 
 export function formatErrorMessage(error: unknown): string {
   if (typeof error === "string") return error;
-  function hasMessage(e: unknown): e is { message: string } {
-    return (
-      typeof e === "object" &&
-      e !== null &&
-      "message" in e &&
-      typeof (e as { message: unknown }).message === "string"
-    );
-  }
-  if (hasMessage(error)) {
-    return error.message;
+  if (error && typeof error === "object" && "message" in error) {
+    return String((error as { message: unknown }).message);
   }
   return "An unknown error occurred.";
 }
