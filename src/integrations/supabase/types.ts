@@ -9,7 +9,210 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      players: {
+        Row: {
+          active: boolean | null
+          bye_week: number | null
+          created_at: string
+          id: string
+          name: string
+          player_id: string
+          position: string
+          team: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean | null
+          bye_week?: number | null
+          created_at?: string
+          id?: string
+          name: string
+          player_id: string
+          position: string
+          team: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean | null
+          bye_week?: number | null
+          created_at?: string
+          id?: string
+          name?: string
+          player_id?: string
+          position?: string
+          team?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      projections: {
+        Row: {
+          confidence_score: number | null
+          created_at: string
+          id: string
+          player_id: string | null
+          projected_points: number
+          projection_type: string
+          season: number
+          week: number
+        }
+        Insert: {
+          confidence_score?: number | null
+          created_at?: string
+          id?: string
+          player_id?: string | null
+          projected_points: number
+          projection_type: string
+          season: number
+          week: number
+        }
+        Update: {
+          confidence_score?: number | null
+          created_at?: string
+          id?: string
+          player_id?: string | null
+          projected_points?: number
+          projection_type?: string
+          season?: number
+          week?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "projections_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      trade_values: {
+        Row: {
+          created_at: string
+          id: string
+          player_id: string | null
+          season: number
+          tier: number | null
+          trade_value: number
+          week: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          player_id?: string | null
+          season: number
+          tier?: number | null
+          trade_value: number
+          week: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          player_id?: string | null
+          season?: number
+          tier?: number | null
+          trade_value?: number
+          week?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "trade_values_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_teams: {
+        Row: {
+          created_at: string
+          id: string
+          league_id: string | null
+          platform: string | null
+          team_name: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          league_id?: string | null
+          platform?: string | null
+          team_name?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          league_id?: string | null
+          platform?: string | null
+          team_name?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      weekly_stats: {
+        Row: {
+          created_at: string
+          fantasy_points: number | null
+          fumbles_lost: number | null
+          id: string
+          passing_interceptions: number | null
+          passing_tds: number | null
+          passing_yards: number | null
+          player_id: string | null
+          receiving_tds: number | null
+          receiving_yards: number | null
+          receptions: number | null
+          rushing_tds: number | null
+          rushing_yards: number | null
+          season: number
+          week: number
+        }
+        Insert: {
+          created_at?: string
+          fantasy_points?: number | null
+          fumbles_lost?: number | null
+          id?: string
+          passing_interceptions?: number | null
+          passing_tds?: number | null
+          passing_yards?: number | null
+          player_id?: string | null
+          receiving_tds?: number | null
+          receiving_yards?: number | null
+          receptions?: number | null
+          rushing_tds?: number | null
+          rushing_yards?: number | null
+          season: number
+          week: number
+        }
+        Update: {
+          created_at?: string
+          fantasy_points?: number | null
+          fumbles_lost?: number | null
+          id?: string
+          passing_interceptions?: number | null
+          passing_tds?: number | null
+          passing_yards?: number | null
+          player_id?: string | null
+          receiving_tds?: number | null
+          receiving_yards?: number | null
+          receptions?: number | null
+          rushing_tds?: number | null
+          rushing_yards?: number | null
+          season?: number
+          week?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "weekly_stats_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

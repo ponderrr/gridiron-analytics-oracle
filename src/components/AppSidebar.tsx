@@ -7,103 +7,60 @@ import {
   TrendingUp, 
   ArrowLeftRight, 
   Trophy, 
-  Settings 
+  Settings,
+  Database
 } from 'lucide-react';
-import {
-  Sidebar,
-  SidebarContent,
-  SidebarGroup,
-  SidebarGroupContent,
-  SidebarGroupLabel,
-  SidebarMenu,
-  SidebarMenuButton,
-  SidebarMenuItem,
-} from '@/components/ui/sidebar';
 
-const navigationItems = [
-  {
-    title: 'Dashboard',
-    url: '/dashboard',
-    icon: Home,
-  },
-  {
-    title: 'Players',
-    url: '/players',
-    icon: Users,
-  },
-  {
-    title: 'Analytics',
-    url: '/analytics',
-    icon: TrendingUp,
-  },
-  {
-    title: 'Trade Analyzer',
-    url: '/trade-analyzer',
-    icon: ArrowLeftRight,
-  },
-  {
-    title: 'League',
-    url: '/league',
-    icon: Trophy,
-    comingSoon: true,
-  },
-  {
-    title: 'Settings',
-    url: '/settings',
-    icon: Settings,
-  },
-];
+interface SidebarProps {
+  isCollapsed: boolean;
+}
 
-const AppSidebar: React.FC = () => {
+const AppSidebar: React.FC<SidebarProps> = ({ isCollapsed }) => {
   const location = useLocation();
 
+  const navigationItems = [
+    { name: 'Dashboard', href: '/dashboard', icon: Home },
+    { name: 'Players', href: '/players', icon: Users },
+    { name: 'Analytics', href: '/analytics', icon: TrendingUp },
+    { name: 'Trade Analyzer', href: '/trade-analyzer', icon: ArrowLeftRight },
+    { name: 'League', href: '/league', icon: Trophy, comingSoon: true },
+    { name: 'Settings', href: '/settings', icon: Settings },
+    { name: 'Admin', href: '/admin', icon: Database },
+  ];
+
+  const isActive = (href: string) => location.pathname === href;
+
   return (
-    <Sidebar className="border-r border-slate-700/50">
-      <SidebarContent className="bg-slate-800/50">
-        <SidebarGroup>
-          <SidebarGroupLabel className="text-slate-400 text-xs uppercase tracking-wider font-semibold px-4 py-2">
-            Navigation
-          </SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
-              {navigationItems.map((item) => {
-                const isActive = location.pathname === item.url;
-                return (
-                  <SidebarMenuItem key={item.title}>
-                    <SidebarMenuButton 
-                      asChild={!item.comingSoon}
-                      isActive={isActive}
-                      className={`
-                        ${isActive 
-                          ? 'bg-emerald-500/20 text-emerald-400 border-r-2 border-emerald-500' 
-                          : 'text-slate-300 hover:text-white hover:bg-slate-700/50'
-                        }
-                        ${item.comingSoon ? 'opacity-60 cursor-not-allowed' : ''}
-                      `}
-                    >
-                      {item.comingSoon ? (
-                        <div className="flex items-center space-x-3 w-full">
-                          <item.icon className="h-5 w-5" />
-                          <span className="flex-1">{item.title}</span>
-                          <span className="text-xs bg-slate-600 px-2 py-1 rounded-full">
-                            Soon
-                          </span>
-                        </div>
-                      ) : (
-                        <Link to={item.url} className="flex items-center space-x-3 w-full">
-                          <item.icon className="h-5 w-5" />
-                          <span>{item.title}</span>
-                        </Link>
-                      )}
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                );
-              })}
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-      </SidebarContent>
-    </Sidebar>
+    <nav className="flex-1 px-2 py-4 space-y-1">
+      {navigationItems.map((item) => {
+        const Icon = item.icon;
+        return (
+          <Link
+            key={item.name}
+            to={item.href}
+            className={`group flex items-center px-2 py-2 text-sm font-medium rounded-md transition-colors ${
+              isActive(item.href)
+                ? 'bg-emerald-900 text-emerald-100'
+                : 'text-slate-300 hover:bg-slate-700 hover:text-white'
+            }`}
+          >
+            <Icon
+              className={`mr-3 flex-shrink-0 h-5 w-5 ${
+                isActive(item.href) ? 'text-emerald-300' : 'text-slate-400 group-hover:text-slate-300'
+              }`}
+            />
+            {!isCollapsed && (
+              <span className="flex-1">{item.name}</span>
+            )}
+            {!isCollapsed && item.comingSoon && (
+              <span className="ml-auto text-xs bg-slate-600 text-slate-300 px-2 py-1 rounded-full">
+                Soon
+              </span>
+            )}
+          </Link>
+        );
+      })}
+    </nav>
   );
 };
 
