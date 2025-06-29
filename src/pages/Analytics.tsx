@@ -3,6 +3,14 @@ import { TrendingUp, BarChart3, PieChart } from "lucide-react";
 import Layout from "../components/Layout";
 import PageHeader from "../components/PageHeader";
 import ComingSoonCard from "../components/ComingSoonCard";
+import { useQuery } from "@/hooks/useQuery";
+import {
+  APP_NAME,
+  APP_TAGLINE,
+  LOADING_MESSAGE,
+  ERROR_GENERIC,
+} from "@/lib/constants";
+import { appConfig } from "@/config/app";
 
 const Analytics: React.FC = () => {
   return (

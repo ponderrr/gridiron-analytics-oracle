@@ -11,6 +11,16 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import ErrorBoundary from "./ErrorBoundary";
+import LoadingSpinner from "@/components/LoadingSpinner";
+import {
+  APP_NAME,
+  APP_TAGLINE,
+  COPYRIGHT,
+  LOADING_MESSAGE,
+  ERROR_AUTH,
+  RETRY_LABEL,
+} from "@/lib/constants";
+import { appConfig } from "@/config/app";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -18,7 +28,7 @@ interface LayoutProps {
 }
 
 const Layout: React.FC<LayoutProps> = ({ children, isAuthenticated }) => {
-  const { user, logout } = useAuth();
+  const { user, logout, isLoading, authError } = useAuth();
   const navigate = useNavigate();
   const isLoggedIn = isAuthenticated || !!user;
 
@@ -30,6 +40,56 @@ const Layout: React.FC<LayoutProps> = ({ children, isAuthenticated }) => {
       console.error("Logout failed:", error);
     }
   };
+
+  // Sidebar skeleton loader
+  const SidebarSkeleton = React.memo(() => (
+    <div className="bg-slate-800 border-r border-slate-700 w-64 flex flex-col h-screen animate-pulse">
+      <div className="flex items-center justify-between px-4 py-3">
+        <div className="bg-emerald-500 p-2 rounded-md w-10 h-10" />
+        <div className="rounded-md bg-slate-700 w-8 h-8" />
+      </div>
+      <div className="flex-1 px-4 py-4 space-y-4">
+        {[...Array(7)].map((_, i) => (
+          <div key={i} className="h-8 bg-slate-700 rounded-md w-full" />
+        ))}
+      </div>
+      <div className="px-4 py-3 border-t border-slate-700">
+        <div className="h-4 bg-slate-700 rounded w-1/2" />
+      </div>
+    </div>
+  ));
+
+  // Error state for auth failures
+  if (authError) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-900">
+        <div className="bg-slate-800 border border-slate-700 rounded-lg p-8 flex flex-col items-center">
+          <div className="text-red-400 font-bold text-lg mb-2">
+            {ERROR_AUTH}
+          </div>
+          <div className="text-slate-400 mb-4">{authError.message}</div>
+          <button
+            className="btn-primary px-6 py-2 rounded font-semibold"
+            onClick={() => window.location.reload()}
+          >
+            {RETRY_LABEL}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Loading state for auth initialization
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex w-full bg-slate-900">
+        <SidebarSkeleton />
+        <div className="flex-1 flex items-center justify-center">
+          <LoadingSpinner size="lg" message={LOADING_MESSAGE} />
+        </div>
+      </div>
+    );
+  }
 
   if (isLoggedIn) {
     return (
@@ -51,10 +111,10 @@ const Layout: React.FC<LayoutProps> = ({ children, isAuthenticated }) => {
                     </div>
                     <div className="hidden sm:block">
                       <h1 className="text-xl font-bold text-white">
-                        Fantasy Football Guru
+                        {APP_NAME}
                       </h1>
                       <p className="text-xs text-emerald-400 -mt-1">
-                        Advanced Analytics
+                        {APP_TAGLINE}
                       </p>
                     </div>
                   </Link>
@@ -133,12 +193,8 @@ const Layout: React.FC<LayoutProps> = ({ children, isAuthenticated }) => {
                 <Trophy className="h-6 w-6 text-white" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-white">
-                  Fantasy Football Guru
-                </h1>
-                <p className="text-xs text-emerald-400 -mt-1">
-                  Advanced Analytics
-                </p>
+                <h1 className="text-xl font-bold text-white">{APP_NAME}</h1>
+                <p className="text-xs text-emerald-400 -mt-1">{APP_TAGLINE}</p>
               </div>
             </Link>
 
@@ -165,10 +221,7 @@ const Layout: React.FC<LayoutProps> = ({ children, isAuthenticated }) => {
       <footer className="bg-slate-800/50 border-t border-slate-700/50 mt-auto">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="text-center">
-            <p className="text-slate-400 text-sm">
-              © 2024 Fantasy Football Guru. Advanced analytics for serious
-              fantasy players.
-            </p>
+            <p className="text-slate-400 text-sm">{COPYRIGHT}</p>
           </div>
         </div>
       </footer>
@@ -176,4 +229,8 @@ const Layout: React.FC<LayoutProps> = ({ children, isAuthenticated }) => {
   );
 };
 
-export default Layout;
+const areEqual = (prev: LayoutProps, next: LayoutProps) =>
+  prev.isAuthenticated === next.isAuthenticated &&
+  prev.children === next.children;
+
+export default React.memo(Layout, areEqual);

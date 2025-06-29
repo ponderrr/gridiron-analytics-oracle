@@ -1,5 +1,5 @@
-
 import { supabase } from "@/integrations/supabase/client";
+import { DEFAULT_SCORING_SETTINGS } from "./fantasyPoints.constants";
 
 export interface WeeklyStatsInput {
   passing_yards: number;
@@ -14,7 +14,7 @@ export interface WeeklyStatsInput {
 }
 
 export interface ScoringSettings {
-  format: 'standard' | 'ppr' | 'half_ppr';
+  format: "standard" | "ppr" | "half_ppr";
   passing_yards_per_point: number;
   rushing_receiving_yards_per_point: number;
   passing_td_points: number;
@@ -35,93 +35,131 @@ export interface FantasyPointsResult {
   scoring_format: string;
 }
 
-export const DEFAULT_SCORING_SETTINGS: Record<string, ScoringSettings> = {
-  standard: {
-    format: 'standard',
-    passing_yards_per_point: 25,
-    rushing_receiving_yards_per_point: 10,
-    passing_td_points: 6,
-    rushing_receiving_td_points: 6,
-    reception_points: 0,
-    interception_penalty: -2,
-    fumble_penalty: -2,
-  },
-  ppr: {
-    format: 'ppr',
-    passing_yards_per_point: 25,
-    rushing_receiving_yards_per_point: 10,
-    passing_td_points: 6,
-    rushing_receiving_td_points: 6,
-    reception_points: 1,
-    interception_penalty: -2,
-    fumble_penalty: -2,
-  },
-  half_ppr: {
-    format: 'half_ppr',
-    passing_yards_per_point: 25,
-    rushing_receiving_yards_per_point: 10,
-    passing_td_points: 6,
-    rushing_receiving_td_points: 6,
-    reception_points: 0.5,
-    interception_penalty: -2,
-    fumble_penalty: -2,
-  },
-};
+/**
+ * Validates that all stats are non-negative numbers.
+ * @param stats WeeklyStatsInput
+ * @throws Error if any stat is negative or not a number
+ */
+export function validateStatsInput(stats: WeeklyStatsInput): void {
+  for (const [key, value] of Object.entries(stats)) {
+    if (typeof value !== "number" || value < 0) {
+      throw new Error(`Invalid stat '${key}': must be a non-negative number.`);
+    }
+  }
+}
 
+/**
+ * Validates scoring settings object.
+ * @param settings ScoringSettings
+ * @throws Error if settings are malformed
+ */
+export function validateScoringSettings(settings: ScoringSettings): void {
+  if (!settings || typeof settings !== "object") {
+    throw new Error("Scoring settings must be a valid object.");
+  }
+  if (!["standard", "ppr", "half_ppr"].includes(settings.format)) {
+    throw new Error("Invalid scoring format.");
+  }
+  [
+    "passing_yards_per_point",
+    "rushing_receiving_yards_per_point",
+    "passing_td_points",
+    "rushing_receiving_td_points",
+    "reception_points",
+    "interception_penalty",
+    "fumble_penalty",
+  ].forEach((key) => {
+    if (typeof (settings as any)[key] !== "number") {
+      throw new Error(`Scoring setting '${key}' must be a number.`);
+    }
+  });
+}
+
+/**
+ * Calculates fantasy points for a single player's weekly stats.
+ * @param stats WeeklyStatsInput
+ * @param scoringSettings Optional custom scoring settings
+ * @returns FantasyPointsResult
+ */
 export async function calculateFantasyPoints(
   stats: WeeklyStatsInput,
   scoringSettings?: ScoringSettings
 ): Promise<FantasyPointsResult> {
+  validateStatsInput(stats);
   const settings = scoringSettings || DEFAULT_SCORING_SETTINGS.standard;
-  
-  const { data, error } = await supabase.functions.invoke('calculate-fantasy-points', {
-    body: { stats, scoring_settings: settings },
-  });
+  validateScoringSettings(settings);
+
+  const { data, error } = await supabase.functions.invoke(
+    "calculate-fantasy-points",
+    {
+      body: { stats, scoring_settings: settings },
+    }
+  );
 
   if (error) {
-    console.error('Error calculating fantasy points:', error);
+    console.error("Error calculating fantasy points:", error);
     throw new Error(`Failed to calculate fantasy points: ${error.message}`);
   }
 
   return data;
 }
 
+/**
+ * Calculates fantasy points for a batch of players.
+ * @param players Array of player_id and stats
+ * @param scoringSettings ScoringSettings
+ * @returns Array of results with player_id
+ */
 export async function calculateBatchFantasyPoints(
   players: Array<{ player_id: string; stats: WeeklyStatsInput }>,
   scoringSettings: ScoringSettings
 ): Promise<Array<{ player_id: string } & FantasyPointsResult>> {
-  const { data, error } = await supabase.functions.invoke('calculate-fantasy-points', {
-    body: { players, scoring_settings: scoringSettings },
-  });
+  players.forEach((p) => validateStatsInput(p.stats));
+  validateScoringSettings(scoringSettings);
+
+  const { data, error } = await supabase.functions.invoke(
+    "calculate-fantasy-points",
+    {
+      body: { players, scoring_settings: scoringSettings },
+    }
+  );
 
   if (error) {
-    console.error('Error calculating batch fantasy points:', error);
-    throw new Error(`Failed to calculate batch fantasy points: ${error.message}`);
+    console.error("Error calculating batch fantasy points:", error);
+    throw new Error(
+      `Failed to calculate batch fantasy points: ${error.message}`
+    );
   }
 
   return data.results;
 }
 
+/**
+ * Updates a player's weekly stats row with calculated fantasy points.
+ * @param playerId string
+ * @param season number
+ * @param week number
+ * @param scoringFormat 'standard' | 'ppr' | 'half_ppr'
+ */
 export async function updateWeeklyStatsWithFantasyPoints(
   playerId: string,
   season: number,
   week: number,
-  scoringFormat: 'standard' | 'ppr' | 'half_ppr' = 'standard'
+  scoringFormat: "standard" | "ppr" | "half_ppr" = "standard"
 ): Promise<void> {
   // Fetch the weekly stats
   const { data: weeklyStats, error: fetchError } = await supabase
-    .from('weekly_stats')
-    .select('*')
-    .eq('player_id', playerId)
-    .eq('season', season)
-    .eq('week', week)
+    .from("weekly_stats")
+    .select("*")
+    .eq("player_id", playerId)
+    .eq("season", season)
+    .eq("week", week)
     .single();
 
   if (fetchError || !weeklyStats) {
     throw new Error(`Failed to fetch weekly stats: ${fetchError?.message}`);
   }
 
-  // Calculate fantasy points
   const stats: WeeklyStatsInput = {
     passing_yards: weeklyStats.passing_yards || 0,
     passing_tds: weeklyStats.passing_tds || 0,
@@ -133,29 +171,37 @@ export async function updateWeeklyStatsWithFantasyPoints(
     receptions: weeklyStats.receptions || 0,
     fumbles_lost: weeklyStats.fumbles_lost || 0,
   };
+  validateStatsInput(stats);
 
-  const result = await calculateFantasyPoints(stats, DEFAULT_SCORING_SETTINGS[scoringFormat]);
+  const result = await calculateFantasyPoints(
+    stats,
+    DEFAULT_SCORING_SETTINGS[scoringFormat]
+  );
 
   // Update the database with calculated points
   const { error: updateError } = await supabase
-    .from('weekly_stats')
+    .from("weekly_stats")
     .update({ fantasy_points: result.total_points })
-    .eq('player_id', playerId)
-    .eq('season', season)
-    .eq('week', week);
+    .eq("player_id", playerId)
+    .eq("season", season)
+    .eq("week", week);
 
   if (updateError) {
     throw new Error(`Failed to update fantasy points: ${updateError.message}`);
   }
 }
 
+/**
+ * Recalculates fantasy points for all weekly stats rows.
+ * @param scoringFormat 'standard' | 'ppr' | 'half_ppr'
+ */
 export async function recalculateAllFantasyPoints(
-  scoringFormat: 'standard' | 'ppr' | 'half_ppr' = 'standard'
+  scoringFormat: "standard" | "ppr" | "half_ppr" = "standard"
 ): Promise<void> {
   // Fetch all weekly stats
   const { data: allStats, error: fetchError } = await supabase
-    .from('weekly_stats')
-    .select('*');
+    .from("weekly_stats")
+    .select("*");
 
   if (fetchError) {
     throw new Error(`Failed to fetch all weekly stats: ${fetchError.message}`);
@@ -166,9 +212,8 @@ export async function recalculateAllFantasyPoints(
   }
 
   // Prepare batch calculation
-  const players = allStats.map((stat) => ({
-    player_id: stat.id,
-    stats: {
+  const players = allStats.map((stat) => {
+    const stats: WeeklyStatsInput = {
       passing_yards: stat.passing_yards || 0,
       passing_tds: stat.passing_tds || 0,
       passing_interceptions: stat.passing_interceptions || 0,
@@ -178,11 +223,19 @@ export async function recalculateAllFantasyPoints(
       receiving_tds: stat.receiving_tds || 0,
       receptions: stat.receptions || 0,
       fumbles_lost: stat.fumbles_lost || 0,
-    },
-  }));
+    };
+    validateStatsInput(stats);
+    return {
+      player_id: stat.id,
+      stats,
+    };
+  });
 
   // Calculate all fantasy points
-  const results = await calculateBatchFantasyPoints(players, DEFAULT_SCORING_SETTINGS[scoringFormat]);
+  const results = await calculateBatchFantasyPoints(
+    players,
+    DEFAULT_SCORING_SETTINGS[scoringFormat]
+  );
 
   // Update database with all calculated points
   const updates = results.map((result, index) => ({
@@ -192,12 +245,44 @@ export async function recalculateAllFantasyPoints(
 
   for (const update of updates) {
     const { error } = await supabase
-      .from('weekly_stats')
+      .from("weekly_stats")
       .update({ fantasy_points: update.fantasy_points })
-      .eq('id', update.id);
+      .eq("id", update.id);
 
     if (error) {
       console.error(`Failed to update fantasy points for ${update.id}:`, error);
     }
   }
+}
+
+/**
+ * Mock helper for unit tests: returns a valid WeeklyStatsInput object.
+ */
+export function mockWeeklyStatsInput(
+  overrides: Partial<WeeklyStatsInput> = {}
+): WeeklyStatsInput {
+  return {
+    passing_yards: 100,
+    passing_tds: 1,
+    passing_interceptions: 0,
+    rushing_yards: 50,
+    rushing_tds: 1,
+    receiving_yards: 30,
+    receiving_tds: 0,
+    receptions: 3,
+    fumbles_lost: 0,
+    ...overrides,
+  };
+}
+
+/**
+ * Mock helper for unit tests: returns a valid ScoringSettings object.
+ */
+export function mockScoringSettings(
+  overrides: Partial<ScoringSettings> = {}
+): ScoringSettings {
+  return {
+    ...DEFAULT_SCORING_SETTINGS.standard,
+    ...overrides,
+  };
 }

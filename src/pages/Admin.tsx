@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, ReactNode, useMemo, useCallback } from "react";
 import {
   Database,
   Users,
@@ -7,7 +7,7 @@ import {
   ArrowLeftRight,
 } from "lucide-react";
 import Layout from "../components/Layout";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery } from "@/hooks/useQuery";
 import {
   fetchPlayers,
   fetchWeeklyStats,
@@ -18,9 +18,102 @@ import {
   Projection,
   TradeValue,
 } from "../lib/database";
+import {
+  APP_NAME,
+  APP_TAGLINE,
+  LOADING_MESSAGE,
+  ERROR_GENERIC,
+  ERROR_AUTH,
+  RETRY_LABEL,
+} from "@/lib/constants";
+import { appConfig } from "@/config/app";
+
+// Reusable Table component
+interface TableColumn<T> {
+  key: keyof T | string;
+  label: string;
+  render?: (row: T) => ReactNode;
+}
+
+interface TableProps<T> {
+  columns: TableColumn<T>[];
+  data: T[];
+  rowKey: (row: T) => string | number;
+}
+
+function Table<T>({ columns, data, rowKey }: TableProps<T>) {
+  return (
+    <table className="w-full">
+      <thead className="bg-slate-700/50">
+        <tr>
+          {columns.map((col) => (
+            <th
+              key={col.key as string}
+              className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider"
+            >
+              {col.label}
+            </th>
+          ))}
+        </tr>
+      </thead>
+      <tbody className="divide-y divide-slate-700">
+        {data.map((row) => (
+          <tr key={rowKey(row)} className="hover:bg-slate-700/30">
+            {columns.map((col) => (
+              <td
+                key={col.key as string}
+                className="px-6 py-4 whitespace-nowrap text-sm text-slate-300"
+              >
+                {col.render ? col.render(row) : (row as any)[col.key]}
+              </td>
+            ))}
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+}
+
+// ErrorBoundary for data fetching
+interface ErrorBoundaryProps {
+  children: ReactNode;
+}
+interface ErrorBoundaryState {
+  hasError: boolean;
+  error: Error | null;
+}
+class ErrorBoundary extends React.Component<
+  ErrorBoundaryProps,
+  ErrorBoundaryState
+> {
+  constructor(props: ErrorBoundaryProps) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error };
+  }
+  componentDidCatch(error: Error, info: any) {
+    // Log error if needed
+    console.error("ErrorBoundary caught: ", error, info);
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="flex flex-col items-center justify-center h-64 text-center">
+          <div className="text-red-400 font-bold text-lg mb-2">
+            An error occurred
+          </div>
+          <div className="text-slate-400 mb-4">{this.state.error?.message}</div>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 const Admin: React.FC = () => {
-  const [activeTab, setActiveTab] = useState("players");
+  const [activeTab, setActiveTab] = useState<string>("players");
 
   const {
     data: players = [],
@@ -67,18 +160,31 @@ const Admin: React.FC = () => {
   const error =
     playersError || statsError || projectionsError || tradeValuesError;
 
-  const handleRetry = () => {
+  const handleRetry = useCallback(() => {
     refetchPlayers();
     refetchWeeklyStats();
     refetchProjections();
     refetchTradeValues();
-  };
+  }, [
+    refetchPlayers,
+    refetchWeeklyStats,
+    refetchProjections,
+    refetchTradeValues,
+  ]);
 
-  const getPlayerName = (playerId: string | null) => {
-    if (!playerId) return "Unknown Player";
-    const player = players.find((p) => p.id === playerId);
-    return player ? player.name : "Unknown Player";
-  };
+  const getPlayerName = useCallback(
+    (playerId: string | null) => {
+      if (!playerId) return "Unknown Player";
+      const player = players.find((p) => p.id === playerId);
+      return player ? player.name : "Unknown Player";
+    },
+    [players]
+  );
+
+  const memoizedPlayers = useMemo(() => players, [players]);
+  const memoizedWeeklyStats = useMemo(() => weeklyStats, [weeklyStats]);
+  const memoizedProjections = useMemo(() => projections, [projections]);
+  const memoizedTradeValues = useMemo(() => tradeValues, [tradeValues]);
 
   const tabs = [
     { id: "players", label: "Players", icon: Users, count: players.length },
@@ -138,11 +244,9 @@ const Admin: React.FC = () => {
         <div>
           <h1 className="text-3xl font-bold text-white flex items-center">
             <Database className="h-8 w-8 mr-3 text-emerald-400" />
-            Database Admin
+            {APP_NAME}
           </h1>
-          <p className="text-slate-400 mt-1">
-            View and verify database contents
-          </p>
+          <p className="text-slate-400 mt-1">{APP_TAGLINE}</p>
         </div>
 
         {/* Tabs */}
@@ -175,200 +279,77 @@ const Admin: React.FC = () => {
         <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl overflow-hidden">
           {activeTab === "players" && (
             <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-slate-700/50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
-                      Name
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
-                      Position
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
-                      Team
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
-                      Bye Week
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
-                      Status
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-700">
-                  {players.map((player) => (
-                    <tr key={player.id} className="hover:bg-slate-700/30">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">
-                        {player.name}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-300">
-                        {player.position}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-300">
-                        {player.team}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-300">
-                        {player.bye_week || "N/A"}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span
-                          className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                            player.active
-                              ? "bg-green-100 text-green-800"
-                              : "bg-red-100 text-red-800"
-                          }`}
-                        >
-                          {player.active ? "Active" : "Inactive"}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+              <Table
+                columns={[
+                  { key: "name", label: "Name" },
+                  { key: "position", label: "Position" },
+                  { key: "team", label: "Team" },
+                  { key: "bye_week", label: "Bye Week" },
+                  { key: "active", label: "Status" },
+                ]}
+                data={memoizedPlayers}
+                rowKey={(player) => player.id}
+              />
             </div>
           )}
 
           {activeTab === "stats" && (
             <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-slate-700/50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
-                      Player
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
-                      Week
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
-                      Fantasy Points
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
-                      Passing
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
-                      Rushing
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
-                      Receiving
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-700">
-                  {weeklyStats.map((stat) => (
-                    <tr key={stat.id} className="hover:bg-slate-700/30">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">
-                        {getPlayerName(stat.player_id)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-300">
-                        Week {stat.week}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-emerald-400 font-medium">
-                        {stat.fantasy_points}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-300">
-                        {stat.passing_yards}y, {stat.passing_tds}td
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-300">
-                        {stat.rushing_yards}y, {stat.rushing_tds}td
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-300">
-                        {stat.receptions}rec, {stat.receiving_yards}y,{" "}
-                        {stat.receiving_tds}td
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+              <Table
+                columns={[
+                  {
+                    key: "player",
+                    label: "Player",
+                    render: (stat) => getPlayerName(stat.player_id),
+                  },
+                  { key: "week", label: "Week" },
+                  { key: "fantasy_points", label: "Fantasy Points" },
+                  { key: "passing_yards", label: "Passing" },
+                  { key: "rushing_yards", label: "Rushing" },
+                  { key: "receptions", label: "Receiving" },
+                ]}
+                data={memoizedWeeklyStats}
+                rowKey={(stat) => stat.id}
+              />
             </div>
           )}
 
           {activeTab === "projections" && (
             <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-slate-700/50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
-                      Player
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
-                      Week
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
-                      Projected Points
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
-                      Type
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
-                      Confidence
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-700">
-                  {projections.map((projection) => (
-                    <tr key={projection.id} className="hover:bg-slate-700/30">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">
-                        {getPlayerName(projection.player_id)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-300">
-                        Week {projection.week}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-emerald-400 font-medium">
-                        {projection.projected_points}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-300">
-                        {projection.projection_type}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-300">
-                        {projection.confidence_score
-                          ? `${(projection.confidence_score * 100).toFixed(0)}%`
-                          : "N/A"}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+              <Table
+                columns={[
+                  {
+                    key: "player",
+                    label: "Player",
+                    render: (projection) => getPlayerName(projection.player_id),
+                  },
+                  { key: "week", label: "Week" },
+                  { key: "projected_points", label: "Projected Points" },
+                  { key: "projection_type", label: "Type" },
+                  { key: "confidence_score", label: "Confidence" },
+                ]}
+                data={memoizedProjections}
+                rowKey={(projection) => projection.id}
+              />
             </div>
           )}
 
           {activeTab === "trade-values" && (
             <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-slate-700/50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
-                      Player
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
-                      Week
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
-                      Trade Value
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
-                      Tier
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-700">
-                  {tradeValues.map((value) => (
-                    <tr key={value.id} className="hover:bg-slate-700/30">
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">
-                        {getPlayerName(value.player_id)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-300">
-                        Week {value.week}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-emerald-400 font-medium">
-                        {value.trade_value}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-300">
-                        Tier {value.tier}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+              <Table
+                columns={[
+                  {
+                    key: "player",
+                    label: "Player",
+                    render: (value) => getPlayerName(value.player_id),
+                  },
+                  { key: "week", label: "Week" },
+                  { key: "trade_value", label: "Trade Value" },
+                  { key: "tier", label: "Tier" },
+                ]}
+                data={memoizedTradeValues}
+                rowKey={(value) => value.id}
+              />
             </div>
           )}
         </div>

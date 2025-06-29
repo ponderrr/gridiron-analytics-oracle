@@ -13,6 +13,8 @@ import {
   Calculator,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { APP_NAME, COPYRIGHT } from "@/lib/constants";
+import { appConfig } from "@/config/app";
 
 interface NavItemProps {
   href: string;
@@ -21,7 +23,12 @@ interface NavItemProps {
   comingSoon?: boolean;
 }
 
-const NavItem: React.FC<NavItemProps> = ({ href, icon: Icon, label, comingSoon }) => {
+const NavItem: React.FC<NavItemProps> = ({
+  href,
+  icon: Icon,
+  label,
+  comingSoon,
+}) => {
   const { pathname } = useLocation();
   const isActive = pathname === href;
 
@@ -30,21 +37,21 @@ const NavItem: React.FC<NavItemProps> = ({ href, icon: Icon, label, comingSoon }
       to={href}
       className={cn(
         "flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors hover:bg-slate-700",
-        isActive ? "bg-emerald-500 text-white hover:bg-emerald-400" : "text-slate-400"
+        isActive
+          ? "bg-emerald-500 text-white hover:bg-emerald-400"
+          : "text-slate-400"
       )}
     >
       <Icon className="h-4 w-4 mr-2" />
       {label}
       {comingSoon && (
-        <span className="ml-auto text-xs text-slate-500 uppercase">
-          Soon
-        </span>
+        <span className="ml-auto text-xs text-slate-500 uppercase">Soon</span>
       )}
     </Link>
   );
 };
 
-export default function AppSidebar() {
+const AppSidebarComponent = function AppSidebar() {
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   const toggleSidebar = () => {
@@ -52,9 +59,11 @@ export default function AppSidebar() {
   };
 
   return (
-    <div className={`bg-slate-800 border-r border-slate-700 transition-all duration-300 ${
-      isCollapsed ? 'w-16' : 'w-64'
-    } flex flex-col h-screen`}>
+    <div
+      className={`bg-slate-800 border-r border-slate-700 transition-all duration-300 ${
+        isCollapsed ? "w-16" : "w-64"
+      } flex flex-col h-screen`}
+    >
       {/* Header Section */}
       <div className="flex items-center justify-between px-4 py-3">
         <Link to="/dashboard" className="flex items-center space-x-2">
@@ -65,7 +74,10 @@ export default function AppSidebar() {
             <span className="text-lg font-bold text-white">FF Guru</span>
           )}
         </Link>
-        <button onClick={toggleSidebar} className="p-1 rounded-md hover:bg-slate-700">
+        <button
+          onClick={toggleSidebar}
+          className="p-1 rounded-md hover:bg-slate-700"
+        >
           {isCollapsed ? (
             <ChevronRight className="h-5 w-5 text-slate-400" />
           ) : (
@@ -79,19 +91,31 @@ export default function AppSidebar() {
         <NavItem href="/dashboard" icon={Home} label="Dashboard" />
         <NavItem href="/players" icon={Users} label="Players" />
         <NavItem href="/analytics" icon={TrendingUp} label="Analytics" />
-        <NavItem href="/trade-analyzer" icon={ArrowLeftRight} label="Trade Analyzer" />
+        <NavItem
+          href="/trade-analyzer"
+          icon={ArrowLeftRight}
+          label="Trade Analyzer"
+        />
         <NavItem href="/league" icon={Trophy} label="League" comingSoon />
         <NavItem href="/admin" icon={Shield} label="Admin" />
-        <NavItem href="/fantasy-points-test" icon={Calculator} label="Points Test" />
+        <NavItem
+          href="/fantasy-points-test"
+          icon={Calculator}
+          label="Points Test"
+        />
         <NavItem href="/settings" icon={Settings} label="Settings" />
       </nav>
 
       {/* Footer Section */}
       <div className="px-4 py-3 border-t border-slate-700">
         <p className="text-xs text-slate-500">
-          &copy; {new Date().getFullYear()} Fantasy Football Guru
+          &copy; {new Date().getFullYear()} {APP_NAME}
         </p>
       </div>
     </div>
   );
-}
+};
+
+const areEqual = (prevProps: {}, nextProps: {}) => true; // No props, so always equal
+
+export default React.memo(AppSidebarComponent, areEqual);

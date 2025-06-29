@@ -13,6 +13,7 @@ interface AuthContextType {
   session: Session | null;
   isLoading: boolean;
   isAuthLoading: boolean;
+  authError: AuthError | null;
   login: (email: string, password: string) => Promise<void>;
   signup: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
@@ -46,6 +47,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthLoading, setIsAuthLoading] = useState(false);
+  const [authError, setAuthError] = useState<AuthError | null>(null);
 
   // Helper to add a timeout to any async auth operation, so users aren't left waiting forever.
   function withTimeout<T>(
@@ -65,25 +67,69 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }
 
   useEffect(() => {
+    let isMounted = true;
+    let retryCount = 0;
+    const maxRetries = 3;
+    const retryDelay = 2000;
+
+    // Helper to fetch session with retry
+    const fetchSession = async () => {
+      setIsLoading(true);
+      setAuthError(null);
+      while (retryCount < maxRetries) {
+        try {
+          const {
+            data: { session },
+          } = await supabase.auth.getSession();
+          if (!isMounted) return;
+          setSession(session);
+          setUser(session?.user ?? null);
+          setIsLoading(false);
+          setAuthError(null);
+          break;
+        } catch (error) {
+          retryCount++;
+          console.error(
+            `Auth session fetch error (attempt ${retryCount}):`,
+            error
+          );
+          setAuthError({
+            message:
+              (error as Error).message || "Failed to initialize session.",
+          });
+          if (retryCount < maxRetries) {
+            await new Promise((res) => setTimeout(res, retryDelay));
+          } else {
+            setIsLoading(false);
+          }
+        }
+      }
+    };
+
     // Listen for auth state changes from Supabase and update local state accordingly.
-    // This ensures the app always knows if a user is logged in or not.
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log("Auth state changed:", event, session?.user?.email);
-      setSession(session);
-      setUser(session?.user ?? null);
-      setIsLoading(false);
+    } = supabase.auth.onAuthStateChange(async (event, session) => {
+      try {
+        setSession(session);
+        setUser(session?.user ?? null);
+        setIsLoading(false);
+        setAuthError(null);
+      } catch (error) {
+        console.error("Auth state change error:", error);
+        setAuthError({
+          message: (error as Error).message || "Auth state change failed.",
+        });
+      }
     });
 
     // On mount, check if there's an existing session so the app can restore user state.
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      setIsLoading(false);
-    });
+    fetchSession();
 
-    return () => subscription.unsubscribe();
+    return () => {
+      isMounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const login = async (email: string, password: string): Promise<void> => {
@@ -216,6 +262,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     session,
     isLoading,
     isAuthLoading,
+    authError,
     login,
     signup,
     logout,
