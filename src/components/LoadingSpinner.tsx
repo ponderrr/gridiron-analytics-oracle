@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React from "react";
 
 interface LoadingSpinnerProps {
   size?: "sm" | "md" | "lg";
@@ -7,21 +7,18 @@ interface LoadingSpinnerProps {
   message?: string;
 }
 
+const sizeClasses = {
+  sm: "h-4 w-4",
+  md: "h-8 w-8",
+  lg: "h-12 w-12",
+} as const;
+
 const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
   size = "md",
   className = "",
   fullPage = false,
   message,
 }) => {
-  const sizeClasses = useMemo(
-    () => ({
-      sm: "h-4 w-4",
-      md: "h-8 w-8",
-      lg: "h-12 w-12",
-    }),
-    [size]
-  );
-
   const spinner = (
     <div
       className={`animate-spin rounded-full border-2 border-slate-600 border-t-emerald-500 ${sizeClasses[size]}`}

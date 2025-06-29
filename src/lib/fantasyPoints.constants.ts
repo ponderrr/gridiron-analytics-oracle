@@ -1,4 +1,13 @@
-import { ScoringSettings } from "./fantasyPoints";
+export interface ScoringSettings {
+  format: "standard" | "ppr" | "half_ppr";
+  passing_yards_per_point: number;
+  rushing_receiving_yards_per_point: number;
+  passing_td_points: number;
+  rushing_receiving_td_points: number;
+  reception_points: number;
+  interception_penalty: number;
+  fumble_penalty: number;
+}
 
 export const DEFAULT_SCORING_SETTINGS: Record<string, ScoringSettings> = {
   standard: {

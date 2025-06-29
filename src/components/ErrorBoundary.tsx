@@ -1,4 +1,4 @@
-import React from "react";
+import React, { ReactNode } from "react";
 
 // Error type shapes
 export type AppErrorType = "network" | "auth" | "data" | "unknown";
@@ -9,15 +9,13 @@ export interface AppError extends Error {
   context?: string;
 }
 
-interface ErrorBoundaryState {
-  hasError: boolean;
-  error: AppError | null;
-  retryCount: number;
+interface ErrorBoundaryProps {
+  children: ReactNode;
 }
 
-interface ErrorBoundaryProps {
-  children: React.ReactNode;
-  context?: string;
+interface ErrorBoundaryState {
+  hasError: boolean;
+  error: Error | null;
 }
 
 const getErrorType = (error: AppError): AppErrorType => {
@@ -69,65 +67,28 @@ class ErrorBoundary extends React.Component<
   ErrorBoundaryProps,
   ErrorBoundaryState
 > {
-  retryTimeout: NodeJS.Timeout | null = null;
-
   constructor(props: ErrorBoundaryProps) {
     super(props);
-    this.state = { hasError: false, error: null, retryCount: 0 };
+    this.state = { hasError: false, error: null };
   }
 
-  static getDerivedStateFromError(error: AppError): ErrorBoundaryState {
-    return { hasError: true, error, retryCount: 0 };
+  static getDerivedStateFromError(error: Error) {
+    return { hasError: true, error };
   }
 
-  componentDidCatch(error: AppError, errorInfo: React.ErrorInfo) {
-    reportError(error, errorInfo, this.props.context);
+  componentDidCatch(error: Error, info: any) {
+    // Log error if needed
+    console.error("ErrorBoundary caught: ", error, info);
   }
-
-  handleRetry = () => {
-    const { retryCount } = this.state;
-    const delay = Math.min(1000 * 2 ** retryCount, 10000);
-    this.setState({ hasError: false, error: null, retryCount: retryCount + 1 });
-    if (this.retryTimeout) clearTimeout(this.retryTimeout);
-    this.retryTimeout = setTimeout(() => {
-      // No-op: just allow re-render
-    }, delay);
-  };
 
   render() {
-    if (this.state.hasError && this.state.error) {
-      const type = getErrorType(this.state.error);
-      const title = getErrorTitle(type);
-      const message = getErrorMessage(type);
+    if (this.state.hasError) {
       return (
-        <div className="min-h-screen flex flex-col items-center justify-center bg-slate-900 text-center p-8">
-          <div className="bg-slate-800 border border-slate-700 rounded-xl p-8 max-w-md w-full">
-            <h2 className="text-2xl font-bold text-red-400 mb-2">{title}</h2>
-            <p className="text-slate-300 mb-4">{message}</p>
-            {process.env.NODE_ENV === "development" &&
-              this.state.error.stack && (
-                <details className="bg-slate-900 text-red-300 text-xs rounded p-2 mb-4 overflow-x-auto">
-                  <summary>Stack Trace</summary>
-                  <pre>{this.state.error.stack}</pre>
-                </details>
-              )}
-            {this.state.error.message && (
-              <pre className="bg-slate-900 text-red-300 text-xs rounded p-2 mb-4 overflow-x-auto">
-                {this.state.error.message}
-              </pre>
-            )}
-            <button
-              onClick={this.handleRetry}
-              className="btn-primary px-6 py-2 rounded font-semibold mt-2"
-            >
-              Retry
-            </button>
-            {this.state.retryCount > 0 && (
-              <div className="text-xs text-slate-500 mt-2">
-                Retrying... (attempt {this.state.retryCount + 1})
-              </div>
-            )}
+        <div className="flex flex-col items-center justify-center h-64 text-center">
+          <div className="text-red-400 font-bold text-lg mb-2">
+            An error occurred
           </div>
+          <div className="text-slate-400 mb-4">{this.state.error?.message}</div>
         </div>
       );
     }

@@ -18,44 +18,7 @@ import {
 } from "@/lib/fantasyPoints";
 import { DEFAULT_SCORING_SETTINGS } from "@/lib/fantasyPoints.constants";
 import LoadingSpinner from "@/components/LoadingSpinner";
-
-// ErrorBoundary for data fetching
-interface ErrorBoundaryProps {
-  children: ReactNode;
-}
-interface ErrorBoundaryState {
-  hasError: boolean;
-  error: Error | null;
-}
-class ErrorBoundary extends React.Component<
-  ErrorBoundaryProps,
-  ErrorBoundaryState
-> {
-  constructor(props: ErrorBoundaryProps) {
-    super(props);
-    this.state = { hasError: false, error: null };
-  }
-  static getDerivedStateFromError(error: Error) {
-    return { hasError: true, error };
-  }
-  componentDidCatch(error: Error, info: any) {
-    // Log error if needed
-    console.error("ErrorBoundary caught: ", error, info);
-  }
-  render() {
-    if (this.state.hasError) {
-      return (
-        <div className="flex flex-col items-center justify-center h-64 text-center">
-          <div className="text-red-400 font-bold text-lg mb-2">
-            An error occurred
-          </div>
-          <div className="text-slate-400 mb-4">{this.state.error?.message}</div>
-        </div>
-      );
-    }
-    return this.props.children;
-  }
-}
+import ErrorBoundary from "@/components/ErrorBoundary";
 
 const FantasyPointsTest: React.FC = () => {
   const [stats, setStats] = useState<WeeklyStatsInput>({
@@ -89,15 +52,11 @@ const FantasyPointsTest: React.FC = () => {
     setError(null);
 
     try {
-      console.log("Calculating fantasy points with stats:", stats);
-      console.log("Using scoring format:", scoringFormat);
-
       const calculatedResult = await calculateFantasyPoints(
         stats,
         DEFAULT_SCORING_SETTINGS[scoringFormat]
       );
 
-      console.log("Calculation result:", calculatedResult);
       setResult(calculatedResult);
     } catch (err) {
       console.error("Error calculating fantasy points:", err);

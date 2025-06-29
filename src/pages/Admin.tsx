@@ -18,15 +18,9 @@ import {
   Projection,
   TradeValue,
 } from "../lib/database";
-import {
-  APP_NAME,
-  APP_TAGLINE,
-  LOADING_MESSAGE,
-  ERROR_GENERIC,
-  ERROR_AUTH,
-  RETRY_LABEL,
-} from "@/lib/constants";
+import { APP_NAME, APP_TAGLINE } from "@/lib/constants";
 import { appConfig } from "@/config/app";
+import ErrorBoundary from "@/components/ErrorBoundary";
 
 // Reusable Table component
 interface TableColumn<T> {
@@ -41,7 +35,26 @@ interface TableProps<T> {
   rowKey: (row: T) => string | number;
 }
 
-function Table<T>({ columns, data, rowKey }: TableProps<T>) {
+function Table<T extends Record<string, unknown>>({
+  columns,
+  data,
+  rowKey,
+}: TableProps<T>) {
+  const getCellValue = (row: T, col: TableColumn<T>): ReactNode => {
+    if (col.render) {
+      return col.render(row);
+    }
+
+    // Type-safe property access
+    if (col.key in row) {
+      const value = row[col.key as keyof T];
+      return value != null ? String(value) : "";
+    }
+
+    // For custom keys that don't exist on the row, return empty
+    return "";
+  };
+
   return (
     <table className="w-full">
       <thead className="bg-slate-700/50">
@@ -64,7 +77,7 @@ function Table<T>({ columns, data, rowKey }: TableProps<T>) {
                 key={col.key as string}
                 className="px-6 py-4 whitespace-nowrap text-sm text-slate-300"
               >
-                {col.render ? col.render(row) : (row as any)[col.key]}
+                {getCellValue(row, col)}
               </td>
             ))}
           </tr>
@@ -72,44 +85,6 @@ function Table<T>({ columns, data, rowKey }: TableProps<T>) {
       </tbody>
     </table>
   );
-}
-
-// ErrorBoundary for data fetching
-interface ErrorBoundaryProps {
-  children: ReactNode;
-}
-interface ErrorBoundaryState {
-  hasError: boolean;
-  error: Error | null;
-}
-class ErrorBoundary extends React.Component<
-  ErrorBoundaryProps,
-  ErrorBoundaryState
-> {
-  constructor(props: ErrorBoundaryProps) {
-    super(props);
-    this.state = { hasError: false, error: null };
-  }
-  static getDerivedStateFromError(error: Error) {
-    return { hasError: true, error };
-  }
-  componentDidCatch(error: Error, info: any) {
-    // Log error if needed
-    console.error("ErrorBoundary caught: ", error, info);
-  }
-  render() {
-    if (this.state.hasError) {
-      return (
-        <div className="flex flex-col items-center justify-center h-64 text-center">
-          <div className="text-red-400 font-bold text-lg mb-2">
-            An error occurred
-          </div>
-          <div className="text-slate-400 mb-4">{this.state.error?.message}</div>
-        </div>
-      );
-    }
-    return this.props.children;
-  }
 }
 
 const Admin: React.FC = () => {
@@ -414,4 +389,10 @@ const Admin: React.FC = () => {
   );
 };
 
-export default Admin;
+export default function AdminWithBoundary() {
+  return (
+    <ErrorBoundary>
+      <Admin />
+    </ErrorBoundary>
+  );
+}

@@ -13,8 +13,7 @@ import {
   Calculator,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { APP_NAME, COPYRIGHT } from "@/lib/constants";
-import { appConfig } from "@/config/app";
+import { APP_NAME } from "@/lib/constants";
 
 interface NavItemProps {
   href: string;
@@ -116,6 +115,4 @@ const AppSidebarComponent = function AppSidebar() {
   );
 };
 
-const areEqual = (prevProps: {}, nextProps: {}) => true; // No props, so always equal
-
-export default React.memo(AppSidebarComponent, areEqual);
+export default AppSidebarComponent;

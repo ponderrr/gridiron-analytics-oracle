@@ -27,6 +27,24 @@ interface LayoutProps {
   isAuthenticated?: boolean;
 }
 
+// Sidebar skeleton loader - moved outside to prevent recreation on every render
+const SidebarSkeleton = React.memo(() => (
+  <div className="bg-slate-800 border-r border-slate-700 w-64 flex flex-col h-screen animate-pulse">
+    <div className="flex items-center justify-between px-4 py-3">
+      <div className="bg-emerald-500 p-2 rounded-md w-10 h-10" />
+      <div className="rounded-md bg-slate-700 w-8 h-8" />
+    </div>
+    <div className="flex-1 px-4 py-4 space-y-4">
+      {[...Array(7)].map((_, i) => (
+        <div key={i} className="h-8 bg-slate-700 rounded-md w-full" />
+      ))}
+    </div>
+    <div className="px-4 py-3 border-t border-slate-700">
+      <div className="h-4 bg-slate-700 rounded w-1/2" />
+    </div>
+  </div>
+));
+
 const Layout: React.FC<LayoutProps> = ({ children, isAuthenticated }) => {
   const { user, logout, isLoading, authError } = useAuth();
   const navigate = useNavigate();
@@ -40,24 +58,6 @@ const Layout: React.FC<LayoutProps> = ({ children, isAuthenticated }) => {
       console.error("Logout failed:", error);
     }
   };
-
-  // Sidebar skeleton loader
-  const SidebarSkeleton = React.memo(() => (
-    <div className="bg-slate-800 border-r border-slate-700 w-64 flex flex-col h-screen animate-pulse">
-      <div className="flex items-center justify-between px-4 py-3">
-        <div className="bg-emerald-500 p-2 rounded-md w-10 h-10" />
-        <div className="rounded-md bg-slate-700 w-8 h-8" />
-      </div>
-      <div className="flex-1 px-4 py-4 space-y-4">
-        {[...Array(7)].map((_, i) => (
-          <div key={i} className="h-8 bg-slate-700 rounded-md w-full" />
-        ))}
-      </div>
-      <div className="px-4 py-3 border-t border-slate-700">
-        <div className="h-4 bg-slate-700 rounded w-1/2" />
-      </div>
-    </div>
-  ));
 
   // Error state for auth failures
   if (authError) {

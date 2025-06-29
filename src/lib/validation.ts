@@ -15,6 +15,12 @@ export const COMMON_EMAIL_DOMAINS = [
   "gmx.com",
 ];
 
+// Email validation options interface
+export interface EmailValidationOptions {
+  requireCommonDomain?: boolean;
+  customAllowedDomains?: string[];
+}
+
 // Unified validation result interface
 export interface ValidationResult {
   valid: boolean;
@@ -25,14 +31,23 @@ export interface ValidationResult {
 /**
  * Validates an email address and checks if the domain is whitelisted.
  */
-export function validateEmail(email: string): ValidationResult {
+export function validateEmail(
+  email: string,
+  options: EmailValidationOptions = {}
+): ValidationResult {
   const errors: string[] = [];
   if (!email) errors.push("Email is required.");
   else if (!isEmail(email)) errors.push("Please enter a valid email address.");
-  else {
+  else if (options.requireCommonDomain) {
     const domain = email.split("@")[1]?.toLowerCase();
-    if (domain && !COMMON_EMAIL_DOMAINS.includes(domain)) {
-      errors.push("Please use a common email provider (gmail, yahoo, etc.).");
+    if (domain) {
+      const allowedDomains = [
+        ...COMMON_EMAIL_DOMAINS,
+        ...(options.customAllowedDomains || []),
+      ];
+      if (!allowedDomains.includes(domain)) {
+        errors.push("Please use a common email provider (gmail, yahoo, etc.).");
+      }
     }
   }
   return { valid: errors.length === 0, errors };

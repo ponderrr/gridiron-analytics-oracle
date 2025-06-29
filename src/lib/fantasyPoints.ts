@@ -1,5 +1,8 @@
 import { supabase } from "@/integrations/supabase/client";
-import { DEFAULT_SCORING_SETTINGS } from "./fantasyPoints.constants";
+import {
+  DEFAULT_SCORING_SETTINGS,
+  ScoringSettings,
+} from "./fantasyPoints.constants";
 
 export interface WeeklyStatsInput {
   passing_yards: number;
@@ -11,17 +14,6 @@ export interface WeeklyStatsInput {
   receiving_tds: number;
   receptions: number;
   fumbles_lost: number;
-}
-
-export interface ScoringSettings {
-  format: "standard" | "ppr" | "half_ppr";
-  passing_yards_per_point: number;
-  rushing_receiving_yards_per_point: number;
-  passing_td_points: number;
-  rushing_receiving_td_points: number;
-  reception_points: number;
-  interception_penalty: number;
-  fumble_penalty: number;
 }
 
 export interface FantasyPointsResult {
@@ -60,7 +52,8 @@ export function validateScoringSettings(settings: ScoringSettings): void {
   if (!["standard", "ppr", "half_ppr"].includes(settings.format)) {
     throw new Error("Invalid scoring format.");
   }
-  [
+
+  const numericKeys: (keyof ScoringSettings)[] = [
     "passing_yards_per_point",
     "rushing_receiving_yards_per_point",
     "passing_td_points",
@@ -68,8 +61,10 @@ export function validateScoringSettings(settings: ScoringSettings): void {
     "reception_points",
     "interception_penalty",
     "fumble_penalty",
-  ].forEach((key) => {
-    if (typeof (settings as any)[key] !== "number") {
+  ];
+
+  numericKeys.forEach((key) => {
+    if (typeof settings[key] !== "number") {
       throw new Error(`Scoring setting '${key}' must be a number.`);
     }
   });
