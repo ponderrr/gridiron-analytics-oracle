@@ -1,123 +1,207 @@
-
-import React from 'react';
-import Layout from '../components/Layout';
-import { BarChart3, TrendingUp, Users, Trophy } from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext';
+import React from "react";
+import { motion } from "framer-motion";
+import Layout from "../components/Layout";
+import {
+  StatCard,
+  PlayerCard,
+  FeatureCard,
+} from "../components/ui/cards/FantasyCard";
+import {
+  TrendingUp,
+  Users,
+  BarChart3,
+  Target,
+  Brain,
+  Activity,
+} from "lucide-react";
+import { useAuth } from "../contexts/AuthContext";
 
 const Dashboard: React.FC = () => {
   const { user } = useAuth();
 
+  const topPlayers = [
+    {
+      name: "Josh Allen",
+      position: "QB",
+      team: "BUF",
+      projection: 24.8,
+      points: 28.4,
+      trend: "up" as const,
+      trendValue: "+12%",
+      tier: "Elite",
+      status: "active" as const,
+    },
+    {
+      name: "Christian McCaffrey",
+      position: "RB",
+      team: "SF",
+      projection: 18.4,
+      points: 22.1,
+      trend: "up" as const,
+      trendValue: "+8%",
+      tier: "RB1",
+      status: "active" as const,
+    },
+    {
+      name: "Cooper Kupp",
+      position: "WR",
+      team: "LAR",
+      projection: 16.2,
+      points: 19.7,
+      trend: "up" as const,
+      trendValue: "+15%",
+      tier: "WR1",
+      status: "questionable" as const,
+    },
+  ];
+
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+      },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { y: 20, opacity: 0 },
+    visible: {
+      y: 0,
+      opacity: 1,
+      transition: {
+        duration: 0.5,
+      },
+    },
+  };
+
   return (
     <Layout isAuthenticated={true}>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <motion.div
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+        className="max-w-7xl mx-auto space-y-8"
+      >
         {/* Welcome Header */}
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2">
-            Welcome back, {user?.email?.split('@')[0] || 'Guru'}!
+        <motion.div variants={itemVariants} className="mb-8">
+          <h1 className="text-4xl font-bold text-white mb-2">
+            Welcome back, {user?.email?.split("@")[0] || "Coach"}
           </h1>
-          <p className="text-slate-400">
+          <p className="text-xl text-slate-400">
             Ready to dominate your fantasy leagues with data-driven insights?
           </p>
-        </div>
+        </motion.div>
 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          <div className="card-gradient rounded-xl p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-slate-400 text-sm">Active Leagues</p>
-                <p className="text-2xl font-bold text-white">3</p>
-              </div>
-              <div className="bg-emerald-500/20 p-3 rounded-lg">
-                <Trophy className="h-6 w-6 text-emerald-400" />
-              </div>
-            </div>
-          </div>
+        {/* Quick Stats Grid */}
+        <motion.div
+          variants={itemVariants}
+          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
+        >
+          <StatCard
+            title="Active Leagues"
+            value="3"
+            subtitle="Championship bound"
+            icon={Activity}
+            trend="up"
+            trendValue="+1"
+            variant="default"
+          />
+          <StatCard
+            title="Win Rate"
+            value="73%"
+            subtitle="Above average"
+            icon={TrendingUp}
+            trend="up"
+            trendValue="+8%"
+            variant="premium"
+          />
+          <StatCard
+            title="Players Tracked"
+            value="247"
+            subtitle="In your watchlist"
+            icon={Users}
+            trend="up"
+            trendValue="+12"
+            variant="elite"
+          />
+          <StatCard
+            title="Prediction Accuracy"
+            value="89%"
+            subtitle="This season"
+            icon={BarChart3}
+            trend="up"
+            trendValue="+4%"
+            variant="champion"
+          />
+        </motion.div>
 
-          <div className="card-gradient rounded-xl p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-slate-400 text-sm">Win Rate</p>
-                <p className="text-2xl font-bold text-white">73%</p>
-              </div>
-              <div className="bg-blue-500/20 p-3 rounded-lg">
-                <TrendingUp className="h-6 w-6 text-blue-400" />
-              </div>
-            </div>
-          </div>
-
-          <div className="card-gradient rounded-xl p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-slate-400 text-sm">Players Tracked</p>
-                <p className="text-2xl font-bold text-white">247</p>
-              </div>
-              <div className="bg-purple-500/20 p-3 rounded-lg">
-                <Users className="h-6 w-6 text-purple-400" />
-              </div>
-            </div>
-          </div>
-
-          <div className="card-gradient rounded-xl p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-slate-400 text-sm">Predictions</p>
-                <p className="text-2xl font-bold text-white">89%</p>
-              </div>
-              <div className="bg-orange-500/20 p-3 rounded-lg">
-                <BarChart3 className="h-6 w-6 text-orange-400" />
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Coming Soon Section */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <div className="card-gradient rounded-xl p-8">
-            <h3 className="text-xl font-semibold text-white mb-4">Advanced Analytics</h3>
-            <p className="text-slate-400 mb-6">
-              Get deep insights into player performance, matchup analysis, and predictive modeling 
-              to make the smartest lineup decisions.
-            </p>
-            <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-lg p-4">
-              <p className="text-emerald-400 text-sm font-medium">Coming Soon</p>
-              <p className="text-slate-300 text-sm mt-1">
-                Player performance predictions, injury impact analysis, and weather-adjusted projections.
-              </p>
-            </div>
-          </div>
-
-          <div className="card-gradient rounded-xl p-8">
-            <h3 className="text-xl font-semibold text-white mb-4">League Management</h3>
-            <p className="text-slate-400 mb-6">
-              Track multiple leagues, monitor trades, and get notifications about key player updates 
-              that could impact your lineups.
-            </p>
-            <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4">
-              <p className="text-blue-400 text-sm font-medium">Coming Soon</p>
-              <p className="text-slate-300 text-sm mt-1">
-                Multi-league dashboard, trade analyzer, and automated lineup optimization.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Call to Action */}
-        <div className="mt-12 text-center">
-          <div className="card-gradient rounded-xl p-8">
-            <h3 className="text-2xl font-bold text-white mb-4">
-              Ready to Take Your Fantasy Game to the Next Level?
-            </h3>
-            <p className="text-slate-400 mb-6 max-w-2xl mx-auto">
-              Our advanced analytics platform is being built to give you the competitive edge you need. 
-              Stay tuned for powerful features that will transform how you play fantasy football.
-            </p>
-            <button className="btn-primary px-8 py-3">
-              Get Notified of Updates
+        {/* Top Players Section */}
+        <motion.div variants={itemVariants} className="space-y-6">
+          <div className="flex items-center justify-between">
+            <h2 className="text-3xl font-bold text-white">
+              Your Top Performers
+            </h2>
+            <button className="bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-2 rounded-lg font-medium transition-colors">
+              View All Players
             </button>
           </div>
-        </div>
-      </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {topPlayers.map((player, index) => (
+              <motion.div
+                key={player.name}
+                variants={itemVariants}
+                transition={{ delay: index * 0.1 }}
+              >
+                <PlayerCard {...player} />
+              </motion.div>
+            ))}
+          </div>
+        </motion.div>
+
+        {/* Features Section */}
+        <motion.div variants={itemVariants} className="space-y-6">
+          <h2 className="text-3xl font-bold text-white">Analytics & Tools</h2>
+
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <FeatureCard
+              title="Advanced Analytics"
+              description="Get deep insights into player performance, matchup analysis, and predictive modeling to make the smartest lineup decisions."
+              icon={Brain}
+              variant="premium"
+              onClick={() => console.log("Navigate to Analytics")}
+            />
+
+            <FeatureCard
+              title="Trade Analyzer"
+              description="Analyze potential trades with our AI-powered system that evaluates player values, team needs, and future projections."
+              icon={Target}
+              variant="elite"
+              onClick={() => console.log("Navigate to Trade Analyzer")}
+            />
+          </div>
+        </motion.div>
+
+        {/* Call to Action */}
+        <motion.div
+          variants={itemVariants}
+          className="bg-slate-800/50 border border-slate-700/50 rounded-2xl p-8 text-center"
+        >
+          <h3 className="text-2xl font-bold text-white mb-4">
+            Ready to Take Your Fantasy Game to the Next Level?
+          </h3>
+          <p className="text-slate-400 mb-6 max-w-2xl mx-auto">
+            Our advanced analytics platform gives you the competitive edge you
+            need. Get powerful insights that will transform how you play fantasy
+            football.
+          </p>
+          <button className="bg-emerald-500 hover:bg-emerald-600 text-white px-8 py-3 rounded-lg font-medium transition-colors">
+            Explore Features
+          </button>
+        </motion.div>
+      </motion.div>
     </Layout>
   );
 };

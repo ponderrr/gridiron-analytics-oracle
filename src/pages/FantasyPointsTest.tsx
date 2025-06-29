@@ -1,5 +1,15 @@
-import React, { useState, ReactNode } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import React, { useState } from "react";
+import { motion } from "framer-motion";
+import {
+  Calculator,
+  Activity,
+  TrendingUp,
+  BarChart3,
+  Target,
+  Brain,
+} from "lucide-react";
+import Layout from "../components/Layout";
+import { FantasyCard } from "@/components/ui/cards/FantasyCard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -54,7 +64,7 @@ const FantasyPointsTest: React.FC = () => {
     try {
       const calculatedResult = await calculateFantasyPoints(
         stats,
-        DEFAULT_SCORING_SETTINGS[scoringFormat]
+        DEFAULT_SCORING_SETTINGS[scoringFormat],
       );
 
       setResult(calculatedResult);
@@ -117,270 +127,321 @@ const FantasyPointsTest: React.FC = () => {
     setStats(sampleData[playerType]);
   };
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+      },
+    },
+  };
+
+  const itemVariants = {
+    hidden: { y: 20, opacity: 0 },
+    visible: {
+      y: 0,
+      opacity: 1,
+      transition: {
+        duration: 0.5,
+      },
+    },
+  };
+
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold text-white mb-2">
-          Fantasy Points Calculator Test
-        </h1>
-        <p className="text-slate-400">
-          Test the fantasy points calculation engine with different stats and
-          scoring formats.
-        </p>
-      </div>
+    <Layout isAuthenticated>
+      <motion.div
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+        className="space-y-8"
+      >
+        {/* Header */}
+        <motion.div variants={itemVariants}>
+          <h1 className="text-4xl font-bold text-white flex items-center">
+            <Calculator className="h-8 w-8 mr-3 text-emerald-400" />
+            Fantasy Points Calculator
+          </h1>
+          <p className="text-slate-400 mt-1">
+            Calculate fantasy points with our advanced scoring engine
+          </p>
+        </motion.div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Input Card */}
-        <Card className="bg-slate-800 border-slate-700">
-          <CardHeader>
-            <CardTitle className="text-white">Player Statistics</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {/* Sample Data Buttons */}
-            <div className="space-y-2">
-              <Label className="text-slate-300">Load Sample Data:</Label>
-              <div className="flex flex-wrap gap-2">
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => loadSampleData("qb")}
-                >
-                  QB Sample
-                </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => loadSampleData("rb")}
-                >
-                  RB Sample
-                </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => loadSampleData("wr")}
-                >
-                  WR Sample
-                </Button>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => loadSampleData("te")}
-                >
-                  TE Sample
-                </Button>
-              </div>
+        {/* Main Content */}
+        <motion.div
+          variants={itemVariants}
+          className="grid grid-cols-1 lg:grid-cols-2 gap-6"
+        >
+          {/* Input Card */}
+          <FantasyCard variant="premium" className="p-6">
+            <div className="flex items-center space-x-3 mb-6">
+              <Brain className="h-6 w-6 text-emerald-400" />
+              <h3 className="text-lg font-semibold text-white">
+                Player Statistics
+              </h3>
             </div>
 
-            <Separator className="bg-slate-700" />
-
-            {/* Passing Stats */}
-            <div className="space-y-3">
-              <h3 className="text-lg font-semibold text-emerald-400">
-                Passing
-              </h3>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <Label htmlFor="passing_yards" className="text-slate-300">
-                    Passing Yards
-                  </Label>
-                  <Input
-                    id="passing_yards"
-                    type="number"
-                    value={stats.passing_yards}
-                    onChange={(e) =>
-                      handleStatChange("passing_yards", e.target.value)
-                    }
-                    className="bg-slate-700 border-slate-600 text-white"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="passing_tds" className="text-slate-300">
-                    Passing TDs
-                  </Label>
-                  <Input
-                    id="passing_tds"
-                    type="number"
-                    value={stats.passing_tds}
-                    onChange={(e) =>
-                      handleStatChange("passing_tds", e.target.value)
-                    }
-                    className="bg-slate-700 border-slate-600 text-white"
-                  />
-                </div>
-                <div className="col-span-2">
-                  <Label
-                    htmlFor="passing_interceptions"
-                    className="text-slate-300"
+            <div className="space-y-6">
+              {/* Sample Data Buttons */}
+              <div className="space-y-3">
+                <Label className="text-slate-300">Quick Load:</Label>
+                <div className="grid grid-cols-4 gap-2">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => loadSampleData("qb")}
+                    className="bg-slate-700 hover:bg-slate-600"
                   >
-                    Interceptions
-                  </Label>
-                  <Input
-                    id="passing_interceptions"
-                    type="number"
-                    value={stats.passing_interceptions}
-                    onChange={(e) =>
-                      handleStatChange("passing_interceptions", e.target.value)
-                    }
-                    className="bg-slate-700 border-slate-600 text-white"
-                  />
+                    QB Sample
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => loadSampleData("rb")}
+                    className="bg-slate-700 hover:bg-slate-600"
+                  >
+                    RB Sample
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => loadSampleData("wr")}
+                    className="bg-slate-700 hover:bg-slate-600"
+                  >
+                    WR Sample
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => loadSampleData("te")}
+                    className="bg-slate-700 hover:bg-slate-600"
+                  >
+                    TE Sample
+                  </Button>
                 </div>
               </div>
-            </div>
 
-            {/* Rushing Stats */}
-            <div className="space-y-3">
-              <h3 className="text-lg font-semibold text-emerald-400">
-                Rushing
-              </h3>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <Label htmlFor="rushing_yards" className="text-slate-300">
-                    Rushing Yards
-                  </Label>
-                  <Input
-                    id="rushing_yards"
-                    type="number"
-                    value={stats.rushing_yards}
-                    onChange={(e) =>
-                      handleStatChange("rushing_yards", e.target.value)
-                    }
-                    className="bg-slate-700 border-slate-600 text-white"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="rushing_tds" className="text-slate-300">
-                    Rushing TDs
-                  </Label>
-                  <Input
-                    id="rushing_tds"
-                    type="number"
-                    value={stats.rushing_tds}
-                    onChange={(e) =>
-                      handleStatChange("rushing_tds", e.target.value)
-                    }
-                    className="bg-slate-700 border-slate-600 text-white"
-                  />
-                </div>
-              </div>
-            </div>
+              <Separator className="bg-slate-700" />
 
-            {/* Receiving Stats */}
-            <div className="space-y-3">
-              <h3 className="text-lg font-semibold text-emerald-400">
-                Receiving
-              </h3>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <Label htmlFor="receiving_yards" className="text-slate-300">
-                    Receiving Yards
-                  </Label>
-                  <Input
-                    id="receiving_yards"
-                    type="number"
-                    value={stats.receiving_yards}
-                    onChange={(e) =>
-                      handleStatChange("receiving_yards", e.target.value)
-                    }
-                    className="bg-slate-700 border-slate-600 text-white"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="receiving_tds" className="text-slate-300">
-                    Receiving TDs
-                  </Label>
-                  <Input
-                    id="receiving_tds"
-                    type="number"
-                    value={stats.receiving_tds}
-                    onChange={(e) =>
-                      handleStatChange("receiving_tds", e.target.value)
-                    }
-                    className="bg-slate-700 border-slate-600 text-white"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="receptions" className="text-slate-300">
-                    Receptions
-                  </Label>
-                  <Input
-                    id="receptions"
-                    type="number"
-                    value={stats.receptions}
-                    onChange={(e) =>
-                      handleStatChange("receptions", e.target.value)
-                    }
-                    className="bg-slate-700 border-slate-600 text-white"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="fumbles_lost" className="text-slate-300">
-                    Fumbles Lost
-                  </Label>
-                  <Input
-                    id="fumbles_lost"
-                    type="number"
-                    value={stats.fumbles_lost}
-                    onChange={(e) =>
-                      handleStatChange("fumbles_lost", e.target.value)
-                    }
-                    className="bg-slate-700 border-slate-600 text-white"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Scoring Format */}
-            <div className="space-y-2">
-              <Label className="text-slate-300">Scoring Format</Label>
-              <Select
-                value={scoringFormat}
-                onValueChange={(value: "standard" | "ppr" | "half_ppr") =>
-                  setScoringFormat(value)
-                }
-              >
-                <SelectTrigger className="bg-slate-700 border-slate-600 text-white">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-slate-700 border-slate-600">
-                  <SelectItem value="standard">Standard</SelectItem>
-                  <SelectItem value="ppr">PPR (Point Per Reception)</SelectItem>
-                  <SelectItem value="half_ppr">
-                    Half PPR (0.5 Per Reception)
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <Button
-              onClick={handleCalculate}
-              className="w-full"
-              disabled={isCalculating}
-            >
-              {isCalculating ? (
-                <LoadingSpinner size="sm" />
-              ) : (
-                "Calculate Fantasy Points"
-              )}
-            </Button>
-
-            {error && (
-              <div className="bg-red-900/20 border border-red-800 rounded-lg p-3">
-                <p className="text-red-400 text-sm">{error}</p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Results Card */}
-        <Card className="bg-slate-800 border-slate-700">
-          <CardHeader>
-            <CardTitle className="text-white">Fantasy Points Result</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {result ? (
+              {/* Passing Stats */}
               <div className="space-y-4">
-                <div className="text-center">
-                  <div className="text-4xl font-bold text-emerald-400 mb-2">
+                <div className="flex items-center space-x-2 text-lg font-semibold text-emerald-400">
+                  <Activity className="h-5 w-5" />
+                  <span>Passing</span>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="passing_yards" className="text-slate-300">
+                      Passing Yards
+                    </Label>
+                    <Input
+                      id="passing_yards"
+                      type="number"
+                      value={stats.passing_yards}
+                      onChange={(e) =>
+                        handleStatChange("passing_yards", e.target.value)
+                      }
+                      className="bg-slate-800 border-slate-600 text-white"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="passing_tds" className="text-slate-300">
+                      Passing TDs
+                    </Label>
+                    <Input
+                      id="passing_tds"
+                      type="number"
+                      value={stats.passing_tds}
+                      onChange={(e) =>
+                        handleStatChange("passing_tds", e.target.value)
+                      }
+                      className="bg-slate-800 border-slate-600 text-white"
+                    />
+                  </div>
+                  <div className="col-span-2 space-y-2">
+                    <Label
+                      htmlFor="passing_interceptions"
+                      className="text-slate-300"
+                    >
+                      Interceptions
+                    </Label>
+                    <Input
+                      id="passing_interceptions"
+                      type="number"
+                      value={stats.passing_interceptions}
+                      onChange={(e) =>
+                        handleStatChange(
+                          "passing_interceptions",
+                          e.target.value,
+                        )
+                      }
+                      className="bg-slate-800 border-slate-600 text-white"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Rushing Stats */}
+              <div className="space-y-4">
+                <div className="flex items-center space-x-2 text-lg font-semibold text-blue-400">
+                  <TrendingUp className="h-5 w-5" />
+                  <span>Rushing</span>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="rushing_yards" className="text-slate-300">
+                      Rushing Yards
+                    </Label>
+                    <Input
+                      id="rushing_yards"
+                      type="number"
+                      value={stats.rushing_yards}
+                      onChange={(e) =>
+                        handleStatChange("rushing_yards", e.target.value)
+                      }
+                      className="bg-slate-800 border-slate-600 text-white"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="rushing_tds" className="text-slate-300">
+                      Rushing TDs
+                    </Label>
+                    <Input
+                      id="rushing_tds"
+                      type="number"
+                      value={stats.rushing_tds}
+                      onChange={(e) =>
+                        handleStatChange("rushing_tds", e.target.value)
+                      }
+                      className="bg-slate-800 border-slate-600 text-white"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Receiving Stats */}
+              <div className="space-y-4">
+                <div className="flex items-center space-x-2 text-lg font-semibold text-purple-400">
+                  <Target className="h-5 w-5" />
+                  <span>Receiving</span>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="receiving_yards" className="text-slate-300">
+                      Receiving Yards
+                    </Label>
+                    <Input
+                      id="receiving_yards"
+                      type="number"
+                      value={stats.receiving_yards}
+                      onChange={(e) =>
+                        handleStatChange("receiving_yards", e.target.value)
+                      }
+                      className="bg-slate-800 border-slate-600 text-white"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="receiving_tds" className="text-slate-300">
+                      Receiving TDs
+                    </Label>
+                    <Input
+                      id="receiving_tds"
+                      type="number"
+                      value={stats.receiving_tds}
+                      onChange={(e) =>
+                        handleStatChange("receiving_tds", e.target.value)
+                      }
+                      className="bg-slate-800 border-slate-600 text-white"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="receptions" className="text-slate-300">
+                      Receptions
+                    </Label>
+                    <Input
+                      id="receptions"
+                      type="number"
+                      value={stats.receptions}
+                      onChange={(e) =>
+                        handleStatChange("receptions", e.target.value)
+                      }
+                      className="bg-slate-800 border-slate-600 text-white"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="fumbles_lost" className="text-slate-300">
+                      Fumbles Lost
+                    </Label>
+                    <Input
+                      id="fumbles_lost"
+                      type="number"
+                      value={stats.fumbles_lost}
+                      onChange={(e) =>
+                        handleStatChange("fumbles_lost", e.target.value)
+                      }
+                      className="bg-slate-800 border-slate-600 text-white"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Scoring Format */}
+              <div className="space-y-3">
+                <Label className="text-slate-300">Scoring Format</Label>
+                <Select
+                  value={scoringFormat}
+                  onValueChange={(value: "standard" | "ppr" | "half_ppr") =>
+                    setScoringFormat(value)
+                  }
+                >
+                  <SelectTrigger className="bg-slate-800 border-slate-600 text-white">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-slate-700 border-slate-600">
+                    <SelectItem value="standard">Standard</SelectItem>
+                    <SelectItem value="ppr">
+                      PPR (Point Per Reception)
+                    </SelectItem>
+                    <SelectItem value="half_ppr">
+                      Half PPR (0.5 Per Reception)
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <Button
+                onClick={handleCalculate}
+                className="w-full bg-emerald-500 hover:bg-emerald-600"
+                disabled={isCalculating}
+              >
+                {isCalculating ? (
+                  <LoadingSpinner size="sm" />
+                ) : (
+                  "Calculate Fantasy Points"
+                )}
+              </Button>
+
+              {error && (
+                <div className="bg-red-900/20 border border-red-800 rounded-lg p-3">
+                  <p className="text-red-400 text-sm">{error}</p>
+                </div>
+              )}
+            </div>
+          </FantasyCard>
+
+          {/* Results Card */}
+          <FantasyCard variant="elite" className="p-6">
+            <div className="flex items-center space-x-3 mb-6">
+              <BarChart3 className="h-6 w-6 text-blue-400" />
+              <h3 className="text-lg font-semibold text-white">
+                Fantasy Points Result
+              </h3>
+            </div>
+
+            {result ? (
+              <div className="space-y-6">
+                <div className="text-center p-8 bg-slate-800/50 rounded-xl">
+                  <div className="text-5xl font-bold text-emerald-400 mb-2">
                     {result.total_points}
                   </div>
                   <p className="text-slate-400">
@@ -390,76 +451,87 @@ const FantasyPointsTest: React.FC = () => {
 
                 <Separator className="bg-slate-700" />
 
-                <div className="space-y-3">
+                <div className="space-y-4">
                   <h3 className="text-lg font-semibold text-white">
                     Points Breakdown
                   </h3>
 
-                  <div className="grid grid-cols-2 gap-3 text-sm">
-                    <div className="flex justify-between">
-                      <span className="text-slate-400">Passing:</span>
-                      <span className="text-white font-medium">
-                        {result.breakdown.passing_points}
-                      </span>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="bg-slate-800/50 p-4 rounded-lg">
+                      <div className="flex justify-between items-center">
+                        <span className="text-slate-400">Passing</span>
+                        <span className="text-emerald-400 font-medium text-lg">
+                          {result.breakdown.passing_points}
+                        </span>
+                      </div>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-slate-400">Rushing:</span>
-                      <span className="text-white font-medium">
-                        {result.breakdown.rushing_points}
-                      </span>
+                    <div className="bg-slate-800/50 p-4 rounded-lg">
+                      <div className="flex justify-between items-center">
+                        <span className="text-slate-400">Rushing</span>
+                        <span className="text-blue-400 font-medium text-lg">
+                          {result.breakdown.rushing_points}
+                        </span>
+                      </div>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-slate-400">Receiving:</span>
-                      <span className="text-white font-medium">
-                        {result.breakdown.receiving_points}
-                      </span>
+                    <div className="bg-slate-800/50 p-4 rounded-lg">
+                      <div className="flex justify-between items-center">
+                        <span className="text-slate-400">Receiving</span>
+                        <span className="text-purple-400 font-medium text-lg">
+                          {result.breakdown.receiving_points}
+                        </span>
+                      </div>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-slate-400">Penalties:</span>
-                      <span
-                        className={`font-medium ${
-                          result.breakdown.penalty_points < 0
-                            ? "text-red-400"
-                            : "text-white"
-                        }`}
-                      >
-                        {result.breakdown.penalty_points}
-                      </span>
+                    <div className="bg-slate-800/50 p-4 rounded-lg">
+                      <div className="flex justify-between items-center">
+                        <span className="text-slate-400">Penalties</span>
+                        <span
+                          className={`font-medium text-lg ${
+                            result.breakdown.penalty_points < 0
+                              ? "text-red-400"
+                              : "text-white"
+                          }`}
+                        >
+                          {result.breakdown.penalty_points}
+                        </span>
+                      </div>
                     </div>
                   </div>
                 </div>
 
                 <Separator className="bg-slate-700" />
 
-                <div className="text-xs text-slate-500 space-y-1">
-                  <p>
-                    <strong>Scoring Rules:</strong>
+                <div className="space-y-3 bg-slate-800/50 p-4 rounded-lg">
+                  <p className="text-sm font-semibold text-white">
+                    Scoring Rules:
                   </p>
-                  <p>Passing: 1 pt/25 yds, 6 pts/TD, -2 pts/INT</p>
-                  <p>Rushing/Receiving: 1 pt/10 yds, 6 pts/TD</p>
-                  <p>
-                    Receptions:{" "}
-                    {scoringFormat === "ppr"
-                      ? "1 pt"
-                      : scoringFormat === "half_ppr"
-                      ? "0.5 pts"
-                      : "0 pts"}
-                  </p>
-                  <p>Fumbles Lost: -2 pts</p>
+                  <div className="space-y-2 text-xs text-slate-400">
+                    <p>• Passing: 1 pt/25 yds, 6 pts/TD, -2 pts/INT</p>
+                    <p>• Rushing/Receiving: 1 pt/10 yds, 6 pts/TD</p>
+                    <p>
+                      • Receptions:{" "}
+                      {scoringFormat === "ppr"
+                        ? "1 pt"
+                        : scoringFormat === "half_ppr"
+                          ? "0.5 pts"
+                          : "0 pts"}
+                    </p>
+                    <p>• Fumbles Lost: -2 pts</p>
+                  </div>
                 </div>
               </div>
             ) : (
-              <div className="text-center py-8">
+              <div className="flex flex-col items-center justify-center h-[400px] text-center">
+                <BarChart3 className="h-16 w-16 text-slate-600 mb-4" />
                 <p className="text-slate-400">
                   Enter player statistics and click "Calculate Fantasy Points"
                   to see the results.
                 </p>
               </div>
             )}
-          </CardContent>
-        </Card>
-      </div>
-    </div>
+          </FantasyCard>
+        </motion.div>
+      </motion.div>
+    </Layout>
   );
 };
 

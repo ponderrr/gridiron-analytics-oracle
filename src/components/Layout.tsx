@@ -28,7 +28,7 @@ interface LayoutProps {
 
 // Sidebar skeleton loader - moved outside to prevent recreation on every render
 const SidebarSkeleton = React.memo(() => (
-  <div className="bg-slate-800 border-r border-slate-700 w-64 flex flex-col h-screen animate-pulse">
+  <div className="bg-slate-800 border-r border-slate-700 w-64 flex flex-col h-screen animate-pulse fixed left-0 top-0 z-30">
     <div className="flex items-center justify-between px-4 py-3">
       <div className="bg-emerald-500 p-2 rounded-md w-10 h-10" />
       <div className="rounded-md bg-slate-700 w-8 h-8" />
@@ -102,7 +102,10 @@ const Layout: React.FC<LayoutProps> = ({ children, isAuthenticated }) => {
     return (
       <div className="min-h-screen flex w-full bg-slate-900">
         <SidebarSkeleton />
-        <div className="flex-1 flex items-center justify-center">
+        <div
+          className="flex-1 flex items-center justify-center"
+          style={{ marginLeft: "var(--sidebar-width, 16rem)" }}
+        >
           <LoadingSpinner size="lg" message={LOADING_MESSAGE} />
         </div>
       </div>
@@ -112,9 +115,14 @@ const Layout: React.FC<LayoutProps> = ({ children, isAuthenticated }) => {
   if (isLoggedIn) {
     return (
       <ErrorBoundary>
-        <div className="min-h-screen flex w-full bg-slate-900">
+        <div className="min-h-screen bg-slate-900">
           <AppSidebar />
-          <div className="flex-1 flex flex-col">
+
+          {/* Main content area with margin to account for fixed sidebar */}
+          <div
+            className="min-h-screen flex flex-col"
+            style={{ marginLeft: "var(--sidebar-width, 18rem)" }}
+          >
             {/* Header for authenticated users */}
             <header className="bg-slate-800/80 backdrop-blur-lg border-b border-slate-700/50 sticky top-0 z-40">
               <div className="px-4 sm:px-6 lg:px-8">
@@ -190,8 +198,10 @@ const Layout: React.FC<LayoutProps> = ({ children, isAuthenticated }) => {
               </div>
             </header>
 
-            {/* Main Content */}
-            <main className="flex-1 p-4 sm:p-6 lg:p-8">{children}</main>
+            {/* Main Content - this will scroll independently */}
+            <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto">
+              {children}
+            </main>
           </div>
         </div>
       </ErrorBoundary>
