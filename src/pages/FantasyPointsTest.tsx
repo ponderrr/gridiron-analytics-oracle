@@ -32,15 +32,15 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 
 const FantasyPointsTest: React.FC = () => {
   const [stats, setStats] = useState<WeeklyStatsInput>({
-    passing_yards: 0,
-    passing_tds: 0,
-    passing_interceptions: 0,
-    rushing_yards: 0,
-    rushing_tds: 0,
-    receiving_yards: 0,
-    receiving_tds: 0,
-    receptions: 0,
-    fumbles_lost: 0,
+    passing_yards: "",
+    passing_tds: "",
+    passing_interceptions: "",
+    rushing_yards: "",
+    rushing_tds: "",
+    receiving_yards: "",
+    receiving_tds: "",
+    receptions: "",
+    fumbles_lost: "",
   });
 
   const [scoringFormat, setScoringFormat] = useState<
@@ -53,8 +53,9 @@ const FantasyPointsTest: React.FC = () => {
   const handleStatChange = (field: keyof WeeklyStatsInput, value: string) => {
     setStats((prev) => ({
       ...prev,
-      [field]: parseInt(value) || 0,
+      [field]: value,
     }));
+    // Only parse when calculating
   };
 
   const handleCalculate = async () => {
@@ -62,8 +63,16 @@ const FantasyPointsTest: React.FC = () => {
     setError(null);
 
     try {
+      const parsedStats = Object.entries(stats).reduce(
+        (acc, [key, value]) => ({
+          ...acc,
+          [key]: parseInt(value) || 0,
+        }),
+        {} as WeeklyStatsInput,
+      );
+
       const calculatedResult = await calculateFantasyPoints(
-        stats,
+        parsedStats,
         DEFAULT_SCORING_SETTINGS[scoringFormat],
       );
 
@@ -154,7 +163,7 @@ const FantasyPointsTest: React.FC = () => {
         variants={containerVariants}
         initial="hidden"
         animate="visible"
-        className="space-y-8"
+        className="max-w-5xl mx-auto space-y-8"
       >
         {/* Header */}
         <motion.div variants={itemVariants}>
@@ -183,45 +192,19 @@ const FantasyPointsTest: React.FC = () => {
 
             <div className="space-y-6">
               {/* Sample Data Buttons */}
-              <div className="space-y-3">
-                <Label className="text-slate-300">Quick Load:</Label>
-                <div className="grid grid-cols-4 gap-2">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => loadSampleData("qb")}
-                    className="bg-slate-700 hover:bg-slate-600"
-                  >
-                    QB Sample
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => loadSampleData("rb")}
-                    className="bg-slate-700 hover:bg-slate-600"
-                  >
-                    RB Sample
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => loadSampleData("wr")}
-                    className="bg-slate-700 hover:bg-slate-600"
-                  >
-                    WR Sample
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => loadSampleData("te")}
-                    className="bg-slate-700 hover:bg-slate-600"
-                  >
-                    TE Sample
-                  </Button>
-                </div>
+              <div className="sticky top-0 bg-slate-900/95 backdrop-blur-sm z-10 -mx-6 px-6 py-4 border-b border-slate-700/50">
+                <Button
+                  onClick={handleCalculate}
+                  className="w-full bg-emerald-500 hover:bg-emerald-600"
+                  disabled={isCalculating}
+                >
+                  {isCalculating ? (
+                    <LoadingSpinner size="sm" />
+                  ) : (
+                    "Calculate Fantasy Points"
+                  )}
+                </Button>
               </div>
-
-              <Separator className="bg-slate-700" />
 
               {/* Passing Stats */}
               <div className="space-y-4">
@@ -409,17 +392,11 @@ const FantasyPointsTest: React.FC = () => {
                 </Select>
               </div>
 
-              <Button
-                onClick={handleCalculate}
-                className="w-full bg-emerald-500 hover:bg-emerald-600"
-                disabled={isCalculating}
-              >
-                {isCalculating ? (
-                  <LoadingSpinner size="sm" />
-                ) : (
-                  "Calculate Fantasy Points"
-                )}
-              </Button>
+              {error && (
+                <div className="bg-red-900/20 border border-red-800 rounded-lg p-3">
+                  <p className="text-red-400 text-sm">{error}</p>
+                </div>
+              )}
 
               {error && (
                 <div className="bg-red-900/20 border border-red-800 rounded-lg p-3">

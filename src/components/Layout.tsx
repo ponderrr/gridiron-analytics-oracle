@@ -1,6 +1,6 @@
 import React from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { Trophy, User, LogOut, Search } from "lucide-react";
+import { Trophy, User, LogOut } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import AppSidebar from "@/components/AppSidebar";
 import {
@@ -146,16 +146,6 @@ const Layout: React.FC<LayoutProps> = ({ children, isAuthenticated }) => {
                   </Link>
 
                   <div className="flex items-center space-x-4">
-                    {/* Search Bar */}
-                    <div className="hidden md:block relative">
-                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
-                      <input
-                        type="text"
-                        placeholder="Search players, teams..."
-                        className="bg-slate-700/50 border border-slate-600 rounded-lg pl-10 pr-4 py-2 text-sm text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 w-64"
-                      />
-                    </div>
-
                     {/* User Menu */}
                     <DropdownMenu>
                       <DropdownMenuTrigger className="flex items-center space-x-2 bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded-lg transition-colors">
@@ -180,13 +170,10 @@ const Layout: React.FC<LayoutProps> = ({ children, isAuthenticated }) => {
                             Settings
                           </Link>
                         </DropdownMenuItem>
-                        <DropdownMenuItem className="text-slate-300 hover:text-white cursor-pointer">
-                          Help & Support
-                        </DropdownMenuItem>
                         <DropdownMenuSeparator className="bg-slate-700" />
                         <DropdownMenuItem
                           onClick={handleLogout}
-                          className="text-red-400 hover:text-red-300 hover:bg-red-950/20 cursor-pointer"
+                          className="text-slate-300 hover:text-red-400 cursor-pointer"
                         >
                           <LogOut className="h-4 w-4 mr-2" />
                           Logout

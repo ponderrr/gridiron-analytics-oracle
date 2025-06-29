@@ -1,11 +1,11 @@
-export const APP_NAME = "Fantasy Football Guru";
-export const APP_TAGLINE = "Advanced Analytics";
-export const COPYRIGHT = `© ${new Date().getFullYear()} Fantasy Football Guru. Advanced analytics for serious fantasy players.`;
-export const SIDEBAR_WIDTH = 256; // px
-export const SIDEBAR_COLLAPSED_WIDTH = 64; // px
+export const APP_NAME = "FF META";
+export const APP_TAGLINE = "Fantasy Football Meta";
+export const COPYRIGHT = `© ${new Date().getFullYear()} FF META. Fantasy Football Meta Analytics.`;
+export const SIDEBAR_WIDTH = 280; // px
+export const SIDEBAR_COLLAPSED_WIDTH = 80; // px
 export const LOADING_MESSAGE = "Loading your experience...";
 export const ERROR_GENERIC = "An unknown error occurred.";
 export const ERROR_AUTH = "Authentication Error";
 export const RETRY_LABEL = "Retry";
 export const LOGIN_LABEL = "Login";
-export const SIGNUP_LABEL = "Sign Up"; 
+export const SIGNUP_LABEL = "Sign Up";
