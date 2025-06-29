@@ -26,32 +26,53 @@ const Admin: React.FC = () => {
     data: players = [],
     isLoading: playersLoading,
     error: playersError,
-  } = useQuery<Player[], Error>(["players"], fetchPlayers);
+    refetch: refetchPlayers,
+  } = useQuery<Player[], Error>({
+    queryKey: ["players"],
+    queryFn: fetchPlayers,
+  });
 
   const {
     data: weeklyStats = [],
     isLoading: statsLoading,
     error: statsError,
-  } = useQuery<WeeklyStat[], Error>(["weeklyStats"], () =>
-    fetchWeeklyStats(10)
-  );
+    refetch: refetchWeeklyStats,
+  } = useQuery<WeeklyStat[], Error>({
+    queryKey: ["weeklyStats"],
+    queryFn: () => fetchWeeklyStats(10),
+  });
 
   const {
     data: projections = [],
     isLoading: projectionsLoading,
     error: projectionsError,
-  } = useQuery<Projection[], Error>(["projections"], fetchProjections);
+    refetch: refetchProjections,
+  } = useQuery<Projection[], Error>({
+    queryKey: ["projections"],
+    queryFn: fetchProjections,
+  });
 
   const {
     data: tradeValues = [],
     isLoading: tradeValuesLoading,
     error: tradeValuesError,
-  } = useQuery<TradeValue[], Error>(["tradeValues"], fetchTradeValues);
+    refetch: refetchTradeValues,
+  } = useQuery<TradeValue[], Error>({
+    queryKey: ["tradeValues"],
+    queryFn: fetchTradeValues,
+  });
 
   const loading =
     playersLoading || statsLoading || projectionsLoading || tradeValuesLoading;
   const error =
     playersError || statsError || projectionsError || tradeValuesError;
+
+  const handleRetry = () => {
+    refetchPlayers();
+    refetchWeeklyStats();
+    refetchProjections();
+    refetchTradeValues();
+  };
 
   const getPlayerName = (playerId: string | null) => {
     if (!playerId) return "Unknown Player";
@@ -101,10 +122,7 @@ const Admin: React.FC = () => {
           <div className="text-slate-400 mb-4">{error.message}</div>
           <button
             className="btn-primary px-6 py-2 rounded font-semibold"
-            onClick={() => {
-              // Invalidate all queries to retry
-              window.location.reload();
-            }}
+            onClick={handleRetry}
           >
             Retry
           </button>

@@ -27,7 +27,11 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
 
   if (fullPage) {
     return (
-      <div className="min-h-screen bg-slate-900 flex items-center justify-center">
+      <div
+        className="min-h-screen bg-slate-900 flex items-center justify-center"
+        role="status"
+        aria-live="polite"
+      >
         <div className={`flex flex-col items-center ${className}`}>
           {spinner}
           {message && <p className="text-slate-400 mt-4">{message}</p>}

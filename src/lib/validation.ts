@@ -1,7 +1,8 @@
+import isEmail from "validator/lib/isEmail";
+
 export function validateEmail(email: string): string | null {
   if (!email) return "Email is required.";
-  if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email))
-    return "Please enter a valid email address.";
+  if (!isEmail(email)) return "Please enter a valid email address.";
   return null;
 }
 
@@ -21,13 +22,16 @@ export function validatePassword(password: string): string[] {
 
 export function formatErrorMessage(error: unknown): string {
   if (typeof error === "string") return error;
-  if (
-    error &&
-    typeof error === "object" &&
-    "message" in error &&
-    typeof (error as any).message === "string"
-  ) {
-    return (error as any).message;
+  function hasMessage(e: unknown): e is { message: string } {
+    return (
+      typeof e === "object" &&
+      e !== null &&
+      "message" in e &&
+      typeof (e as { message: unknown }).message === "string"
+    );
+  }
+  if (hasMessage(error)) {
+    return error.message;
   }
   return "An unknown error occurred.";
 }
