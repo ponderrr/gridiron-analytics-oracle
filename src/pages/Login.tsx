@@ -1,53 +1,44 @@
-
-import React, { useState } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Eye, EyeOff, Mail, Lock } from 'lucide-react';
-import Layout from '../components/Layout';
-import LoadingSpinner from '../components/LoadingSpinner';
-import { useAuth } from '../contexts/AuthContext';
+import React, { useState } from "react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
+import { Eye, EyeOff, Mail, Lock } from "lucide-react";
+import Layout from "../components/Layout";
+import LoadingSpinner from "../components/LoadingSpinner";
+import { useAuth } from "../contexts/AuthContext";
+import { validateEmail, formatErrorMessage } from "../lib/validation";
 
 const Login: React.FC = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  
+
   const { login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
 
-  const from = location.state?.from?.pathname || '/dashboard';
+  const from = location.state?.from?.pathname || "/dashboard";
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
-    
-    if (!email || !password) {
-      setError('Please fill in all fields');
+    setError("");
+
+    const emailError = validateEmail(email);
+    if (emailError) {
+      setError(emailError);
       return;
     }
-
-    if (!email.includes('@')) {
-      setError('Please enter a valid email address');
+    if (!password) {
+      setError("Password is required.");
       return;
     }
-
     setIsLoading(true);
-    
     try {
       await login(email, password);
       navigate(from, { replace: true });
-    } catch (err: any) {
-      console.error('Login error:', err);
-      if (err.message?.includes('Invalid login credentials')) {
-        setError('Invalid email or password');
-      } else if (err.message?.includes('Email not confirmed')) {
-        setError('Please check your email and confirm your account before signing in');
-      } else {
-        setError('Failed to sign in. Please try again.');
-      }
+    } catch (err) {
+      setError(formatErrorMessage(err));
     } finally {
       setIsLoading(false);
     }
@@ -60,7 +51,9 @@ const Login: React.FC = () => {
           {/* Header */}
           <div className="text-center">
             <h2 className="text-3xl font-bold text-white mb-2">Welcome Back</h2>
-            <p className="text-slate-400">Sign in to your Fantasy Football Guru account</p>
+            <p className="text-slate-400">
+              Sign in to your Fantasy Football Guru account
+            </p>
           </div>
 
           {/* Form */}
@@ -98,7 +91,7 @@ const Login: React.FC = () => {
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-400" />
                   <input
-                    type={showPassword ? 'text' : 'password'}
+                    type={showPassword ? "text" : "password"}
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     className="w-full pl-10 pr-12 py-3 bg-slate-800 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
@@ -110,7 +103,11 @@ const Login: React.FC = () => {
                     onClick={() => setShowPassword(!showPassword)}
                     className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-300 transition-colors"
                   >
-                    {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                    {showPassword ? (
+                      <EyeOff className="h-5 w-5" />
+                    ) : (
+                      <Eye className="h-5 w-5" />
+                    )}
                   </button>
                 </div>
               </div>
@@ -124,10 +121,12 @@ const Login: React.FC = () => {
                     onChange={(e) => setRememberMe(e.target.checked)}
                     className="h-4 w-4 text-emerald-500 bg-slate-800 border-slate-600 rounded focus:ring-emerald-500 focus:ring-2"
                   />
-                  <span className="ml-2 text-sm text-slate-300">Remember me</span>
+                  <span className="ml-2 text-sm text-slate-300">
+                    Remember me
+                  </span>
                 </label>
-                <Link 
-                  to="/forgot-password" 
+                <Link
+                  to="/forgot-password"
                   className="text-sm text-emerald-400 hover:text-emerald-300 transition-colors"
                 >
                   Forgot password?
@@ -146,7 +145,7 @@ const Login: React.FC = () => {
                     Signing in...
                   </>
                 ) : (
-                  'Sign In'
+                  "Sign In"
                 )}
               </button>
             </form>
@@ -154,8 +153,11 @@ const Login: React.FC = () => {
             {/* Sign Up Link */}
             <div className="mt-6 text-center">
               <p className="text-slate-400">
-                Don't have an account?{' '}
-                <Link to="/signup" className="text-emerald-400 hover:text-emerald-300 font-medium transition-colors">
+                Don't have an account?{" "}
+                <Link
+                  to="/signup"
+                  className="text-emerald-400 hover:text-emerald-300 font-medium transition-colors"
+                >
                   Sign up now
                 </Link>
               </p>

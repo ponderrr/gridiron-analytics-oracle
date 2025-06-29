@@ -1,42 +1,35 @@
-
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Mail, ArrowLeft } from 'lucide-react';
-import Layout from '../components/Layout';
-import LoadingSpinner from '../components/LoadingSpinner';
-import { useAuth } from '../contexts/AuthContext';
+import React, { useState } from "react";
+import { Link } from "react-router-dom";
+import { Mail, ArrowLeft } from "lucide-react";
+import Layout from "../components/Layout";
+import LoadingSpinner from "../components/LoadingSpinner";
+import { useAuth } from "../contexts/AuthContext";
+import { validateEmail, formatErrorMessage } from "../lib/validation";
 
 const ForgotPassword: React.FC = () => {
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [message, setMessage] = useState('');
-  const [error, setError] = useState('');
-  
+  const [message, setMessage] = useState("");
+  const [error, setError] = useState("");
+
   const { resetPassword } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
-    setMessage('');
-    
-    if (!email) {
-      setError('Please enter your email address');
+    setError("");
+    setMessage("");
+
+    const emailError = validateEmail(email);
+    if (emailError) {
+      setError(emailError);
       return;
     }
-
-    if (!email.includes('@')) {
-      setError('Please enter a valid email address');
-      return;
-    }
-
     setIsLoading(true);
-    
     try {
       await resetPassword(email);
-      setMessage('Password reset instructions have been sent to your email.');
-    } catch (err: any) {
-      console.error('Password reset error:', err);
-      setError('Failed to send reset email. Please try again.');
+      setMessage("Password reset instructions have been sent to your email.");
+    } catch (err) {
+      setError(formatErrorMessage(err));
     } finally {
       setIsLoading(false);
     }
@@ -48,8 +41,12 @@ const ForgotPassword: React.FC = () => {
         <div className="max-w-md w-full space-y-8">
           {/* Header */}
           <div className="text-center">
-            <h2 className="text-3xl font-bold text-white mb-2">Reset Password</h2>
-            <p className="text-slate-400">Enter your email to receive reset instructions</p>
+            <h2 className="text-3xl font-bold text-white mb-2">
+              Reset Password
+            </h2>
+            <p className="text-slate-400">
+              Enter your email to receive reset instructions
+            </p>
           </div>
 
           {/* Form */}
@@ -97,15 +94,15 @@ const ForgotPassword: React.FC = () => {
                     Sending...
                   </>
                 ) : (
-                  'Send Reset Instructions'
+                  "Send Reset Instructions"
                 )}
               </button>
             </form>
 
             {/* Back to Login */}
             <div className="mt-6 text-center">
-              <Link 
-                to="/login" 
+              <Link
+                to="/login"
                 className="inline-flex items-center text-emerald-400 hover:text-emerald-300 font-medium transition-colors"
               >
                 <ArrowLeft className="h-4 w-4 mr-1" />
