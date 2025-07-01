@@ -12,56 +12,12 @@ import { Player, WeeklyStat, Projection, TradeValue } from "../lib/database";
 import { supabase } from "../integrations/supabase/client";
 import { APP_NAME, APP_TAGLINE } from "@/lib/constants";
 import { appConfig } from "@/config/app";
-import ErrorBoundary from "@/components/ErrorBoundary";
-
-// Local database functions moved from database.ts
-async function fetchPlayers(): Promise<Player[]> {
-  try {
-    const { data, error } = await supabase.from("players").select("*");
-    if (error) throw error;
-    return data || [];
-  } catch (err) {
-    console.error("fetchPlayers error:", err);
-    throw err;
-  }
-}
-
-async function fetchWeeklyStats(limit = 10): Promise<WeeklyStat[]> {
-  try {
-    const { data, error } = await supabase
-      .from("weekly_stats")
-      .select("*")
-      .order("week", { ascending: true })
-      .limit(limit);
-    if (error) throw error;
-    return data || [];
-  } catch (err) {
-    console.error("fetchWeeklyStats error:", err);
-    throw err;
-  }
-}
-
-async function fetchProjections(): Promise<Projection[]> {
-  try {
-    const { data, error } = await supabase.from("projections").select("*");
-    if (error) throw error;
-    return data || [];
-  } catch (err) {
-    console.error("fetchProjections error:", err);
-    throw err;
-  }
-}
-
-async function fetchTradeValues(): Promise<TradeValue[]> {
-  try {
-    const { data, error } = await supabase.from("trade_values").select("*");
-    if (error) throw error;
-    return data || [];
-  } catch (err) {
-    console.error("fetchTradeValues error:", err);
-    throw err;
-  }
-}
+import {
+  fetchPlayers,
+  fetchWeeklyStats,
+  fetchProjections,
+  fetchTradeValues,
+} from "@/lib/api/admin";
 
 // Simplified table components specific to Admin usage
 const PlayersTable: React.FC<{ data: Player[] }> = ({ data }) => (

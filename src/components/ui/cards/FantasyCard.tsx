@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export type CardType = "stat" | "player" | "feature" | "base";
+export type CardType = "stat" | "player" | "feature";
 
 export type StatCardData = {
   title: string;
@@ -334,9 +334,6 @@ export const FantasyCard: React.FC<FantasyCardProps> = ({
         </div>
       </div>
     );
-  } else {
-    // base card
-    content = <div className="p-6">Base Card</div>;
   }
 
   const cardClass = cn(

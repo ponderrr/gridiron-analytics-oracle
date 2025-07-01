@@ -11,6 +11,7 @@ export interface SearchFiltersProps {
   onSearchChange: (value: string) => void;
   searchPlaceholder?: string;
   filters?: {
+    id: string;
     label: string;
     value: string;
     options: FilterOption[];
@@ -47,7 +48,7 @@ const SearchFilters: React.FC<SearchFiltersProps> = ({
       {/* Filter Dropdowns */}
       {filters.map((filter, index) => (
         <select
-          key={index}
+          key={filter.id}
           value={filter.value}
           onChange={(e) => filter.onChange(e.target.value)}
           className="bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
