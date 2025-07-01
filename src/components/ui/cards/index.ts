@@ -1,1 +1,8 @@
-export { FantasyCard, StatCard, PlayerCard, FeatureCard } from './FantasyCard';
+export { FantasyCard } from './FantasyCard';
+export type { 
+  FantasyCardProps, 
+  CardType, 
+  StatCardData, 
+  PlayerCardData, 
+  FeatureCardData 
+} from './FantasyCard';

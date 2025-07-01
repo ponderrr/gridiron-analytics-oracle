@@ -5,6 +5,7 @@ import {
   BarChart3,
   TrendingUp,
   ArrowLeftRight,
+  RefreshCw,
 } from "lucide-react";
 import Layout from "../components/Layout";
 import { useQuery } from "@tanstack/react-query";
@@ -18,6 +19,12 @@ import {
   fetchProjections,
   fetchTradeValues,
 } from "@/lib/api/admin";
+import { useSyncData } from "@/hooks/useSyncData";
+import LoadingSpinner from "@/components/LoadingSpinner";
+import { Button } from "@/components/ui/button";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 // Simplified table components specific to Admin usage
 const PlayersTable: React.FC<{ data: Player[] }> = ({ data }) => (
@@ -211,6 +218,18 @@ const TradeValuesTable: React.FC<{
 
 const Admin: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string>("players");
+  const [selectedWeek, setSelectedWeek] = useState<string>("1");
+  const [selectedSeason, setSelectedSeason] = useState<string>("2024");
+  
+  // Sync data hook
+  const {
+    playerSync,
+    statsSync,
+    syncPlayers,
+    syncWeeklyStats,
+    clearPlayerSync,
+    clearStatsSync,
+  } = useSyncData();
 
   const {
     data: players = [],
@@ -278,6 +297,27 @@ const Admin: React.FC = () => {
     [players]
   );
 
+  // Sync handlers
+  const handlePlayerSync = async () => {
+    try {
+      await syncPlayers();
+      // Auto-refresh data after successful sync
+      refetchPlayers();
+    } catch (error) {
+      console.error('Player sync failed:', error);
+    }
+  };
+
+  const handleStatsSync = async () => {
+    try {
+      await syncWeeklyStats(parseInt(selectedWeek), parseInt(selectedSeason));
+      // Auto-refresh data after successful sync
+      refetchWeeklyStats();
+    } catch (error) {
+      console.error('Stats sync failed:', error);
+    }
+  };
+
   const tabs = [
     { id: "players", label: "Players", icon: Users, count: players.length },
     {
@@ -297,6 +337,12 @@ const Admin: React.FC = () => {
       label: "Trade Values",
       icon: ArrowLeftRight,
       count: tradeValues.length,
+    },
+    {
+      id: "data-sync",
+      label: "Data Sync",
+      icon: RefreshCw,
+      count: 0,
     },
   ];
 
@@ -396,6 +442,158 @@ const Admin: React.FC = () => {
                 data={tradeValues}
                 getPlayerName={getPlayerName}
               />
+            </div>
+          )}
+
+          {activeTab === "data-sync" && (
+            <div className="p-6 space-y-6">
+              {/* Player Sync Section */}
+              <div className="bg-slate-900/50 rounded-lg p-6 border border-slate-700/50">
+                <h3 className="text-lg font-bold text-white mb-4 flex items-center">
+                  <Users className="h-5 w-5 mr-2 text-emerald-400" />
+                  NFL Player Data Sync
+                </h3>
+                <p className="text-slate-400 text-sm mb-4">
+                  Sync current season player data from ESPN including names, positions, teams, and bye weeks.
+                </p>
+                
+                <div className="flex items-center justify-between">
+                  <Button
+                    onClick={handlePlayerSync}
+                    disabled={playerSync.isLoading}
+                    className="bg-emerald-600 hover:bg-emerald-700 text-white"
+                  >
+                    {playerSync.isLoading ? (
+                      <>
+                        <LoadingSpinner size="sm" className="mr-2" />
+                        Syncing Players...
+                      </>
+                    ) : (
+                      <>
+                        <RefreshCw className="h-4 w-4 mr-2" />
+                        Sync NFL Players
+                      </>
+                    )}
+                  </Button>
+                  
+                  {playerSync.result && (
+                    <div className="text-sm">
+                      <span className="text-emerald-400">
+                        Added: {playerSync.result.players_added || 0}
+                      </span>
+                      <span className="text-blue-400 ml-4">
+                        Processed: {playerSync.result.total_processed || 0}
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                {playerSync.error && (
+                  <div className="mt-4 p-3 bg-red-500/20 border border-red-500/30 rounded-lg">
+                    <p className="text-red-400 text-sm">{playerSync.error}</p>
+                  </div>
+                )}
+
+                {playerSync.result && playerSync.result.success && (
+                  <div className="mt-4 p-3 bg-emerald-500/20 border border-emerald-500/30 rounded-lg">
+                    <p className="text-emerald-400 text-sm">
+                      Player sync completed successfully! Added {playerSync.result.players_added} players.
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Weekly Stats Sync Section */}
+              <div className="bg-slate-900/50 rounded-lg p-6 border border-slate-700/50">
+                <h3 className="text-lg font-bold text-white mb-4 flex items-center">
+                  <BarChart3 className="h-5 w-5 mr-2 text-blue-400" />
+                  Weekly Stats Sync
+                </h3>
+                <p className="text-slate-400 text-sm mb-4">
+                  Sync player statistics for a specific week and season from ESPN.
+                </p>
+
+                <div className="grid grid-cols-2 gap-4 mb-4">
+                  <div>
+                    <Label htmlFor="week-select" className="text-sm font-medium text-slate-300">
+                      Week
+                    </Label>
+                    <Select value={selectedWeek} onValueChange={setSelectedWeek}>
+                      <SelectTrigger className="bg-slate-800 border-slate-600 text-white">
+                        <SelectValue placeholder="Select week" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-slate-800 border-slate-600">
+                        {Array.from({ length: 18 }, (_, i) => (
+                          <SelectItem key={i + 1} value={(i + 1).toString()}>
+                            Week {i + 1}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="season-input" className="text-sm font-medium text-slate-300">
+                      Season
+                    </Label>
+                    <Input
+                      id="season-input"
+                      type="number"
+                      value={selectedSeason}
+                      onChange={(e) => setSelectedSeason(e.target.value)}
+                      className="bg-slate-800 border-slate-600 text-white"
+                      min="2020"
+                      max="2030"
+                    />
+                  </div>
+                </div>
+                
+                <div className="flex items-center justify-between">
+                  <Button
+                    onClick={handleStatsSync}
+                    disabled={statsSync.isLoading}
+                    className="bg-blue-600 hover:bg-blue-700 text-white"
+                  >
+                    {statsSync.isLoading ? (
+                      <>
+                        <LoadingSpinner size="sm" className="mr-2" />
+                        Syncing Stats...
+                      </>
+                    ) : (
+                      <>
+                        <RefreshCw className="h-4 w-4 mr-2" />
+                        Sync Weekly Stats
+                      </>
+                    )}
+                  </Button>
+                  
+                  {statsSync.result && (
+                    <div className="text-sm">
+                      <span className="text-emerald-400">
+                        Updated: {statsSync.result.stats_updated || 0}
+                      </span>
+                      <span className="text-blue-400 ml-4">
+                        Processed: {statsSync.result.players_processed || 0}
+                      </span>
+                    </div>
+                  )}
+                </div>
+
+                {statsSync.error && (
+                  <div className="mt-4 p-3 bg-red-500/20 border border-red-500/30 rounded-lg">
+                    <p className="text-red-400 text-sm">{statsSync.error}</p>
+                  </div>
+                )}
+
+                {statsSync.result && statsSync.result.success && (
+                  <div className="mt-4 p-3 bg-emerald-500/20 border border-emerald-500/30 rounded-lg">
+                    <p className="text-emerald-400 text-sm">
+                      Stats sync completed for Week {statsSync.result.week} of {statsSync.result.season}! 
+                      Updated {statsSync.result.stats_updated} player records.
+                    </p>
+                  </div>
+                )}
+              </div>
             </div>
           )}
         </div>
