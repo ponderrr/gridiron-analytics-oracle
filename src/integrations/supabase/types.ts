@@ -124,6 +124,78 @@ export type Database = {
           },
         ]
       }
+      user_rankings_players: {
+        Row: {
+          created_at: string
+          notes: string | null
+          overall_rank: number | null
+          player_id: string
+          ranking_set_id: string
+          tier: number | null
+        }
+        Insert: {
+          created_at?: string
+          notes?: string | null
+          overall_rank?: number | null
+          player_id: string
+          ranking_set_id: string
+          tier?: number | null
+        }
+        Update: {
+          created_at?: string
+          notes?: string | null
+          overall_rank?: number | null
+          player_id?: string
+          ranking_set_id?: string
+          tier?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_rankings_players_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "players"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_rankings_players_ranking_set_id_fkey"
+            columns: ["ranking_set_id"]
+            isOneToOne: false
+            referencedRelation: "user_rankings_sets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_rankings_sets: {
+        Row: {
+          created_at: string
+          format: string
+          id: string
+          is_active: boolean | null
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          format: string
+          id?: string
+          is_active?: boolean | null
+          name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          format?: string
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_teams: {
         Row: {
           created_at: string
@@ -218,7 +290,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      create_default_ranking_sets_for_user: {
+        Args: { user_uuid: string }
+        Returns: undefined
+      }
     }
     Enums: {
       [_ in never]: never
