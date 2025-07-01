@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { Link, useLocation } from "react-router-dom";
 import {
   Home,
@@ -37,136 +37,199 @@ interface NavSectionProps {
   icon?: React.ComponentType<{ className?: string }>;
 }
 
-const NavItem: React.FC<NavItemProps> = ({
-  href,
-  icon: Icon,
-  label,
-  comingSoon,
-  isCollapsed,
-}) => {
-  const { pathname } = useLocation();
-  const isActive = pathname === href;
+// Icon constants
+const ICONS = {
+  home: Home,
+  users: Users,
+  trendingUp: TrendingUp,
+  arrowLeftRight: ArrowLeftRight,
+  trophy: Trophy,
+  settings: Settings,
+  chevronLeft: ChevronLeft,
+  chevronRight: ChevronRight,
+  shield: Shield,
+  calculator: Calculator,
+  barChart3: BarChart3,
+  chevronDown: ChevronDown,
+  chevronUp: ChevronUp,
+  zap: Zap,
+  target: Target,
+  wrench: Wrench,
+};
 
-  if (isCollapsed) {
+// Custom hook for sidebar width CSS property
+function useSidebarWidth(isCollapsed: boolean) {
+  useEffect(() => {
+    document.documentElement.style.setProperty(
+      "--sidebar-width",
+      isCollapsed ? "5rem" : "18rem"
+    );
+  }, [isCollapsed]);
+}
+
+const NavItem: React.FC<NavItemProps> = React.memo(
+  ({ href, icon: Icon, label, comingSoon, isCollapsed }) => {
+    const { pathname } = useLocation();
+    const isActive = pathname === href;
+
+    if (isCollapsed) {
+      return (
+        <Link
+          to={href}
+          className={cn(
+            "flex items-center justify-center p-3 rounded-xl transition-all duration-200 group relative",
+            isActive
+              ? "bg-gradient-to-r from-emerald-500 to-blue-500 text-white shadow-lg shadow-emerald-500/25"
+              : "text-slate-400 hover:bg-slate-700/50 hover:text-white"
+          )}
+          title={label}
+        >
+          <Icon className="h-5 w-5" />
+          {comingSoon && (
+            <div className="absolute -top-1 -right-1 w-2 h-2 bg-yellow-400 rounded-full"></div>
+          )}
+        </Link>
+      );
+    }
+
     return (
       <Link
         to={href}
         className={cn(
-          "flex items-center justify-center p-3 rounded-xl transition-all duration-200 group relative",
+          "flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 group relative overflow-hidden",
           isActive
             ? "bg-gradient-to-r from-emerald-500 to-blue-500 text-white shadow-lg shadow-emerald-500/25"
-            : "text-slate-400 hover:bg-slate-700/50 hover:text-white",
+            : "text-slate-400 hover:bg-slate-700/50 hover:text-white"
         )}
-        title={label}
       >
-        <Icon className="h-5 w-5" />
+        {/* Hover gradient effect */}
+        <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/10 to-blue-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+
+        <Icon className="h-5 w-5 mr-3 flex-shrink-0 relative z-10" />
+        <span className="truncate relative z-10">{label}</span>
         {comingSoon && (
-          <div className="absolute -top-1 -right-1 w-2 h-2 bg-yellow-400 rounded-full"></div>
+          <span className="ml-auto text-xs bg-yellow-500/20 text-yellow-400 px-2 py-1 rounded-full flex-shrink-0 relative z-10">
+            SOON
+          </span>
         )}
       </Link>
     );
   }
+);
+NavItem.displayName = "NavItem";
 
-  return (
-    <Link
-      to={href}
-      className={cn(
-        "flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 group relative overflow-hidden",
-        isActive
-          ? "bg-gradient-to-r from-emerald-500 to-blue-500 text-white shadow-lg shadow-emerald-500/25"
-          : "text-slate-400 hover:bg-slate-700/50 hover:text-white",
-      )}
-    >
-      {/* Hover gradient effect */}
-      <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/10 to-blue-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+const NavSection: React.FC<NavSectionProps> = React.memo(
+  ({ title, children, isCollapsed, defaultOpen = true, icon: Icon }) => {
+    const [isOpen, setIsOpen] = useState(defaultOpen);
+    const handleToggle = useCallback(() => setIsOpen((open) => !open), []);
 
-      <Icon className="h-5 w-5 mr-3 flex-shrink-0 relative z-10" />
-      <span className="truncate relative z-10">{label}</span>
-      {comingSoon && (
-        <span className="ml-auto text-xs bg-yellow-500/20 text-yellow-400 px-2 py-1 rounded-full flex-shrink-0 relative z-10">
-          SOON
-        </span>
-      )}
-    </Link>
-  );
-};
+    if (isCollapsed) {
+      return (
+        <div className="space-y-2">
+          {Icon && (
+            <div className="flex items-center justify-center p-2 text-slate-500">
+              <Icon className="h-4 w-4" />
+            </div>
+          )}
+          {children}
+        </div>
+      );
+    }
 
-const NavSection: React.FC<NavSectionProps> = ({
-  title,
-  children,
-  isCollapsed,
-  defaultOpen = true,
-  icon: Icon,
-}) => {
-  const [isOpen, setIsOpen] = useState(defaultOpen);
-
-  if (isCollapsed) {
     return (
       <div className="space-y-2">
-        {Icon && (
-          <div className="flex items-center justify-center p-2 text-slate-500">
-            <Icon className="h-4 w-4" />
+        <button
+          onClick={handleToggle}
+          className="flex items-center justify-between w-full px-3 py-2 text-xs font-bold text-slate-500 uppercase tracking-wider hover:text-slate-400 transition-colors"
+        >
+          <div className="flex items-center">
+            {Icon && <Icon className="h-4 w-4 mr-2" />}
+            {title}
           </div>
-        )}
-        {children}
+          {isOpen ? (
+            <ICONS.chevronUp className="h-3 w-3" />
+          ) : (
+            <ICONS.chevronDown className="h-3 w-3" />
+          )}
+        </button>
+        <div
+          className={cn(
+            "space-y-1 transition-all duration-200 overflow-hidden",
+            isOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
+          )}
+        >
+          {children}
+        </div>
       </div>
     );
   }
-
-  return (
-    <div className="space-y-2">
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center justify-between w-full px-3 py-2 text-xs font-bold text-slate-500 uppercase tracking-wider hover:text-slate-400 transition-colors"
-      >
-        <div className="flex items-center">
-          {Icon && <Icon className="h-4 w-4 mr-2" />}
-          {title}
-        </div>
-        {isOpen ? (
-          <ChevronUp className="h-3 w-3" />
-        ) : (
-          <ChevronDown className="h-3 w-3" />
-        )}
-      </button>
-
-      <div
-        className={cn(
-          "space-y-1 transition-all duration-200 overflow-hidden",
-          isOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0",
-        )}
-      >
-        {children}
-      </div>
-    </div>
-  );
-};
+);
+NavSection.displayName = "NavSection";
 
 const AppSidebar: React.FC = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
+  useSidebarWidth(isCollapsed);
+  const toggleSidebar = useCallback(() => setIsCollapsed((v) => !v), []);
 
-  const toggleSidebar = () => {
-    setIsCollapsed(!isCollapsed);
-  };
-
-  // Update CSS custom property when sidebar state changes
-  useEffect(() => {
-    document.documentElement.style.setProperty(
-      "--sidebar-width",
-      isCollapsed ? "5rem" : "18rem",
-    );
-  }, [isCollapsed]);
+  // Memoized navigation sections
+  const navSections = useMemo(
+    () => [
+      {
+        title: "Main",
+        icon: ICONS.home,
+        items: [{ href: "/dashboard", icon: ICONS.home, label: "Dashboard" }],
+      },
+      {
+        title: "Analysis",
+        icon: ICONS.barChart3,
+        items: [
+          { href: "/players", icon: ICONS.users, label: "Players" },
+          { href: "/analytics", icon: ICONS.trendingUp, label: "Analytics" },
+          {
+            href: "/trade-analyzer",
+            icon: ICONS.arrowLeftRight,
+            label: "Trade Analyzer",
+          },
+        ],
+      },
+      {
+        title: "Management",
+        icon: ICONS.target,
+        items: [
+          {
+            href: "/league",
+            icon: ICONS.trophy,
+            label: "League",
+            comingSoon: true,
+          },
+          { href: "/admin", icon: ICONS.shield, label: "Admin Panel" },
+        ],
+      },
+      {
+        title: "Tools",
+        icon: ICONS.wrench,
+        items: [
+          {
+            href: "/fantasy-points-test",
+            icon: ICONS.calculator,
+            label: "Points Calculator",
+          },
+          { href: "/settings", icon: ICONS.settings, label: "Settings" },
+        ],
+      },
+    ],
+    []
+  );
 
   return (
     <div
       className={cn(
         "bg-gradient-to-b from-slate-800 to-slate-900 border-r border-slate-700/50 transition-all duration-300 flex flex-col h-screen flex-shrink-0 relative fixed left-0 top-0 z-30",
-        isCollapsed ? "w-20" : "w-72",
+        isCollapsed ? "w-20" : "w-72"
       )}
     >
       {/* Decorative gradient overlay */}
       <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 via-transparent to-blue-500/5 pointer-events-none" />
-
       {/* Header Section */}
       <div className="flex items-center justify-between px-4 py-4 border-b border-slate-700/50 relative z-10">
         {!isCollapsed && (
@@ -191,87 +254,33 @@ const AppSidebar: React.FC = () => {
           aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
           {isCollapsed ? (
-            <ChevronRight className="h-5 w-5" />
+            <ICONS.chevronRight className="h-5 w-5" />
           ) : (
-            <ChevronLeft className="h-5 w-5" />
+            <ICONS.chevronLeft className="h-5 w-5" />
           )}
         </button>
       </div>
-
       {/* Navigation */}
       <nav className="flex-1 px-4 py-6 space-y-6 overflow-y-auto relative z-10">
-        {/* Main Section */}
-        <NavSection title="Main" icon={Home} isCollapsed={isCollapsed}>
-          <NavItem
-            href="/dashboard"
-            icon={Home}
-            label="Dashboard"
+        {navSections.map((section) => (
+          <NavSection
+            key={section.title}
+            title={section.title}
+            icon={section.icon}
             isCollapsed={isCollapsed}
-          />
-        </NavSection>
-
-        {/* Analysis Section */}
-        <NavSection title="Analysis" icon={BarChart3} isCollapsed={isCollapsed}>
-          <NavItem
-            href="/players"
-            icon={Users}
-            label="Players"
-            isCollapsed={isCollapsed}
-          />
-          <NavItem
-            href="/analytics"
-            icon={TrendingUp}
-            label="Analytics"
-            isCollapsed={isCollapsed}
-          />
-          <NavItem
-            href="/trade-analyzer"
-            icon={ArrowLeftRight}
-            label="Trade Analyzer"
-            isCollapsed={isCollapsed}
-          />
-        </NavSection>
-
-        {/* Management Section */}
-        <NavSection title="Management" icon={Target} isCollapsed={isCollapsed}>
-          <NavItem
-            href="/league"
-            icon={Trophy}
-            label="League"
-            comingSoon
-            isCollapsed={isCollapsed}
-          />
-          <NavItem
-            href="/admin"
-            icon={Shield}
-            label="Admin Panel"
-            isCollapsed={isCollapsed}
-          />
-        </NavSection>
-
-        {/* Tools Section */}
-        <NavSection title="Tools" icon={Wrench} isCollapsed={isCollapsed}>
-          <NavItem
-            href="/fantasy-points-test"
-            icon={Calculator}
-            label="Points Calculator"
-            isCollapsed={isCollapsed}
-          />
-          <NavItem
-            href="/settings"
-            icon={Settings}
-            label="Settings"
-            isCollapsed={isCollapsed}
-          />
-        </NavSection>
+          >
+            {section.items.map((item) => (
+              <NavItem key={item.href} {...item} isCollapsed={isCollapsed} />
+            ))}
+          </NavSection>
+        ))}
       </nav>
-
       {/* Footer Section */}
       {!isCollapsed && (
         <div className="px-4 py-4 border-t border-slate-700/50 relative z-10">
           <div className="bg-gradient-to-r from-emerald-500/10 to-blue-500/10 border border-emerald-500/20 rounded-xl p-3">
             <div className="flex items-center space-x-2 mb-2">
-              <Zap className="h-4 w-4 text-emerald-400" />
+              <ICONS.zap className="h-4 w-4 text-emerald-400" />
               <span className="text-sm font-bold text-emerald-400">
                 PRO TIER
               </span>
@@ -283,7 +292,6 @@ const AppSidebar: React.FC = () => {
               UPGRADE NOW
             </button>
           </div>
-
           <div className="mt-3 text-center">
             <p className="text-xs text-slate-500">
               &copy; {new Date().getFullYear()} {APP_NAME}
@@ -291,13 +299,12 @@ const AppSidebar: React.FC = () => {
           </div>
         </div>
       )}
-
       {/* Collapsed footer */}
       {isCollapsed && (
         <div className="px-2 py-4 border-t border-slate-700/50 relative z-10">
           <div className="flex justify-center">
             <div className="bg-gradient-to-r from-emerald-500 to-blue-500 p-2 rounded-lg">
-              <Zap className="h-4 w-4 text-white" />
+              <ICONS.zap className="h-4 w-4 text-white" />
             </div>
           </div>
         </div>

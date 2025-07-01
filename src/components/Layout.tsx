@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Trophy, User, LogOut } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -44,22 +44,24 @@ const SidebarSkeleton = React.memo(() => (
   </div>
 ));
 
+SidebarSkeleton.displayName = "SidebarSkeleton";
+
 const Layout: React.FC<LayoutProps> = ({ children, isAuthenticated }) => {
   const { user, logout, isLoading, authError } = useAuth();
   const navigate = useNavigate();
   const isLoggedIn = isAuthenticated || !!user;
 
-  const handleLogout = async () => {
+  const handleLogout = useCallback(async () => {
     try {
       await logout();
       navigate("/");
     } catch (error) {
       console.error("Logout failed:", error);
     }
-  };
+  }, [logout, navigate]);
 
-  // Helper function to safely get user display name
-  const getUserDisplayName = () => {
+  // Helper function to safely get user display name - memoized
+  const getUserDisplayName = useMemo(() => {
     if (!user?.email) return "User";
     try {
       return user.email.split("@")[0] || "User";
@@ -67,13 +69,13 @@ const Layout: React.FC<LayoutProps> = ({ children, isAuthenticated }) => {
       console.error("Error parsing user email:", error);
       return "User";
     }
-  };
+  }, [user?.email]);
 
-  // Helper function to safely get user email
-  const getUserEmail = () => {
+  // Helper function to safely get user email - memoized
+  const getUserEmail = useMemo(() => {
     if (!user?.email) return "";
     return String(user.email);
-  };
+  }, [user?.email]);
 
   // Error state for auth failures
   if (authError) {
@@ -151,7 +153,7 @@ const Layout: React.FC<LayoutProps> = ({ children, isAuthenticated }) => {
                       <DropdownMenuTrigger className="flex items-center space-x-2 bg-slate-700 hover:bg-slate-600 px-3 py-2 rounded-lg transition-colors">
                         <User className="h-4 w-4 text-slate-300" />
                         <span className="text-sm text-slate-300 hidden sm:block">
-                          {getUserDisplayName()}
+                          {getUserDisplayName}
                         </span>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent
@@ -159,7 +161,7 @@ const Layout: React.FC<LayoutProps> = ({ children, isAuthenticated }) => {
                         className="w-56 bg-slate-800 border-slate-700"
                       >
                         <div className="px-2 py-1.5 text-sm text-slate-400">
-                          {getUserEmail()}
+                          {getUserEmail}
                         </div>
                         <DropdownMenuSeparator className="bg-slate-700" />
                         <DropdownMenuItem asChild>
@@ -244,8 +246,9 @@ const Layout: React.FC<LayoutProps> = ({ children, isAuthenticated }) => {
   );
 };
 
-const areEqual = (prev: LayoutProps, next: LayoutProps) =>
-  prev.isAuthenticated === next.isAuthenticated &&
-  prev.children === next.children;
+Layout.displayName = "Layout";
 
-export default React.memo(Layout, areEqual);
+const MemoizedLayout = React.memo(Layout);
+MemoizedLayout.displayName = "MemoizedLayout";
+
+export default MemoizedLayout;

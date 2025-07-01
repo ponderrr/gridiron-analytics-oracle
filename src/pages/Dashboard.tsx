@@ -1,23 +1,59 @@
 import React from "react";
 import { motion } from "framer-motion";
 import Layout from "../components/Layout";
+import { FantasyCard } from "../components/ui/cards/FantasyCard";
+import { StatGrid } from "../components/ui/common";
+import { useAuth } from "../contexts/AuthContext";
 import {
-  StatCard,
-  PlayerCard,
-  FeatureCard,
-} from "../components/ui/cards/FantasyCard";
-import {
+  Activity,
   TrendingUp,
   Users,
   BarChart3,
-  Target,
   Brain,
-  Activity,
+  Target,
 } from "lucide-react";
-import { useAuth } from "../contexts/AuthContext";
 
 const Dashboard: React.FC = () => {
   const { user } = useAuth();
+
+  const dashboardStats = [
+    {
+      title: "Active Leagues",
+      value: "3",
+      subtitle: "Championship bound",
+      icon: Activity,
+      trend: "up" as const,
+      trendValue: "+1",
+      variant: "default" as const,
+    },
+    {
+      title: "Win Rate",
+      value: "73%",
+      subtitle: "Above average",
+      icon: TrendingUp,
+      trend: "up" as const,
+      trendValue: "+8%",
+      variant: "premium" as const,
+    },
+    {
+      title: "Players Tracked",
+      value: "247",
+      subtitle: "In your watchlist",
+      icon: Users,
+      trend: "up" as const,
+      trendValue: "+12",
+      variant: "elite" as const,
+    },
+    {
+      title: "Prediction Accuracy",
+      value: "89%",
+      subtitle: "This season",
+      icon: BarChart3,
+      trend: "up" as const,
+      trendValue: "+4%",
+      variant: "champion" as const,
+    },
+  ];
 
   const topPlayers = [
     {
@@ -95,47 +131,7 @@ const Dashboard: React.FC = () => {
         </motion.div>
 
         {/* Quick Stats Grid */}
-        <motion.div
-          variants={itemVariants}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
-        >
-          <StatCard
-            title="Active Leagues"
-            value="3"
-            subtitle="Championship bound"
-            icon={Activity}
-            trend="up"
-            trendValue="+1"
-            variant="default"
-          />
-          <StatCard
-            title="Win Rate"
-            value="73%"
-            subtitle="Above average"
-            icon={TrendingUp}
-            trend="up"
-            trendValue="+8%"
-            variant="premium"
-          />
-          <StatCard
-            title="Players Tracked"
-            value="247"
-            subtitle="In your watchlist"
-            icon={Users}
-            trend="up"
-            trendValue="+12"
-            variant="elite"
-          />
-          <StatCard
-            title="Prediction Accuracy"
-            value="89%"
-            subtitle="This season"
-            icon={BarChart3}
-            trend="up"
-            trendValue="+4%"
-            variant="champion"
-          />
-        </motion.div>
+        <StatGrid stats={dashboardStats} />
 
         {/* Top Players Section */}
         <motion.div variants={itemVariants} className="space-y-6">
@@ -150,13 +146,11 @@ const Dashboard: React.FC = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {topPlayers.map((player, index) => (
-              <motion.div
+              <FantasyCard
                 key={player.name}
-                variants={itemVariants}
-                transition={{ delay: index * 0.1 }}
-              >
-                <PlayerCard {...player} />
-              </motion.div>
+                cardType="player"
+                cardData={player}
+              />
             ))}
           </div>
         </motion.div>
@@ -166,19 +160,27 @@ const Dashboard: React.FC = () => {
           <h2 className="text-3xl font-bold text-white">Analytics & Tools</h2>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <FeatureCard
-              title="Advanced Analytics"
-              description="Get deep insights into player performance, matchup analysis, and predictive modeling to make the smartest lineup decisions."
-              icon={Brain}
-              variant="premium"
+            <FantasyCard
+              cardType="feature"
+              cardData={{
+                title: "Advanced Analytics",
+                description:
+                  "Get deep insights into player performance, matchup analysis, and predictive modeling to make the smartest lineup decisions.",
+                icon: Brain,
+                variant: "premium",
+              }}
               onClick={() => console.log("Navigate to Analytics")}
             />
 
-            <FeatureCard
-              title="Trade Analyzer"
-              description="Analyze potential trades with our AI-powered system that evaluates player values, team needs, and future projections."
-              icon={Target}
-              variant="elite"
+            <FantasyCard
+              cardType="feature"
+              cardData={{
+                title: "Trade Analyzer",
+                description:
+                  "Analyze potential trades with our AI-powered system that evaluates player values, team needs, and future projections.",
+                icon: Target,
+                variant: "elite",
+              }}
               onClick={() => console.log("Navigate to Trade Analyzer")}
             />
           </div>

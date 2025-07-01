@@ -27,15 +27,32 @@ export interface FantasyPointsResult {
   scoring_format: string;
 }
 
+// Custom error types
+export class FantasyPointsValidationError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "FantasyPointsValidationError";
+  }
+}
+
+export class FantasyPointsCalculationError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "FantasyPointsCalculationError";
+  }
+}
+
 /**
  * Validates that all stats are non-negative numbers.
  * @param stats WeeklyStatsInput
- * @throws Error if any stat is negative or not a number
+ * @throws FantasyPointsValidationError if any stat is negative or not a number
  */
 export function validateStatsInput(stats: WeeklyStatsInput): void {
   for (const [key, value] of Object.entries(stats)) {
     if (typeof value !== "number" || value < 0) {
-      throw new Error(`Invalid stat '${key}': must be a non-negative number.`);
+      throw new FantasyPointsValidationError(
+        `Invalid stat '${key}': must be a non-negative number.`
+      );
     }
   }
 }
@@ -43,14 +60,16 @@ export function validateStatsInput(stats: WeeklyStatsInput): void {
 /**
  * Validates scoring settings object.
  * @param settings ScoringSettings
- * @throws Error if settings are malformed
+ * @throws FantasyPointsValidationError if settings are malformed
  */
 export function validateScoringSettings(settings: ScoringSettings): void {
   if (!settings || typeof settings !== "object") {
-    throw new Error("Scoring settings must be a valid object.");
+    throw new FantasyPointsValidationError(
+      "Scoring settings must be a valid object."
+    );
   }
   if (!["standard", "ppr", "half_ppr"].includes(settings.format)) {
-    throw new Error("Invalid scoring format.");
+    throw new FantasyPointsValidationError("Invalid scoring format.");
   }
 
   const numericKeys: (keyof ScoringSettings)[] = [
@@ -65,7 +84,9 @@ export function validateScoringSettings(settings: ScoringSettings): void {
 
   numericKeys.forEach((key) => {
     if (typeof settings[key] !== "number") {
-      throw new Error(`Scoring setting '${key}' must be a number.`);
+      throw new FantasyPointsValidationError(
+        `Scoring setting '${key}' must be a number.`
+      );
     }
   });
 }
@@ -93,7 +114,9 @@ export async function calculateFantasyPoints(
 
   if (error) {
     console.error("Error calculating fantasy points:", error);
-    throw new Error(`Failed to calculate fantasy points: ${error.message}`);
+    throw new FantasyPointsCalculationError(
+      `Failed to calculate fantasy points: ${error.message}`
+    );
   }
 
   return data;
@@ -121,7 +144,7 @@ export async function calculateBatchFantasyPoints(
 
   if (error) {
     console.error("Error calculating batch fantasy points:", error);
-    throw new Error(
+    throw new FantasyPointsCalculationError(
       `Failed to calculate batch fantasy points: ${error.message}`
     );
   }
@@ -152,7 +175,9 @@ export async function updateWeeklyStatsWithFantasyPoints(
     .single();
 
   if (fetchError || !weeklyStats) {
-    throw new Error(`Failed to fetch weekly stats: ${fetchError?.message}`);
+    throw new FantasyPointsCalculationError(
+      `Failed to fetch weekly stats: ${fetchError?.message}`
+    );
   }
 
   const stats: WeeklyStatsInput = {
@@ -182,7 +207,9 @@ export async function updateWeeklyStatsWithFantasyPoints(
     .eq("week", week);
 
   if (updateError) {
-    throw new Error(`Failed to update fantasy points: ${updateError.message}`);
+    throw new FantasyPointsCalculationError(
+      `Failed to update fantasy points: ${updateError.message}`
+    );
   }
 }
 
@@ -199,7 +226,9 @@ export async function recalculateAllFantasyPoints(
     .select("*");
 
   if (fetchError) {
-    throw new Error(`Failed to fetch all weekly stats: ${fetchError.message}`);
+    throw new FantasyPointsCalculationError(
+      `Failed to fetch all weekly stats: ${fetchError.message}`
+    );
   }
 
   if (!allStats || allStats.length === 0) {
@@ -248,36 +277,4 @@ export async function recalculateAllFantasyPoints(
       console.error(`Failed to update fantasy points for ${update.id}:`, error);
     }
   }
-}
-
-/**
- * Mock helper for unit tests: returns a valid WeeklyStatsInput object.
- */
-export function mockWeeklyStatsInput(
-  overrides: Partial<WeeklyStatsInput> = {}
-): WeeklyStatsInput {
-  return {
-    passing_yards: 100,
-    passing_tds: 1,
-    passing_interceptions: 0,
-    rushing_yards: 50,
-    rushing_tds: 1,
-    receiving_yards: 30,
-    receiving_tds: 0,
-    receptions: 3,
-    fumbles_lost: 0,
-    ...overrides,
-  };
-}
-
-/**
- * Mock helper for unit tests: returns a valid ScoringSettings object.
- */
-export function mockScoringSettings(
-  overrides: Partial<ScoringSettings> = {}
-): ScoringSettings {
-  return {
-    ...DEFAULT_SCORING_SETTINGS.standard,
-    ...overrides,
-  };
 }

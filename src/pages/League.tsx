@@ -1,11 +1,8 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import Layout from "../components/Layout";
-import {
-  StatCard,
-  FeatureCard,
-  FantasyCard,
-} from "../components/ui/cards/FantasyCard";
+import { FantasyCard, CardType } from "../components/ui/cards/FantasyCard";
+import { StatGrid } from "../components/ui/common";
 import {
   Trophy,
   Users,
@@ -195,184 +192,61 @@ const League: React.FC = () => {
         </motion.div>
 
         {/* Stats Grid */}
-        <motion.div
-          variants={itemVariants}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
-        >
-          {leagueStats.map((stat, index) => (
-            <StatCard key={index} {...stat} />
-          ))}
-        </motion.div>
+        <StatGrid stats={leagueStats} />
 
-        {/* League Overview */}
+        {/* Leagues Section */}
         <motion.div variants={itemVariants} className="space-y-6">
-          <h2 className="text-2xl font-bold text-white">Your Leagues</h2>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {leagues.map((league, index) => (
-              <motion.div
-                key={index}
-                variants={itemVariants}
-                transition={{ delay: index * 0.1 }}
-              >
-                <FantasyCard variant={league.variant} className="p-6" hover>
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <h3 className="text-lg font-semibold text-white">
-                        {league.name}
-                      </h3>
-                      <span className="text-xs bg-emerald-500/20 text-emerald-400 px-2 py-1 rounded-lg">
-                        {league.status}
-                      </span>
-                    </div>
+          <div className="flex items-center justify-between">
+            <h2 className="text-3xl font-bold text-white">Your Leagues</h2>
+            <button className="bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-2 rounded-lg font-medium transition-colors">
+              Manage All Leagues
+            </button>
+          </div>
 
-                    <div className="space-y-2">
-                      <div className="flex justify-between">
-                        <span className="text-slate-400">Type:</span>
-                        <span className="text-white">{league.type}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-slate-400">Record:</span>
-                        <span className="text-white font-semibold">
-                          {league.record}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-slate-400">Standing:</span>
-                        <span className="text-emerald-400 font-semibold">
-                          {league.standing}
-                        </span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-slate-400">Points:</span>
-                        <span className="text-white">{league.points}</span>
-                      </div>
-                    </div>
-                  </div>
-                </FantasyCard>
-              </motion.div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {leagues.map((league, index) => (
+              <FantasyCard key={index} cardType="league" cardData={league} />
             ))}
           </div>
         </motion.div>
 
         {/* Upcoming Matchups */}
         <motion.div variants={itemVariants} className="space-y-6">
-          <h2 className="text-2xl font-bold text-white">Upcoming Matchups</h2>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {upcomingMatchups.map((matchup, index) => (
-              <motion.div
-                key={index}
-                variants={itemVariants}
-                transition={{ delay: index * 0.1 }}
-              >
-                <FantasyCard variant="default" className="p-6">
-                  <div className="text-center space-y-3">
-                    <div className="flex items-center justify-center space-x-2">
-                      <Calendar className="h-4 w-4 text-emerald-400" />
-                      <span className="text-emerald-400 font-medium">
-                        {matchup.week}
-                      </span>
-                    </div>
-                    <h3 className="text-lg font-semibold text-white">
-                      vs {matchup.opponent}
-                    </h3>
-                    <div className="space-y-2">
-                      <div className="text-slate-400 text-sm">
-                        Projected Score
-                      </div>
-                      <div className="text-white font-semibold">
-                        {matchup.points}
-                      </div>
-                      <div
-                        className={`text-sm font-medium px-3 py-1 rounded-lg ${
-                          matchup.projection.includes("Win")
-                            ? "bg-emerald-500/20 text-emerald-400"
-                            : "bg-red-500/20 text-red-400"
-                        }`}
-                      >
-                        {matchup.projection}
-                      </div>
+          <h2 className="text-3xl font-bold text-white">Upcoming Matchups</h2>
+          <div className="bg-slate-800/50 border border-slate-700/50 rounded-2xl p-6">
+            <div className="space-y-4">
+              {upcomingMatchups.map((matchup, index) => (
+                <div
+                  key={index}
+                  className="flex items-center justify-between p-4 bg-slate-700/30 rounded-lg"
+                >
+                  <div className="flex items-center space-x-4">
+                    <div className="w-3 h-3 bg-emerald-500 rounded-full"></div>
+                    <div>
+                      <h3 className="text-white font-medium">
+                        vs {matchup.opponent}
+                      </h3>
+                      <p className="text-slate-400 text-sm">{matchup.week}</p>
                     </div>
                   </div>
-                </FantasyCard>
-              </motion.div>
-            ))}
+                  <div className="text-right">
+                    <p className="text-emerald-400 font-medium">
+                      {matchup.projection}
+                    </p>
+                    <p className="text-slate-400 text-sm">{matchup.points}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </motion.div>
 
-        {/* League Tools */}
+        {/* League Features */}
         <motion.div variants={itemVariants} className="space-y-6">
-          <h2 className="text-2xl font-bold text-white">League Tools</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <FantasyCard
-              variant="premium"
-              className="p-6 text-center cursor-pointer"
-              hover
-            >
-              <Users className="h-12 w-12 text-blue-400 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-white mb-2">
-                League Overview
-              </h3>
-              <p className="text-slate-400 text-sm">
-                View standings, matchups, and league activity
-              </p>
-            </FantasyCard>
-
-            <FantasyCard
-              variant="elite"
-              className="p-6 text-center cursor-pointer"
-              hover
-            >
-              <Calendar className="h-12 w-12 text-purple-400 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-white mb-2">
-                Schedule & Matchups
-              </h3>
-              <p className="text-slate-400 text-sm">
-                Track upcoming games and playoff scenarios
-              </p>
-            </FantasyCard>
-
-            <FantasyCard
-              variant="champion"
-              className="p-6 text-center cursor-pointer"
-              hover
-            >
-              <Trophy className="h-12 w-12 text-yellow-400 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-white mb-2">
-                Championship Path
-              </h3>
-              <p className="text-slate-400 text-sm">
-                Analyze your path to the championship
-              </p>
-            </FantasyCard>
-
-            <FantasyCard
-              variant="default"
-              className="p-6 text-center cursor-pointer"
-              hover
-            >
-              <TrendingUp className="h-12 w-12 text-emerald-400 mx-auto mb-4" />
-              <h3 className="text-lg font-semibold text-white mb-2">
-                League Analytics
-              </h3>
-              <p className="text-slate-400 text-sm">
-                Advanced statistics and insights
-              </p>
-            </FantasyCard>
-          </div>
-        </motion.div>
-
-        {/* Advanced Features */}
-        <motion.div variants={itemVariants} className="space-y-6">
-          <h2 className="text-2xl font-bold text-white">Advanced Features</h2>
+          <h2 className="text-3xl font-bold text-white">League Tools</h2>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {leagueFeatures.map((feature, index) => (
-              <motion.div
-                key={index}
-                variants={itemVariants}
-                transition={{ delay: index * 0.1 }}
-              >
-                <FeatureCard {...feature} comingSoon />
-              </motion.div>
+              <FantasyCard key={index} cardType="feature" cardData={feature} />
             ))}
           </div>
         </motion.div>
@@ -383,18 +257,18 @@ const League: React.FC = () => {
           className="bg-slate-800/50 border border-slate-700/50 rounded-2xl p-8 text-center"
         >
           <h3 className="text-2xl font-bold text-white mb-4">
-            Master Your League Management
+            Take Control of Your Leagues
           </h3>
           <p className="text-slate-400 mb-6 max-w-2xl mx-auto">
-            Get comprehensive league insights, playoff scenarios, and strategic
-            recommendations to dominate all your fantasy leagues.
+            Get advanced league management tools, real-time updates, and
+            strategic insights to dominate all your fantasy football leagues.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <button className="bg-emerald-500 hover:bg-emerald-600 text-white px-8 py-3 rounded-lg font-medium transition-colors">
-              Upgrade to Pro
+              Upgrade for Full Access
             </button>
             <button className="bg-slate-700 hover:bg-slate-600 text-white px-8 py-3 rounded-lg font-medium transition-colors">
-              Connect League
+              View League Analytics
             </button>
           </div>
         </motion.div>

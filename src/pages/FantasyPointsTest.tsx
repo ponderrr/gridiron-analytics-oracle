@@ -68,12 +68,12 @@ const FantasyPointsTest: React.FC = () => {
           ...acc,
           [key]: parseInt(value) || 0,
         }),
-        {} as WeeklyStatsInput,
+        {} as WeeklyStatsInput
       );
 
       const calculatedResult = await calculateFantasyPoints(
         parsedStats,
-        DEFAULT_SCORING_SETTINGS[scoringFormat],
+        DEFAULT_SCORING_SETTINGS[scoringFormat]
       );
 
       setResult(calculatedResult);
@@ -83,57 +83,6 @@ const FantasyPointsTest: React.FC = () => {
     } finally {
       setIsCalculating(false);
     }
-  };
-
-  const loadSampleData = (playerType: "qb" | "rb" | "wr" | "te") => {
-    const sampleData = {
-      qb: {
-        passing_yards: 317,
-        passing_tds: 3,
-        passing_interceptions: 0,
-        rushing_yards: 39,
-        rushing_tds: 1,
-        receiving_yards: 0,
-        receiving_tds: 0,
-        receptions: 0,
-        fumbles_lost: 0,
-      },
-      rb: {
-        passing_yards: 0,
-        passing_tds: 0,
-        passing_interceptions: 0,
-        rushing_yards: 98,
-        rushing_tds: 1,
-        receiving_yards: 80,
-        receiving_tds: 1,
-        receptions: 8,
-        fumbles_lost: 0,
-      },
-      wr: {
-        passing_yards: 0,
-        passing_tds: 0,
-        passing_interceptions: 0,
-        rushing_yards: 0,
-        rushing_tds: 0,
-        receiving_yards: 123,
-        receiving_tds: 1,
-        receptions: 8,
-        fumbles_lost: 0,
-      },
-      te: {
-        passing_yards: 0,
-        passing_tds: 0,
-        passing_interceptions: 0,
-        rushing_yards: 0,
-        rushing_tds: 0,
-        receiving_yards: 84,
-        receiving_tds: 1,
-        receptions: 7,
-        fumbles_lost: 0,
-      },
-    };
-
-    setStats(sampleData[playerType]);
   };
 
   const containerVariants = {
@@ -255,7 +204,7 @@ const FantasyPointsTest: React.FC = () => {
                       onChange={(e) =>
                         handleStatChange(
                           "passing_interceptions",
-                          e.target.value,
+                          e.target.value
                         )
                       }
                       className="bg-slate-800 border-slate-600 text-white"
@@ -397,12 +346,6 @@ const FantasyPointsTest: React.FC = () => {
                   <p className="text-red-400 text-sm">{error}</p>
                 </div>
               )}
-
-              {error && (
-                <div className="bg-red-900/20 border border-red-800 rounded-lg p-3">
-                  <p className="text-red-400 text-sm">{error}</p>
-                </div>
-              )}
             </div>
           </FantasyCard>
 
@@ -489,8 +432,8 @@ const FantasyPointsTest: React.FC = () => {
                       {scoringFormat === "ppr"
                         ? "1 pt"
                         : scoringFormat === "half_ppr"
-                          ? "0.5 pts"
-                          : "0 pts"}
+                        ? "0.5 pts"
+                        : "0 pts"}
                     </p>
                     <p>• Fumbles Lost: -2 pts</p>
                   </div>
@@ -512,10 +455,4 @@ const FantasyPointsTest: React.FC = () => {
   );
 };
 
-export default function FantasyPointsTestWithBoundary() {
-  return (
-    <ErrorBoundary>
-      <FantasyPointsTest />
-    </ErrorBoundary>
-  );
-}
+export default FantasyPointsTest;

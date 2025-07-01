@@ -1,21 +1,9 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import Layout from "../components/Layout";
-import {
-  StatCard,
-  PlayerCard,
-  FeatureCard,
-  FantasyCard,
-} from "../components/ui/cards/FantasyCard";
-import {
-  Users,
-  Search,
-  Filter,
-  TrendingUp,
-  BarChart3,
-  Target,
-  Activity,
-} from "lucide-react";
+import { FantasyCard, CardType } from "../components/ui/cards/FantasyCard";
+import { SearchFilters, StatGrid } from "../components/ui/common";
+import { Users, TrendingUp, BarChart3, Target, Activity } from "lucide-react";
 
 const Players: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -182,6 +170,33 @@ const Players: React.FC = () => {
     },
   };
 
+  const searchFilters = [
+    {
+      label: "Position",
+      value: selectedPosition,
+      options: [
+        { value: "all", label: "All Positions" },
+        { value: "qb", label: "Quarterbacks" },
+        { value: "rb", label: "Running Backs" },
+        { value: "wr", label: "Wide Receivers" },
+        { value: "te", label: "Tight Ends" },
+      ],
+      onChange: setSelectedPosition,
+    },
+    {
+      label: "Team",
+      value: selectedTeam,
+      options: [
+        { value: "all", label: "All Teams" },
+        { value: "buf", label: "Buffalo Bills" },
+        { value: "sf", label: "San Francisco 49ers" },
+        { value: "lar", label: "Los Angeles Rams" },
+        { value: "kc", label: "Kansas City Chiefs" },
+      ],
+      onChange: setSelectedTeam,
+    },
+  ];
+
   return (
     <Layout isAuthenticated>
       <motion.div
@@ -205,84 +220,25 @@ const Players: React.FC = () => {
           </div>
 
           {/* Search and Filters */}
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
-              <input
-                type="text"
-                placeholder="Search players by name..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full bg-slate-800 border border-slate-700 rounded-lg pl-10 pr-4 py-3 text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-              />
-            </div>
-            <select
-              value={selectedPosition}
-              onChange={(e) => setSelectedPosition(e.target.value)}
-              className="bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
-            >
-              <option value="all">All Positions</option>
-              <option value="qb">Quarterbacks</option>
-              <option value="rb">Running Backs</option>
-              <option value="wr">Wide Receivers</option>
-              <option value="te">Tight Ends</option>
-            </select>
-            <select
-              value={selectedTeam}
-              onChange={(e) => setSelectedTeam(e.target.value)}
-              className="bg-slate-800 border border-slate-700 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
-            >
-              <option value="all">All Teams</option>
-              <option value="buf">Buffalo Bills</option>
-              <option value="sf">San Francisco 49ers</option>
-              <option value="lar">Los Angeles Rams</option>
-              <option value="kc">Kansas City Chiefs</option>
-            </select>
-            <button className="flex items-center space-x-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg px-4 py-3 text-slate-300 hover:text-white transition-colors">
-              <Filter className="h-4 w-4" />
-              <span>More Filters</span>
-            </button>
-          </div>
+          <SearchFilters
+            searchTerm={searchTerm}
+            onSearchChange={setSearchTerm}
+            searchPlaceholder="Search players by name..."
+            filters={searchFilters}
+            showMoreFilters={true}
+            onMoreFiltersClick={() => console.log("More filters clicked")}
+          />
         </motion.div>
 
         {/* Stats Grid */}
-        <motion.div
-          variants={itemVariants}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
-        >
-          {playerStats.map((stat, index) => (
-            <StatCard key={index} {...stat} />
-          ))}
-        </motion.div>
+        <StatGrid stats={playerStats} />
 
         {/* Player Categories */}
         <motion.div variants={itemVariants} className="space-y-6">
           <h2 className="text-2xl font-bold text-white">Player Categories</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {playerCategories.map((category, index) => (
-              <motion.div
-                key={index}
-                variants={itemVariants}
-                transition={{ delay: index * 0.1 }}
-              >
-                <FantasyCard
-                  variant={category.variant}
-                  className="p-6 text-center cursor-pointer"
-                  hover
-                >
-                  <category.icon className="h-12 w-12 text-emerald-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold text-white mb-2">
-                    {category.title}
-                  </h3>
-                  <p className="text-slate-400 text-sm mb-4">
-                    {category.description}
-                  </p>
-                  <div className="text-2xl font-bold text-white">
-                    {category.count}
-                  </div>
-                  <div className="text-xs text-slate-500">players</div>
-                </FantasyCard>
-              </motion.div>
+            {playerCategories.map((feature, index) => (
+              <FantasyCard key={index} cardType="feature" cardData={feature} />
             ))}
           </div>
         </motion.div>
@@ -298,16 +254,7 @@ const Players: React.FC = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {featuredPlayers.map((player, index) => (
-              <motion.div
-                key={player.name}
-                variants={itemVariants}
-                transition={{ delay: index * 0.1 }}
-              >
-                <PlayerCard
-                  {...player}
-                  onClick={() => console.log(`View ${player.name} details`)}
-                />
-              </motion.div>
+              <FantasyCard key={index} cardType="player" cardData={player} />
             ))}
           </div>
         </motion.div>
@@ -316,21 +263,21 @@ const Players: React.FC = () => {
         <motion.div variants={itemVariants} className="space-y-6">
           <h2 className="text-2xl font-bold text-white">Player Tools</h2>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <FeatureCard
+            <FantasyCard
               title="Player Comparison"
               description="Compare multiple players side-by-side with detailed statistics and projections."
               icon={BarChart3}
               variant="premium"
               comingSoon
             />
-            <FeatureCard
+            <FantasyCard
               title="Waiver Wire Analysis"
               description="Identify the best available players on the waiver wire with pickup recommendations."
               icon={Target}
               variant="elite"
               comingSoon
             />
-            <FeatureCard
+            <FantasyCard
               title="Injury Impact Analysis"
               description="Understand how injuries affect player performance and identify replacement options."
               icon={Activity}

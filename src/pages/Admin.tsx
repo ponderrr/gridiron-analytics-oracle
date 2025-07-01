@@ -7,85 +7,251 @@ import {
   ArrowLeftRight,
 } from "lucide-react";
 import Layout from "../components/Layout";
-import { useQuery } from "@/hooks/useQuery";
-import {
-  fetchPlayers,
-  fetchWeeklyStats,
-  fetchProjections,
-  fetchTradeValues,
-  Player,
-  WeeklyStat,
-  Projection,
-  TradeValue,
-} from "../lib/database";
+import { useQuery } from "@tanstack/react-query";
+import { Player, WeeklyStat, Projection, TradeValue } from "../lib/database";
+import { supabase } from "../integrations/supabase/client";
 import { APP_NAME, APP_TAGLINE } from "@/lib/constants";
 import { appConfig } from "@/config/app";
 import ErrorBoundary from "@/components/ErrorBoundary";
 
-// Reusable Table component
-interface TableColumn<T> {
-  key: keyof T | string;
-  label: string;
-  render?: (row: T) => ReactNode;
+// Local database functions moved from database.ts
+async function fetchPlayers(): Promise<Player[]> {
+  try {
+    const { data, error } = await supabase.from("players").select("*");
+    if (error) throw error;
+    return data || [];
+  } catch (err) {
+    console.error("fetchPlayers error:", err);
+    throw err;
+  }
 }
 
-interface TableProps<T> {
-  columns: TableColumn<T>[];
-  data: T[];
-  rowKey: (row: T) => string | number;
+async function fetchWeeklyStats(limit = 10): Promise<WeeklyStat[]> {
+  try {
+    const { data, error } = await supabase
+      .from("weekly_stats")
+      .select("*")
+      .order("week", { ascending: true })
+      .limit(limit);
+    if (error) throw error;
+    return data || [];
+  } catch (err) {
+    console.error("fetchWeeklyStats error:", err);
+    throw err;
+  }
 }
 
-function Table<T extends Record<string, unknown>>({
-  columns,
-  data,
-  rowKey,
-}: TableProps<T>) {
-  const getCellValue = (row: T, col: TableColumn<T>): ReactNode => {
-    if (col.render) {
-      return col.render(row);
-    }
+async function fetchProjections(): Promise<Projection[]> {
+  try {
+    const { data, error } = await supabase.from("projections").select("*");
+    if (error) throw error;
+    return data || [];
+  } catch (err) {
+    console.error("fetchProjections error:", err);
+    throw err;
+  }
+}
 
-    // Type-safe property access
-    if (col.key in row) {
-      const value = row[col.key as keyof T];
-      return value != null ? String(value) : "";
-    }
+async function fetchTradeValues(): Promise<TradeValue[]> {
+  try {
+    const { data, error } = await supabase.from("trade_values").select("*");
+    if (error) throw error;
+    return data || [];
+  } catch (err) {
+    console.error("fetchTradeValues error:", err);
+    throw err;
+  }
+}
 
-    // For custom keys that don't exist on the row, return empty
-    return "";
-  };
-
-  return (
-    <table className="w-full">
-      <thead className="bg-slate-700/50">
-        <tr>
-          {columns.map((col) => (
-            <th
-              key={col.key as string}
-              className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider"
-            >
-              {col.label}
-            </th>
-          ))}
+// Simplified table components specific to Admin usage
+const PlayersTable: React.FC<{ data: Player[] }> = ({ data }) => (
+  <table className="w-full">
+    <thead className="bg-slate-700/50">
+      <tr>
+        <th className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
+          Name
+        </th>
+        <th className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
+          Position
+        </th>
+        <th className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
+          Team
+        </th>
+        <th className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
+          Bye Week
+        </th>
+        <th className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
+          Status
+        </th>
+      </tr>
+    </thead>
+    <tbody className="divide-y divide-slate-700">
+      {data.map((player) => (
+        <tr key={player.id} className="hover:bg-slate-700/30">
+          <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-300">
+            {player.name}
+          </td>
+          <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-300">
+            {player.position}
+          </td>
+          <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-300">
+            {player.team}
+          </td>
+          <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-300">
+            {player.bye_week}
+          </td>
+          <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-300">
+            {player.active ? "Active" : "Inactive"}
+          </td>
         </tr>
-      </thead>
-      <tbody className="divide-y divide-slate-700">
-        {data.map((row) => (
-          <tr key={rowKey(row)} className="hover:bg-slate-700/30">
-            {columns.map((col) => (
-              <td
-                key={col.key as string}
-                className="px-6 py-4 whitespace-nowrap text-sm text-slate-300"
-              >
-                {getCellValue(row, col)}
-              </td>
-            ))}
-          </tr>
-        ))}
-      </tbody>
-    </table>
-  );
-}
+      ))}
+    </tbody>
+  </table>
+);
+
+const StatsTable: React.FC<{
+  data: WeeklyStat[];
+  getPlayerName: (playerId: string | null) => string;
+}> = ({ data, getPlayerName }) => (
+  <table className="w-full">
+    <thead className="bg-slate-700/50">
+      <tr>
+        <th className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
+          Player
+        </th>
+        <th className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
+          Week
+        </th>
+        <th className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
+          Fantasy Points
+        </th>
+        <th className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
+          Passing
+        </th>
+        <th className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
+          Rushing
+        </th>
+        <th className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
+          Receiving
+        </th>
+      </tr>
+    </thead>
+    <tbody className="divide-y divide-slate-700">
+      {data.map((stat) => (
+        <tr key={stat.id} className="hover:bg-slate-700/30">
+          <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-300">
+            {getPlayerName(stat.player_id)}
+          </td>
+          <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-300">
+            {stat.week}
+          </td>
+          <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-300">
+            {stat.fantasy_points}
+          </td>
+          <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-300">
+            {stat.passing_yards}
+          </td>
+          <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-300">
+            {stat.rushing_yards}
+          </td>
+          <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-300">
+            {stat.receptions}
+          </td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+);
+
+const ProjectionsTable: React.FC<{
+  data: Projection[];
+  getPlayerName: (playerId: string | null) => string;
+}> = ({ data, getPlayerName }) => (
+  <table className="w-full">
+    <thead className="bg-slate-700/50">
+      <tr>
+        <th className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
+          Player
+        </th>
+        <th className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
+          Week
+        </th>
+        <th className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
+          Projected Points
+        </th>
+        <th className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
+          Type
+        </th>
+        <th className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
+          Confidence
+        </th>
+      </tr>
+    </thead>
+    <tbody className="divide-y divide-slate-700">
+      {data.map((projection) => (
+        <tr key={projection.id} className="hover:bg-slate-700/30">
+          <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-300">
+            {getPlayerName(projection.player_id)}
+          </td>
+          <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-300">
+            {projection.week}
+          </td>
+          <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-300">
+            {projection.projected_points}
+          </td>
+          <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-300">
+            {projection.projection_type}
+          </td>
+          <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-300">
+            {projection.confidence_score}
+          </td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+);
+
+const TradeValuesTable: React.FC<{
+  data: TradeValue[];
+  getPlayerName: (playerId: string | null) => string;
+}> = ({ data, getPlayerName }) => (
+  <table className="w-full">
+    <thead className="bg-slate-700/50">
+      <tr>
+        <th className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
+          Player
+        </th>
+        <th className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
+          Week
+        </th>
+        <th className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
+          Trade Value
+        </th>
+        <th className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
+          Tier
+        </th>
+      </tr>
+    </thead>
+    <tbody className="divide-y divide-slate-700">
+      {data.map((value) => (
+        <tr key={value.id} className="hover:bg-slate-700/30">
+          <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-300">
+            {getPlayerName(value.player_id)}
+          </td>
+          <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-300">
+            {value.week}
+          </td>
+          <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-300">
+            {value.trade_value}
+          </td>
+          <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-300">
+            {value.tier}
+          </td>
+        </tr>
+      ))}
+    </tbody>
+  </table>
+);
 
 const Admin: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string>("players");
@@ -155,11 +321,6 @@ const Admin: React.FC = () => {
     },
     [players]
   );
-
-  const memoizedPlayers = useMemo(() => players, [players]);
-  const memoizedWeeklyStats = useMemo(() => weeklyStats, [weeklyStats]);
-  const memoizedProjections = useMemo(() => projections, [projections]);
-  const memoizedTradeValues = useMemo(() => tradeValues, [tradeValues]);
 
   const tabs = [
     { id: "players", label: "Players", icon: Users, count: players.length },
@@ -254,76 +415,30 @@ const Admin: React.FC = () => {
         <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl overflow-hidden">
           {activeTab === "players" && (
             <div className="overflow-x-auto">
-              <Table
-                columns={[
-                  { key: "name", label: "Name" },
-                  { key: "position", label: "Position" },
-                  { key: "team", label: "Team" },
-                  { key: "bye_week", label: "Bye Week" },
-                  { key: "active", label: "Status" },
-                ]}
-                data={memoizedPlayers}
-                rowKey={(player) => player.id}
-              />
+              <PlayersTable data={players} />
             </div>
           )}
 
           {activeTab === "stats" && (
             <div className="overflow-x-auto">
-              <Table
-                columns={[
-                  {
-                    key: "player",
-                    label: "Player",
-                    render: (stat) => getPlayerName(stat.player_id),
-                  },
-                  { key: "week", label: "Week" },
-                  { key: "fantasy_points", label: "Fantasy Points" },
-                  { key: "passing_yards", label: "Passing" },
-                  { key: "rushing_yards", label: "Rushing" },
-                  { key: "receptions", label: "Receiving" },
-                ]}
-                data={memoizedWeeklyStats}
-                rowKey={(stat) => stat.id}
-              />
+              <StatsTable data={weeklyStats} getPlayerName={getPlayerName} />
             </div>
           )}
 
           {activeTab === "projections" && (
             <div className="overflow-x-auto">
-              <Table
-                columns={[
-                  {
-                    key: "player",
-                    label: "Player",
-                    render: (projection) => getPlayerName(projection.player_id),
-                  },
-                  { key: "week", label: "Week" },
-                  { key: "projected_points", label: "Projected Points" },
-                  { key: "projection_type", label: "Type" },
-                  { key: "confidence_score", label: "Confidence" },
-                ]}
-                data={memoizedProjections}
-                rowKey={(projection) => projection.id}
+              <ProjectionsTable
+                data={projections}
+                getPlayerName={getPlayerName}
               />
             </div>
           )}
 
           {activeTab === "trade-values" && (
             <div className="overflow-x-auto">
-              <Table
-                columns={[
-                  {
-                    key: "player",
-                    label: "Player",
-                    render: (value) => getPlayerName(value.player_id),
-                  },
-                  { key: "week", label: "Week" },
-                  { key: "trade_value", label: "Trade Value" },
-                  { key: "tier", label: "Tier" },
-                ]}
-                data={memoizedTradeValues}
-                rowKey={(value) => value.id}
+              <TradeValuesTable
+                data={tradeValues}
+                getPlayerName={getPlayerName}
               />
             </div>
           )}
@@ -389,10 +504,4 @@ const Admin: React.FC = () => {
   );
 };
 
-export default function AdminWithBoundary() {
-  return (
-    <ErrorBoundary>
-      <Admin />
-    </ErrorBoundary>
-  );
-}
+export default Admin;
