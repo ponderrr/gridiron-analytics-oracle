@@ -107,6 +107,7 @@ const Players: React.FC = () => {
 
   const searchFilters = [
     {
+      id: "position",
       label: "Position",
       value: selectedPosition,
       options: [
@@ -116,9 +117,10 @@ const Players: React.FC = () => {
         { value: "wr", label: "Wide Receivers" },
         { value: "te", label: "Tight Ends" },
       ],
-      onChange: setSelectedPosition,
+      onChange: (value: string) => setSelectedPosition(value),
     },
     {
+      id: "team",
       label: "Team",
       value: selectedTeam,
       options: [
@@ -128,7 +130,7 @@ const Players: React.FC = () => {
         { value: "lar", label: "Los Angeles Rams" },
         { value: "kc", label: "Kansas City Chiefs" },
       ],
-      onChange: setSelectedTeam,
+      onChange: (value: string) => setSelectedTeam(value),
     },
   ];
 

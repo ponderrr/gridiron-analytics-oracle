@@ -29,8 +29,8 @@ import {
   PRO_TIER_DESCRIPTION,
   UPGRADE_NOW_LABEL,
   DOMINATE_LEAGUE,
-  SIDEBAR_EXPANDED_WIDTH,
-  SIDEBAR_COLLAPSED_WIDTH_CSS,
+  SIDEBAR_EXPANDED_WIDTH_PX,
+  SIDEBAR_COLLAPSED_WIDTH_CSS_PX,
 } from "@/lib/constants";
 
 interface NavItemProps {
@@ -74,7 +74,7 @@ function useSidebarWidth(isCollapsed: boolean) {
   useEffect(() => {
     document.documentElement.style.setProperty(
       "--sidebar-width",
-      isCollapsed ? SIDEBAR_COLLAPSED_WIDTH_CSS : SIDEBAR_EXPANDED_WIDTH
+      isCollapsed ? SIDEBAR_COLLAPSED_WIDTH_CSS_PX : SIDEBAR_EXPANDED_WIDTH_PX
     );
   }, [isCollapsed]);
 }

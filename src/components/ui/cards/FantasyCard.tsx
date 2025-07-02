@@ -60,12 +60,18 @@ export type FantasyCardData =
   | Record<string, any>;
 
 export interface FantasyCardProps {
-  cardType: string;
-  cardData: FantasyCardData;
+  cardType?: string;
+  cardData?: FantasyCardData;
   className?: string;
   hover?: boolean;
   glow?: boolean;
   onClick?: () => void;
+  children?: React.ReactNode;
+  variant?: "default" | "premium" | "elite" | "champion";
+  title?: string;
+  description?: string;
+  icon?: LucideIcon;
+  comingSoon?: boolean;
 }
 
 const cardVariants = {
@@ -92,6 +98,12 @@ export const FantasyCard: React.FC<FantasyCardProps> = ({
   hover = true,
   glow = false,
   onClick,
+  children,
+  variant: propVariant,
+  title,
+  description,
+  icon,
+  comingSoon,
 }) => {
   // Helper functions
   const getTrendColor = (trend?: "up" | "down" | "neutral") => {
@@ -143,9 +155,134 @@ export const FantasyCard: React.FC<FantasyCardProps> = ({
     return "default";
   };
 
+  // If children are provided, use them directly
+  if (children) {
+    const finalVariant = propVariant || "default";
+    const cardClass = cn(
+      "rounded-2xl border backdrop-blur-sm transition-all duration-300",
+      cardVariants[finalVariant],
+      glow && glowVariants[finalVariant],
+      hover && "hover:scale-[1.02] hover:shadow-2xl",
+      onClick && "cursor-pointer",
+      className
+    );
+
+    if (onClick) {
+      return (
+        <motion.div
+          whileHover={{ scale: hover ? 1.02 : 1 }}
+          whileTap={{ scale: 0.98 }}
+          onClick={onClick}
+          className={cardClass}
+        >
+          {children}
+        </motion.div>
+      );
+    }
+
+    return (
+      <motion.div whileHover={{ scale: hover ? 1.02 : 1 }} className={cardClass}>
+        {children}
+      </motion.div>
+    );
+  }
+
+  // Handle simple feature card props
+  if (title && description && icon) {
+    const finalVariant = propVariant || "default";
+    const Icon = icon;
+    const content = (
+      <div className="p-8 text-center relative overflow-hidden">
+        <motion.div
+          className="absolute inset-0 opacity-10"
+          animate={{
+            background: [
+              "radial-gradient(circle at 20% 80%, rgba(16, 185, 129, 0.1) 0%, transparent 50%)",
+              "radial-gradient(circle at 80% 20%, rgba(59, 130, 246, 0.1) 0%, transparent 50%)",
+              "radial-gradient(circle at 40% 40%, rgba(168, 85, 247, 0.1) 0%, transparent 50%)",
+            ],
+          }}
+          transition={{
+            duration: 8,
+            repeat: Infinity,
+            ease: "linear",
+          }}
+        />
+        <div className="relative z-10">
+          <motion.div
+            whileHover={{ rotate: 360 }}
+            transition={{ duration: 0.6 }}
+            className={cn(
+              "w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6",
+              finalVariant === "premium" &&
+                "bg-gradient-to-r from-blue-500 to-cyan-500",
+              finalVariant === "elite" &&
+                "bg-gradient-to-r from-purple-500 to-pink-500",
+              finalVariant === "champion" &&
+                "bg-gradient-to-r from-yellow-500 to-orange-500",
+              finalVariant === "default" &&
+                "bg-gradient-to-r from-emerald-500 to-green-500"
+            )}
+          >
+            <Icon className="h-8 w-8 text-white" />
+          </motion.div>
+          <h3 className="text-xl font-black text-white mb-4">{title}</h3>
+          <p className="text-slate-400 text-sm leading-relaxed mb-6">
+            {description}
+          </p>
+          {comingSoon && (
+            <div className="inline-flex items-center bg-yellow-500/20 text-yellow-400 px-3 py-1 rounded-full text-xs font-bold border border-yellow-500/30">
+              🚀 COMING SOON
+            </div>
+          )}
+          {onClick && (
+            <motion.div
+              initial={{ scale: 0 }}
+              whileHover={{ scale: 1 }}
+              className="absolute top-4 right-4 bg-emerald-500 w-3 h-3 rounded-full"
+            />
+          )}
+        </div>
+      </div>
+    );
+
+    const cardClass = cn(
+      "rounded-2xl border backdrop-blur-sm transition-all duration-300",
+      cardVariants[finalVariant],
+      glow && glowVariants[finalVariant],
+      hover && "hover:scale-[1.02] hover:shadow-2xl",
+      onClick && "cursor-pointer",
+      className
+    );
+
+    if (onClick) {
+      return (
+        <motion.div
+          whileHover={{ scale: hover ? 1.02 : 1 }}
+          whileTap={{ scale: 0.98 }}
+          onClick={onClick}
+          className={cardClass}
+        >
+          {content}
+        </motion.div>
+      );
+    }
+
+    return (
+      <motion.div whileHover={{ scale: hover ? 1.02 : 1 }} className={cardClass}>
+        {content}
+      </motion.div>
+    );
+  }
+
+  // Fallback for legacy cardType/cardData usage
+  if (!cardType || !cardData) {
+    return <div className="p-4 text-slate-400">Invalid card configuration</div>;
+  }
+
   // Card rendering logic
   let content: React.ReactNode = null;
-  let variant: "default" | "premium" | "elite" | "champion" = "default";
+  let variant: "default" | "premium" | "elite" | "champion" = propVariant || "default";
 
   if (cardType === "stat") {
     const data = cardData as StatCardData;
