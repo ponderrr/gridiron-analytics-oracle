@@ -161,6 +161,20 @@ serve(async (req) => {
           }
         );
 
+        // Error handling for fantasyPointsResponse
+        if (
+          fantasyPointsResponse.error ||
+          fantasyPointsResponse.status !== 200
+        ) {
+          const errorMsg =
+            `Error calculating fantasy points for player ${espnPlayerId}: ` +
+            (fantasyPointsResponse.error?.message ||
+              `Status ${fantasyPointsResponse.status}`);
+          errorDetails.push(errorMsg);
+          console.error(errorMsg, fantasyPointsResponse.error);
+          continue;
+        }
+
         const fantasyPoints = fantasyPointsResponse.data?.total_points || 0;
 
         const weeklyStatRecord = {

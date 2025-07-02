@@ -8,6 +8,8 @@ export interface ColumnConfig<T> {
   sortable?: boolean;
   filterable?: boolean;
   filterFn?: (row: T, filter: string) => boolean;
+  sortAccessor?: keyof T | ((row: T) => string | number);
+  filterAccessor?: keyof T | ((row: T) => string | number);
 }
 
 export interface AdminTableProps<T> {
@@ -23,7 +25,7 @@ export function AdminTable<T>({
   columns,
   data,
   rowKey,
-  pageSize = 20,
+  pageSize: rawPageSize = 20,
   filterText = "",
   onFilterTextChange,
 }: AdminTableProps<T>) {
@@ -33,6 +35,9 @@ export function AdminTable<T>({
   // Pagination state
   const [page, setPage] = useState(0);
 
+  // Validate pageSize to be a positive integer
+  const pageSize = Math.max(1, Math.floor(rawPageSize));
+
   // Filtering
   const filteredData = useMemo(() => {
     if (!filterText) return data;
@@ -41,10 +46,31 @@ export function AdminTable<T>({
         if (col.filterable && col.filterFn) {
           return col.filterFn(row, filterText);
         }
-        const value =
-          typeof col.accessor === "function"
-            ? col.accessor(row)
-            : row[col.accessor as keyof T];
+        // Helper to get filterable value
+        const getFilterableValue = (row: T): string | number | undefined => {
+          if (col.filterAccessor) {
+            if (typeof col.filterAccessor === "function") {
+              return col.filterAccessor(row);
+            } else {
+              return row[col.filterAccessor as keyof T] as unknown as
+                | string
+                | number;
+            }
+          } else if (typeof col.accessor === "function") {
+            const value = col.accessor(row);
+            if (typeof value === "string" || typeof value === "number") {
+              return value;
+            }
+            return undefined;
+          } else {
+            const value = row[col.accessor as keyof T];
+            if (typeof value === "string" || typeof value === "number") {
+              return value;
+            }
+            return undefined;
+          }
+        };
+        const value = getFilterableValue(row);
         return (
           value &&
           value.toString().toLowerCase().includes(filterText.toLowerCase())
@@ -57,15 +83,31 @@ export function AdminTable<T>({
   const sortedData = useMemo(() => {
     if (sortCol === null) return filteredData;
     const col = columns[sortCol];
+    // Helper to get sortable value
+    const getSortableValue = (row: T): string | number | undefined => {
+      if (col.sortAccessor) {
+        if (typeof col.sortAccessor === "function") {
+          return col.sortAccessor(row);
+        } else {
+          return row[col.sortAccessor as keyof T] as unknown as string | number;
+        }
+      } else if (typeof col.accessor === "function") {
+        const value = col.accessor(row);
+        if (typeof value === "string" || typeof value === "number") {
+          return value;
+        }
+        return undefined;
+      } else {
+        const value = row[col.accessor as keyof T];
+        if (typeof value === "string" || typeof value === "number") {
+          return value;
+        }
+        return undefined;
+      }
+    };
     return [...filteredData].sort((a, b) => {
-      let aValue =
-        typeof col.accessor === "function"
-          ? col.accessor(a)
-          : a[col.accessor as keyof T];
-      let bValue =
-        typeof col.accessor === "function"
-          ? col.accessor(b)
-          : b[col.accessor as keyof T];
+      const aValue = getSortableValue(a);
+      const bValue = getSortableValue(b);
       if (typeof aValue === "string" && typeof bValue === "string") {
         return sortDir === "asc"
           ? aValue.localeCompare(bValue)
@@ -74,6 +116,7 @@ export function AdminTable<T>({
       if (typeof aValue === "number" && typeof bValue === "number") {
         return sortDir === "asc" ? aValue - bValue : bValue - aValue;
       }
+      // If types mismatch or not sortable, treat as equal
       return 0;
     });
   }, [filteredData, columns, sortCol, sortDir]);
@@ -121,7 +164,12 @@ export function AdminTable<T>({
                 key={idx}
                 className={
                   col.className ||
-                  "px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider cursor-pointer select-none"
+                  [
+                    "px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider",
+                    col.sortable ? "cursor-pointer select-none" : "",
+                  ]
+                    .filter(Boolean)
+                    .join(" ")
                 }
                 onClick={col.sortable ? () => handleSort(idx) : undefined}
               >

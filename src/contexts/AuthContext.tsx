@@ -130,43 +130,28 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const login = withErrorHandling(
     async (email: string, password: string): Promise<void> => {
       setIsAuthLoading(true);
-      try {
-        const { data, error } = await withTimeout(
-          supabase.auth.signInWithPassword({ email, password }),
-          15000,
-          "login"
-        );
-        if (error) {
-          if (error.message?.includes("Invalid login credentials")) {
-            throw createAppError("Invalid email or password.", "auth");
-          }
-          if (error.message?.includes("Email not confirmed")) {
-            throw createAppError(
-              "Please check your email and confirm your account before signing in.",
-              "auth"
-            );
-          }
+      const { data, error } = await withTimeout(
+        supabase.auth.signInWithPassword({ email, password }),
+        15000,
+        "login"
+      );
+      if (error) {
+        if (error.message?.includes("Invalid login credentials")) {
+          throw createAppError("Invalid email or password.", "auth");
+        }
+        if (error.message?.includes("Email not confirmed")) {
           throw createAppError(
-            error.message || "Failed to sign in. Please try again.",
+            "Please check your email and confirm your account before signing in.",
             "auth"
           );
         }
-        setAuthError(null);
-        console.log("Login successful:", data.user?.email);
-      } catch (error) {
-        setAuthError(
-          createAppError(
-            formatErrorMessage(error),
-            "auth",
-            undefined,
-            "login",
-            error
-          )
+        throw createAppError(
+          error.message || "Failed to sign in. Please try again.",
+          "auth"
         );
-        throw error;
-      } finally {
-        setIsAuthLoading(false);
       }
+      setAuthError(null);
+      console.log("Login successful:", data.user?.email);
     },
     "login"
   );

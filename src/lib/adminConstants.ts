@@ -8,7 +8,7 @@ export const ADMIN_TABS = {
 
 export const ADMIN_TAB_LABELS = {
   PLAYERS: "Players",
-  WEEKLY_STATS: "Weekly Stats",
+  STATS: "Weekly Stats",
   PROJECTIONS: "Projections",
   TRADE_VALUES: "Trade Values",
   DATA_SYNC: "Data Sync",

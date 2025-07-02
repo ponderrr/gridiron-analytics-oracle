@@ -44,8 +44,28 @@ serve(async (req) => {
     console.log("Starting NFL data sync...");
 
     // Initialize Supabase client
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    if (!supabaseUrl || !supabaseKey) {
+      const missingVars = [];
+      if (!supabaseUrl) missingVars.push("SUPABASE_URL");
+      if (!supabaseKey) missingVars.push("SUPABASE_SERVICE_ROLE_KEY");
+      const errorMsg = `Missing required environment variable(s): ${missingVars.join(
+        ", "
+      )}`;
+      console.error(errorMsg);
+      const errorResult: SyncResult = {
+        success: false,
+        players_added: 0,
+        players_updated: 0,
+        total_processed: 0,
+        errors: [errorMsg],
+      };
+      return new Response(JSON.stringify(errorResult), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
     const supabase = createClient(supabaseUrl, supabaseKey);
 
     let playersAdded = 0;
@@ -78,7 +98,10 @@ serve(async (req) => {
         if (team) {
           teamsMap.set(team.id, {
             abbreviation:
-              team.abbreviation || team.name?.substring(0, 3).toUpperCase(),
+              team.abbreviation ||
+              (typeof team.name === "string" && team.name.trim().length > 0
+                ? team.name.trim().substring(0, 3).toUpperCase()
+                : "UNK"),
             byeWeek: team.byeWeek,
           });
         }
@@ -179,6 +202,21 @@ serve(async (req) => {
         const batch = players.slice(i, i + batchSize);
 
         try {
+          // Fetch existing player_ids for this batch
+          const playerIds = batch.map((p) => p.player_id);
+          const { data: existing, error: fetchError } = await supabase
+            .from("players")
+            .select("player_id")
+            .in("player_id", playerIds);
+
+          if (fetchError) {
+            throw fetchError;
+          }
+
+          const existingIds = new Set(
+            (existing || []).map((row) => row.player_id)
+          );
+
           const { data, error } = await supabase.from("players").upsert(batch, {
             onConflict: "player_id",
             count: "exact",
@@ -188,9 +226,22 @@ serve(async (req) => {
             throw error;
           }
 
-          // Count operations (simplified - assume all are updates if they already existed)
-          playersAdded += batch.length;
-          console.log(`Successfully upserted batch of ${batch.length} players`);
+          // Count new inserts and updates
+          let added = 0;
+          let updated = 0;
+          for (const p of batch) {
+            if (existingIds.has(p.player_id)) {
+              updated++;
+            } else {
+              added++;
+            }
+          }
+          playersAdded += added;
+          playersUpdated += updated;
+
+          console.log(
+            `Successfully upserted batch of ${batch.length} players: ${added} added, ${updated} updated`
+          );
         } catch (error) {
           errors.push(`Database batch error: ${error.message}`);
           console.error("Database batch error:", error);
@@ -201,7 +252,7 @@ serve(async (req) => {
     const result: SyncResult = {
       success: errors.length < totalProcessed / 2, // Consider success if less than 50% errors
       players_added: playersAdded,
-      players_updated: 0, // Simplified - could be calculated with more complex logic
+      players_updated: playersUpdated,
       total_processed: totalProcessed,
       errors: errors.slice(0, 10), // Limit error details
     };

@@ -215,7 +215,7 @@ const Signup: React.FC = () => {
                 )}
               </div>
 
-              {/* confirm Password */}
+              {/* Confirm Password */}
               <div>
                 <label className="block text-sm font-medium text-slate-300 mb-2">
                   Confirm Password

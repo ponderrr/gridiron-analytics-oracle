@@ -52,15 +52,20 @@ const PlayerCard: React.FC<PlayerCardProps> = React.memo((props) => {
         return "bg-emerald-500/20 text-emerald-400 border-emerald-500/30";
     }
   };
+  // Tier precedence order (highest to lowest):
+  // 1. "elite" (if present, always takes precedence)
+  // 2. "champion"
+  // 3. "wr1", "rb1", "qb1" (premium)
+  // 4. default
+  //
+  // If multiple keywords are present in the tier string, the first match in this order is used.
   const getTierVariant = (tier?: string) => {
-    if (tier?.toLowerCase().includes("elite")) return "elite";
-    if (
-      tier?.toLowerCase().includes("wr1") ||
-      tier?.toLowerCase().includes("rb1") ||
-      tier?.toLowerCase().includes("qb1")
-    )
+    if (!tier) return "default";
+    const t = tier.toLowerCase();
+    if (t.includes("elite")) return "elite";
+    if (t.includes("champion")) return "champion";
+    if (t.includes("wr1") || t.includes("rb1") || t.includes("qb1"))
       return "premium";
-    if (tier?.toLowerCase().includes("champion")) return "champion";
     return "default";
   };
   const variant = getTierVariant(tier);
@@ -93,13 +98,11 @@ const PlayerCard: React.FC<PlayerCardProps> = React.memo((props) => {
                 <span
                   className={cn(
                     "px-2 py-1 rounded-lg text-xs font-medium",
-                    getTierVariant(tier) === "elite" &&
-                      "bg-purple-500/20 text-purple-400",
-                    getTierVariant(tier) === "premium" &&
-                      "bg-blue-500/20 text-blue-400",
-                    getTierVariant(tier) === "champion" &&
+                    variant === "elite" && "bg-purple-500/20 text-purple-400",
+                    variant === "premium" && "bg-blue-500/20 text-blue-400",
+                    variant === "champion" &&
                       "bg-yellow-500/20 text-yellow-400",
-                    getTierVariant(tier) === "default" &&
+                    variant === "default" &&
                       "bg-emerald-500/20 text-emerald-400"
                   )}
                 >

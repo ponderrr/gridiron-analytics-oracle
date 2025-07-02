@@ -43,6 +43,7 @@ import {
   SYNC_DESCRIPTIONS,
 } from "../lib/adminConstants";
 import type { ColumnConfig } from "../components/ui/table/AdminTable";
+import { formatErrorMessage } from "../lib/validation";
 
 const { ICON_SIZES } = THEME_CONSTANTS;
 const { HEIGHT } = UI_CONSTANTS;
@@ -51,7 +52,9 @@ const AdminTable = lazy(() =>
   import("../components/ui/table/AdminTable").then((mod) => ({
     default: mod.AdminTable,
   }))
-);
+) as unknown as <T>(
+  props: import("../components/ui/table/AdminTable").AdminTableProps<T>
+) => JSX.Element;
 
 const Admin: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string>(ADMIN_TABS.PLAYERS);
@@ -165,7 +168,7 @@ const Admin: React.FC = () => {
       },
       {
         id: ADMIN_TABS.STATS,
-        label: ADMIN_TAB_LABELS.WEEKLY_STATS,
+        label: ADMIN_TAB_LABELS.STATS,
         icon: BarChart3,
         count: weeklyStats.length,
       },
@@ -296,11 +299,7 @@ const Admin: React.FC = () => {
             {MESSAGE_CONSTANTS.FAILED_TO_LOAD_DATA}
           </div>
           <div className="text-slate-400 mb-4">
-            {error
-              ? typeof error === "object" && "message" in error
-                ? error.message
-                : String(error)
-              : null}
+            {error ? formatErrorMessage(error) : null}
           </div>
           <button
             className="btn-primary px-6 py-2 rounded font-semibold"
@@ -356,10 +355,10 @@ const Admin: React.FC = () => {
           {activeTab === ADMIN_TABS.PLAYERS && (
             <div className="overflow-x-auto">
               <Suspense fallback={<LoadingSpinner />}>
-                <AdminTable
-                  columns={playerColumns as any}
-                  data={players as any}
-                  rowKey={(row: any) => row.id as string}
+                <AdminTable<Player>
+                  columns={playerColumns}
+                  data={players}
+                  rowKey={(row) => row.id as string}
                   pageSize={20}
                 />
               </Suspense>
@@ -369,10 +368,10 @@ const Admin: React.FC = () => {
           {activeTab === ADMIN_TABS.STATS && (
             <div className="overflow-x-auto">
               <Suspense fallback={<LoadingSpinner />}>
-                <AdminTable
-                  columns={statsColumns as any}
-                  data={weeklyStats as any}
-                  rowKey={(row: any) => row.id as string}
+                <AdminTable<WeeklyStat>
+                  columns={statsColumns}
+                  data={weeklyStats}
+                  rowKey={(row) => row.id as string}
                   pageSize={20}
                 />
               </Suspense>
@@ -382,10 +381,10 @@ const Admin: React.FC = () => {
           {activeTab === ADMIN_TABS.PROJECTIONS && (
             <div className="overflow-x-auto">
               <Suspense fallback={<LoadingSpinner />}>
-                <AdminTable
-                  columns={projectionsColumns as any}
-                  data={projections as any}
-                  rowKey={(row: any) => row.id as string}
+                <AdminTable<Projection>
+                  columns={projectionsColumns}
+                  data={projections}
+                  rowKey={(row) => row.id as string}
                   pageSize={20}
                 />
               </Suspense>
@@ -395,10 +394,10 @@ const Admin: React.FC = () => {
           {activeTab === ADMIN_TABS.TRADE_VALUES && (
             <div className="overflow-x-auto">
               <Suspense fallback={<LoadingSpinner />}>
-                <AdminTable
-                  columns={tradeValuesColumns as any}
-                  data={tradeValues as any}
-                  rowKey={(row: any) => row.id as string}
+                <AdminTable<TradeValue>
+                  columns={tradeValuesColumns}
+                  data={tradeValues}
+                  rowKey={(row) => row.id as string}
                   pageSize={20}
                 />
               </Suspense>

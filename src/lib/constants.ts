@@ -1,3 +1,30 @@
+export const UI_CONSTANTS = {
+  HEIGHT: {
+    MIN_400: "min-h-[400px]",
+    H_64: "h-64",
+  },
+  WIDTH: {
+    MIN_8: "min-w-[8rem]",
+    W_16: "w-16",
+    H_16: "h-16",
+  },
+  SIDEBAR: {
+    WIDTH_PX: "280px",
+    COLLAPSED_WIDTH_PX: "80px",
+    EXPANDED_WIDTH_PX: "288px",
+    COLLAPSED_WIDTH_CSS_PX: "80px",
+  },
+  MIN_HEIGHT_400: "400px",
+  MIN_HEIGHT_64: "64px",
+  GRID_COLUMNS: {
+    ONE: "grid-cols-1",
+    TWO: "grid-cols-2",
+    FOUR: "grid-cols-4",
+    RESPONSIVE_TWO: "grid-cols-1 lg:grid-cols-2",
+    RESPONSIVE_FOUR: "grid-cols-1 md:grid-cols-4",
+  },
+};
+
 export const THEME_CONSTANTS = {
   ICON_SIZES: {
     XS: "h-3 w-3",
@@ -43,33 +70,8 @@ export const THEME_CONSTANTS = {
     LG: "gap-6",
     XL: "gap-8",
   },
-};
-
-export const UI_CONSTANTS = {
-  HEIGHT: {
-    MIN_400: "min-h-[400px]",
-    H_64: "h-64",
-  },
-  WIDTH: {
-    MIN_8: "min-w-[8rem]",
-    W_16: "w-16",
-    H_16: "h-16",
-  },
-  SIDEBAR: {
-    WIDTH_PX: "280px",
-    COLLAPSED_WIDTH_PX: "80px",
-    EXPANDED_WIDTH_PX: "288px",
-    COLLAPSED_WIDTH_CSS_PX: "80px",
-  },
-  MIN_HEIGHT_400: "400px",
-  MIN_HEIGHT_64: "64px",
-  GRID_COLUMNS: {
-    ONE: "grid-cols-1",
-    TWO: "grid-cols-2",
-    FOUR: "grid-cols-4",
-    RESPONSIVE_TWO: "grid-cols-1 lg:grid-cols-2",
-    RESPONSIVE_FOUR: "grid-cols-1 md:grid-cols-4",
-  },
+  SIDEBAR_EXPANDED_WIDTH_PX: UI_CONSTANTS.SIDEBAR.EXPANDED_WIDTH_PX,
+  SIDEBAR_COLLAPSED_WIDTH_CSS_PX: UI_CONSTANTS.SIDEBAR.COLLAPSED_WIDTH_CSS_PX,
 };
 
 export const MESSAGE_CONSTANTS = {
@@ -102,40 +104,36 @@ export const MESSAGE_CONSTANTS = {
   PRO_TIER_TITLE: "PRO TIER",
   PRO_TIER_DESCRIPTION: "Unlock advanced analytics and AI insights",
   DOMINATE_LEAGUE: "DOMINATE YOUR LEAGUE",
+  NAV_SECTIONS: {
+    MAIN: "Main",
+    ANALYSIS: "Analysis",
+    MANAGEMENT: "Management",
+    TOOLS: "Tools",
+  },
+  NAV_ITEMS: {
+    DASHBOARD: "Dashboard",
+    PLAYERS: "Players",
+    ANALYTICS: "Analytics",
+    TRADE_ANALYZER: "Trade Analyzer",
+    LEAGUE: "League",
+    ADMIN_PANEL: "Admin Panel",
+    POINTS_CALCULATOR: "Points Calculator",
+    SETTINGS: "Settings",
+  },
+  NAV_PATHS: {
+    DASHBOARD: "/dashboard",
+    PLAYERS: "/players",
+    ANALYTICS: "/analytics",
+    TRADE_ANALYZER: "/trade-analyzer",
+    LEAGUE: "/league",
+    ADMIN: "/admin",
+    FANTASY_POINTS_TEST: "/fantasy-points-test",
+    SETTINGS: "/settings",
+  },
 };
 
-export const NAV_SECTIONS = {
-  MAIN: "Main",
-  ANALYSIS: "Analysis",
-  MANAGEMENT: "Management",
-  TOOLS: "Tools",
-} as const;
-export const NAV_ITEMS = {
-  DASHBOARD: "Dashboard",
-  PLAYERS: "Players",
-  ANALYTICS: "Analytics",
-  TRADE_ANALYZER: "Trade Analyzer",
-  LEAGUE: "League",
-  ADMIN_PANEL: "Admin Panel",
-  POINTS_CALCULATOR: "Points Calculator",
-  SETTINGS: "Settings",
-} as const;
-export const NAV_PATHS = {
-  DASHBOARD: "/dashboard",
-  PLAYERS: "/players",
-  ANALYTICS: "/analytics",
-  TRADE_ANALYZER: "/trade-analyzer",
-  LEAGUE: "/league",
-  ADMIN: "/admin",
-  FANTASY_POINTS_TEST: "/fantasy-points-test",
-  SETTINGS: "/settings",
-} as const;
 export const CARD_TYPES = {
   STAT: "stat",
   PLAYER: "player",
   FEATURE: "feature",
 } as const;
-
-export const SIDEBAR_EXPANDED_WIDTH_PX = UI_CONSTANTS.SIDEBAR.EXPANDED_WIDTH_PX;
-export const SIDEBAR_COLLAPSED_WIDTH_CSS_PX =
-  UI_CONSTANTS.SIDEBAR.COLLAPSED_WIDTH_CSS_PX;

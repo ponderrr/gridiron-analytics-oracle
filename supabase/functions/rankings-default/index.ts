@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { comparePlayersByPositionAndTradeValue } from "../utils.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -203,24 +204,10 @@ serve(async (req) => {
     }
 
     // Create consensus rankings based on position priority and trade values
-    const positionOrder = { QB: 1, RB: 2, WR: 3, TE: 4, K: 5, "D/ST": 6 };
+    // const positionOrder = { QB: 1, RB: 2, WR: 3, TE: 4, K: 5, "D/ST": 6 };
 
     const sortedPlayers =
-      playersData?.sort((a, b) => {
-        const posA =
-          positionOrder[a.position as keyof typeof positionOrder] || 7;
-        const posB =
-          positionOrder[b.position as keyof typeof positionOrder] || 7;
-
-        if (posA !== posB) {
-          return posA - posB;
-        }
-
-        // Within the same position, sort by trade value (descending)
-        const tradeValueA = a.trade_values?.[0]?.trade_value || 0;
-        const tradeValueB = b.trade_values?.[0]?.trade_value || 0;
-        return tradeValueB - tradeValueA;
-      }) || [];
+      playersData?.sort(comparePlayersByPositionAndTradeValue) || [];
 
     // Create ranking entries with tier assignments
     const rankings = sortedPlayers.map((player, index) => {

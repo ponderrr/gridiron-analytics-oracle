@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   Dialog,
   DialogContent,
@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useRankings } from "./RankingsProvider";
+import { toast } from "@/components/ui/sonner";
 
 interface CreateSetModalProps {
   open: boolean;
@@ -31,6 +32,10 @@ export function CreateSetModal({ open, onOpenChange }: CreateSetModalProps) {
   const [copyFromSetId, setCopyFromSetId] = useState("");
   const [copyFromExisting, setCopyFromExisting] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    setCopyFromSetId("");
+  }, [format]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -51,14 +56,19 @@ export function CreateSetModal({ open, onOpenChange }: CreateSetModalProps) {
       setCopyFromExisting(false);
       onOpenChange(false);
     } catch (error) {
-      console.error("Error creating set:", error);
+      toast.error("Failed to create ranking set. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
-  const availableSetsForCopy = state.sets.filter(
-    (set) => set.format === format && set.id !== state.currentSet?.id
+  // Memoize the filtered sets to avoid unnecessary recomputation
+  const availableSetsForCopy = useMemo(
+    () =>
+      state.sets.filter(
+        (set) => set.format === format && set.id !== state.currentSet?.id
+      ),
+    [state.sets, format, state.currentSet?.id]
   );
 
   return (

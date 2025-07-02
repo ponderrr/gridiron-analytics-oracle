@@ -1,4 +1,4 @@
-import React, { useCallback } from "react";
+import React from "react";
 import { motion } from "framer-motion";
 import StatCard from "../cards/StatCard";
 import { LucideIcon } from "lucide-react";

@@ -31,13 +31,25 @@ serve(async (req) => {
   }
 
   try {
+    // Check for Authorization header
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ error: "Missing Authorization header" }),
+        {
+          status: 401,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+
     // Initialize Supabase client
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_ANON_KEY") ?? "",
       {
         global: {
-          headers: { Authorization: req.headers.get("Authorization")! },
+          headers: { Authorization: authHeader },
         },
       }
     );
@@ -190,7 +202,7 @@ serve(async (req) => {
     console.log("Reorder operation completed:", response);
 
     return new Response(JSON.stringify(response), {
-      status: errorCount === 0 ? 200 : 207, // 207 Multi-Status for partial success
+      status: 200, // Always return 200, indicate partial success in body
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
   } catch (error) {

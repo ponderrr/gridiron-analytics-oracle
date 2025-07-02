@@ -1,5 +1,6 @@
 import React from "react";
 import styles from "./LoadingSpinner.module.css";
+import { cn } from "@/lib/utils";
 
 interface LoadingSpinnerProps {
   size?: "sm" | "md" | "lg";
@@ -13,7 +14,7 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
   message,
 }) => {
   return (
-    <div className={styles.wrapper + (className ? ` ${className}` : "")}>
+    <div className={cn(styles.wrapper, className)}>
       <div
         className={`${styles.spinner} ${
           size === "sm" ? styles.sm : size === "lg" ? styles.lg : styles.md
@@ -27,4 +28,4 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
   );
 };
 
-export default LoadingSpinner;
+export default React.memo(LoadingSpinner);

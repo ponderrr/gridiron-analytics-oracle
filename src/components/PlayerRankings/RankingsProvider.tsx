@@ -240,6 +240,7 @@ interface RankingsContextType {
   saveRankings: () => Promise<void>;
   createDefaultRankings: () => Promise<void>;
   fetchPlayers: () => Promise<void>;
+  filteredAvailablePlayers: Player[];
   getFilteredAvailablePlayers: () => Player[];
 }
 
@@ -452,6 +453,7 @@ export function RankingsProvider({ children }: { children: React.ReactNode }) {
     saveRankings,
     createDefaultRankings,
     fetchPlayers,
+    filteredAvailablePlayers,
     getFilteredAvailablePlayers,
   };
 

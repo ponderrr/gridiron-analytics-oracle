@@ -1,7 +1,4 @@
-import {
-  SIDEBAR_EXPANDED_WIDTH_PX,
-  SIDEBAR_COLLAPSED_WIDTH_CSS_PX,
-} from "@/lib/constants";
+import { UI_CONSTANTS } from "@/lib/constants";
 
 export interface AppConfig {
   API_BASE_URL: string;
@@ -44,8 +41,8 @@ export const appConfig: AppConfig = {
     enableLeagueManagement: false, // coming soon
   },
   UI: {
-    sidebarExpandedWidth: SIDEBAR_EXPANDED_WIDTH_PX,
-    sidebarCollapsedWidth: SIDEBAR_COLLAPSED_WIDTH_CSS_PX,
+    sidebarExpandedWidth: UI_CONSTANTS.SIDEBAR.EXPANDED_WIDTH_PX,
+    sidebarCollapsedWidth: UI_CONSTANTS.SIDEBAR.COLLAPSED_WIDTH_CSS_PX,
     defaultAnimationDuration: 200,
     maxTableRows: 100,
     refreshIntervalMs: 30000, // 30 seconds

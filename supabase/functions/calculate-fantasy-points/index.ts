@@ -1,10 +1,31 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers":
-    "authorization, x-client-info, apikey, content-type",
-};
+// Enable debug logging if the environment variable DEBUG or NODE_ENV=development is set
+const DEBUG =
+  typeof Deno !== "undefined" &&
+  Deno.env &&
+  (Deno.env.get("DEBUG") === "true" ||
+    Deno.env.get("NODE_ENV") === "development");
+
+// List of trusted origins
+const allowedOrigins = [
+  "https://yourdomain.com",
+  "https://www.yourdomain.com",
+  // Add more trusted domains as needed
+];
+
+function getCorsHeaders(origin: string | null): Record<string, string> {
+  let allowOrigin = "";
+  if (origin && allowedOrigins.includes(origin)) {
+    allowOrigin = origin;
+  }
+  // If not allowed, do not set the header (or set to empty string)
+  return {
+    "Access-Control-Allow-Origin": allowOrigin,
+    "Access-Control-Allow-Headers":
+      "authorization, x-client-info, apikey, content-type",
+  };
+}
 
 interface WeeklyStatsInput {
   passing_yards: number;
@@ -87,7 +108,7 @@ function validateWeeklyStats(stats: any): WeeklyStatsInput {
     fumbles_lost: Math.max(0, Number(stats.fumbles_lost) || 0),
   };
 
-  console.log("Validated stats:", validatedStats);
+  if (DEBUG) console.log("Validated stats:", validatedStats);
   return validatedStats;
 }
 
@@ -95,8 +116,8 @@ function calculateFantasyPoints(
   stats: WeeklyStatsInput,
   settings: ScoringSettings
 ): FantasyPointsResult {
-  console.log("Calculating points for stats:", stats);
-  console.log("Using scoring settings:", settings);
+  if (DEBUG) console.log("Calculating points for stats:", stats);
+  if (DEBUG) console.log("Using scoring settings:", settings);
 
   // Calculate passing points
   const passingYardPoints =
@@ -140,11 +161,14 @@ function calculateFantasyPoints(
     scoring_format: settings.format,
   };
 
-  console.log("Calculated result:", result);
+  if (DEBUG) console.log("Calculated result:", result);
   return result;
 }
 
 serve(async (req) => {
+  const origin = req.headers.get("origin");
+  const corsHeaders = getCorsHeaders(origin);
+
   // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -154,7 +178,7 @@ serve(async (req) => {
     if (req.method !== "POST") {
       return new Response("Method not allowed", {
         status: 405,
-        headers: corsHeaders,
+        headers: { ...corsHeaders, Allow: "POST" },
       });
     }
 
@@ -208,10 +232,16 @@ serve(async (req) => {
     });
   } catch (error) {
     console.error("Error in calculate-fantasy-points:", error);
+    let message = "Unknown error";
+    if (error instanceof Error) {
+      message = error.message;
+    } else if (typeof error === "string") {
+      message = error;
+    }
     return new Response(
       JSON.stringify({
         error: "Internal server error",
-        message: error.message,
+        message,
       }),
       {
         status: 500,

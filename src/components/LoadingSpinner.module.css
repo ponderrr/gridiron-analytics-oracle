@@ -1,3 +1,8 @@
+:root {
+  --color-slate-600: #334155;
+  --color-emerald-500: #10b981;
+}
+
 .wrapper {
   display: flex;
   justify-content: center;
@@ -8,8 +13,8 @@
   border-radius: 9999px;
   border-width: 2px;
   border-style: solid;
-  border-color: #334155; /* slate-600 */
-  border-top-color: #10b981; /* emerald-500 */
+  border-color: var(--color-slate-600); /* slate-600 */
+  border-top-color: var(--color-emerald-500); /* emerald-500 */
   animation: spin 1s linear infinite;
   background: transparent;
 }
@@ -37,5 +42,5 @@
   margin-top: 0.75rem;
   text-align: center;
   font-size: 1rem;
-  color: #555;
+  color: var(--text-color, #555);
 }

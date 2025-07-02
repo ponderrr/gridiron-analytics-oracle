@@ -1,7 +1,12 @@
 import React from "react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
-import { LucideIcon } from "lucide-react";
+import {
+  LucideIcon,
+  LucideArrowUpRight,
+  LucideArrowDownRight,
+  LucideArrowRight,
+} from "lucide-react";
 
 export interface StatCardProps {
   title: string;
@@ -22,6 +27,21 @@ const cardVariants = {
     "bg-gradient-to-br from-purple-900/30 to-slate-800/50 border-purple-500/30",
   champion:
     "bg-gradient-to-br from-yellow-900/30 to-slate-800/50 border-yellow-500/30",
+};
+
+// Extracted icon style mappings
+const iconBgVariants = {
+  default: "bg-emerald-500/20",
+  premium: "bg-blue-500/20",
+  elite: "bg-purple-500/20",
+  champion: "bg-yellow-500/20",
+};
+
+const iconColorVariants = {
+  default: "text-emerald-400",
+  premium: "text-blue-400",
+  elite: "text-purple-400",
+  champion: "text-yellow-400",
 };
 
 const StatCard: React.FC<StatCardProps> = React.memo(
@@ -48,11 +68,11 @@ const StatCard: React.FC<StatCardProps> = React.memo(
     const getTrendIcon = (trend?: "up" | "down" | "neutral") => {
       switch (trend) {
         case "up":
-          return "\u2197";
+          return <LucideArrowUpRight className="inline h-4 w-4 mr-1" />;
         case "down":
-          return "\u2198";
+          return <LucideArrowDownRight className="inline h-4 w-4 mr-1" />;
         default:
-          return "\u2192";
+          return <LucideArrowRight className="inline h-4 w-4 mr-1" />;
       }
     };
     return (
@@ -88,24 +108,8 @@ const StatCard: React.FC<StatCardProps> = React.memo(
             )}
           </div>
           {Icon && (
-            <div
-              className={cn(
-                "p-3 rounded-xl",
-                variant === "premium" && "bg-blue-500/20",
-                variant === "elite" && "bg-purple-500/20",
-                variant === "champion" && "bg-yellow-500/20",
-                variant === "default" && "bg-emerald-500/20"
-              )}
-            >
-              <Icon
-                className={cn(
-                  "h-6 w-6",
-                  variant === "premium" && "text-blue-400",
-                  variant === "elite" && "text-purple-400",
-                  variant === "champion" && "text-yellow-400",
-                  variant === "default" && "text-emerald-400"
-                )}
-              />
+            <div className={cn("p-3 rounded-xl", iconBgVariants[variant])}>
+              <Icon className={cn("h-6 w-6", iconColorVariants[variant])} />
             </div>
           )}
         </div>

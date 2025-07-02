@@ -11,6 +11,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { Search } from "lucide-react";
 import { usePlayerFilters } from "@/hooks/usePlayerFilters";
+import { positions, teams } from "@/constants/playerData";
 
 export function PlayerSearch() {
   const {
@@ -21,43 +22,6 @@ export function PlayerSearch() {
     setShowOnlyUnranked,
     rawSearchTerm,
   } = usePlayerFilters();
-
-  const positions = ["all", "QB", "RB", "WR", "TE", "K", "D/ST"];
-  const teams = [
-    "all",
-    "ARI",
-    "ATL",
-    "BAL",
-    "BUF",
-    "CAR",
-    "CHI",
-    "CIN",
-    "CLE",
-    "DAL",
-    "DEN",
-    "DET",
-    "GB",
-    "HOU",
-    "IND",
-    "JAX",
-    "KC",
-    "LV",
-    "LAC",
-    "LAR",
-    "MIA",
-    "MIN",
-    "NE",
-    "NO",
-    "NYG",
-    "NYJ",
-    "PHI",
-    "PIT",
-    "SF",
-    "SEA",
-    "TB",
-    "TEN",
-    "WAS",
-  ];
 
   return (
     <div className="space-y-4 p-4 bg-slate-800/50 rounded-lg border border-slate-700/50">

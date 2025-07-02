@@ -19,6 +19,7 @@ import { Wrench } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { MESSAGE_CONSTANTS } from "@/lib/constants";
 import useLocalStorage from "@/hooks/useLocalStorage";
+import { THEME_CONSTANTS } from "@/lib/constants";
 
 interface NavItemProps {
   href: string;
@@ -271,12 +272,6 @@ const AppSidebar: React.FC = () => {
               </div>
             </div>
           </Link>
-        )}
-        {isCollapsed && (
-          <Link
-            to="/dashboard"
-            className="flex justify-center w-full group"
-          ></Link>
         )}
         <button
           onClick={toggleSidebar}

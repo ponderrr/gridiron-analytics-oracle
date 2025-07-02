@@ -2,6 +2,7 @@ import React from "react";
 import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { LucideIcon } from "lucide-react";
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 
 export interface FeatureCardProps {
   title: string;
@@ -23,6 +24,14 @@ const cardVariants = {
     "bg-gradient-to-br from-yellow-900/30 to-slate-800/50 border-yellow-500/30",
 };
 
+// Extracted icon background styles for each variant
+const iconBgVariants = {
+  default: "bg-gradient-to-r from-emerald-500 to-green-500",
+  premium: "bg-gradient-to-r from-blue-500 to-cyan-500",
+  elite: "bg-gradient-to-r from-purple-500 to-pink-500",
+  champion: "bg-gradient-to-r from-yellow-500 to-orange-500",
+};
+
 const FeatureCard: React.FC<FeatureCardProps> = React.memo(
   ({
     title,
@@ -33,6 +42,7 @@ const FeatureCard: React.FC<FeatureCardProps> = React.memo(
     onClick,
     className,
   }) => {
+    const prefersReducedMotion = usePrefersReducedMotion();
     return (
       <motion.div
         whileHover={{ scale: 1.02 }}
@@ -65,31 +75,34 @@ const FeatureCard: React.FC<FeatureCardProps> = React.memo(
         }
       >
         <div className="p-8 text-center relative overflow-hidden">
-          <motion.div
-            className="absolute inset-0 opacity-10"
-            animate={{
-              background: [
-                "radial-gradient(circle at 20% 80%, rgba(16, 185, 129, 0.1) 0%, transparent 50%)",
-                "radial-gradient(circle at 80% 20%, rgba(59, 130, 246, 0.1) 0%, transparent 50%)",
-                "radial-gradient(circle at 40% 40%, rgba(168, 85, 247, 0.1) 0%, transparent 50%)",
-              ],
-            }}
-            transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
-          />
+          {prefersReducedMotion ? (
+            <div
+              className="absolute inset-0 opacity-10"
+              style={{
+                background:
+                  "radial-gradient(circle at 20% 80%, rgba(16, 185, 129, 0.1) 0%, transparent 50%)",
+              }}
+            />
+          ) : (
+            <motion.div
+              className="absolute inset-0 opacity-10"
+              animate={{
+                background: [
+                  "radial-gradient(circle at 20% 80%, rgba(16, 185, 129, 0.1) 0%, transparent 50%)",
+                  "radial-gradient(circle at 80% 20%, rgba(59, 130, 246, 0.1) 0%, transparent 50%)",
+                  "radial-gradient(circle at 40% 40%, rgba(168, 85, 247, 0.1) 0%, transparent 50%)",
+                ],
+              }}
+              transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+            />
+          )}
           <div className="relative z-10">
             <motion.div
               whileHover={{ rotate: 360 }}
               transition={{ duration: 0.6 }}
               className={cn(
                 "w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6",
-                variant === "premium" &&
-                  "bg-gradient-to-r from-blue-500 to-cyan-500",
-                variant === "elite" &&
-                  "bg-gradient-to-r from-purple-500 to-pink-500",
-                variant === "champion" &&
-                  "bg-gradient-to-r from-yellow-500 to-orange-500",
-                variant === "default" &&
-                  "bg-gradient-to-r from-emerald-500 to-green-500"
+                iconBgVariants[variant]
               )}
             >
               <Icon className="h-8 w-8 text-white" />
