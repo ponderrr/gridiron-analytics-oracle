@@ -5,7 +5,6 @@ import Layout from "../components/Layout";
 import LoadingSpinner from "../components/LoadingSpinner";
 import { useAuth } from "../contexts/AuthContext";
 import { validateEmail, formatErrorMessage } from "../lib/validation";
-import { EMAIL_REQUIRED } from "@/lib/constants";
 
 const ForgotPassword: React.FC = () => {
   const [email, setEmail] = useState("");

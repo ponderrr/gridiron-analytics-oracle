@@ -12,8 +12,6 @@ import {
 } from "../lib/validation";
 import {
   ACCOUNT_CREATED_SUCCESS,
-  EMAIL_REQUIRED,
-  PASSWORD_REQUIRED,
   CONFIRM_PASSWORD_REQUIRED,
   PASSWORDS_DONT_MATCH,
 } from "@/lib/constants";

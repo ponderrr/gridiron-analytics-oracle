@@ -1,10 +1,10 @@
 export const APP_NAME = "FF META";
 export const APP_TAGLINE = "Fantasy Football Meta";
 export const COPYRIGHT = `© ${new Date().getFullYear()} FF META. Fantasy Football Meta Analytics.`;
-export const SIDEBAR_WIDTH = 280; // px
-export const SIDEBAR_COLLAPSED_WIDTH = 80; // px
-export const SIDEBAR_EXPANDED_WIDTH = "18rem";
-export const SIDEBAR_COLLAPSED_WIDTH_CSS = "5rem";
+export const SIDEBAR_WIDTH_PX = "280px";
+export const SIDEBAR_COLLAPSED_WIDTH_PX = "80px";
+export const SIDEBAR_EXPANDED_WIDTH_PX = "288px"; // 18rem * 16px = 288px
+export const SIDEBAR_COLLAPSED_WIDTH_CSS_PX = "80px"; // 5rem * 16px = 80px
 export const MIN_HEIGHT_400 = "400px";
 export const MIN_HEIGHT_64 = "64px";
 export const LOADING_MESSAGE = "Loading your experience...";

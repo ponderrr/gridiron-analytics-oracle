@@ -9,7 +9,7 @@ import {
   Brain,
 } from "lucide-react";
 import Layout from "../components/Layout";
-import { FantasyCard } from "@/components/ui/cards/FantasyCard";
+import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -80,10 +80,34 @@ const FantasyPointsTest: React.FC = () => {
     setError(null);
 
     try {
+      // Validate all inputs before parsing
+      const validationErrors: string[] = [];
+
+      Object.entries(stats).forEach(([key, value]) => {
+        if (value.trim() !== "") {
+          const numValue = Number(value);
+          if (isNaN(numValue)) {
+            const fieldName = key
+              .replace(/_/g, " ")
+              .replace(/\b\w/g, (l) => l.toUpperCase());
+            validationErrors.push(`${fieldName} must be a valid number`);
+          } else if (numValue < 0) {
+            const fieldName = key
+              .replace(/_/g, " ")
+              .replace(/\b\w/g, (l) => l.toUpperCase());
+            validationErrors.push(`${fieldName} cannot be negative`);
+          }
+        }
+      });
+
+      if (validationErrors.length > 0) {
+        throw new Error(`Invalid input: ${validationErrors.join(", ")}`);
+      }
+
       const parsedStats = Object.entries(stats).reduce(
         (acc, [key, value]) => ({
           ...acc,
-          [key]: Number(value) || 0,
+          [key]: value.trim() === "" ? 0 : Number(value),
         }),
         {} as import("@/lib/fantasyPoints").WeeklyStatsInput
       );
@@ -148,7 +172,7 @@ const FantasyPointsTest: React.FC = () => {
           className="grid grid-cols-1 lg:grid-cols-2 gap-6"
         >
           {/* Input Card */}
-          <FantasyCard variant="premium" className="p-6">
+          <Card className="p-6 bg-gradient-to-br from-blue-900/30 to-slate-800/50 border-blue-500/30">
             <div className="flex items-center space-x-3 mb-6">
               <Brain className="h-6 w-6 text-emerald-400" />
               <h3 className="text-lg font-semibold text-white">
@@ -364,10 +388,10 @@ const FantasyPointsTest: React.FC = () => {
                 </div>
               )}
             </div>
-          </FantasyCard>
+          </Card>
 
           {/* Results Card */}
-          <FantasyCard variant="elite" className="p-6">
+          <Card className="p-6 bg-gradient-to-br from-purple-900/30 to-slate-800/50 border-purple-500/30">
             <div className="flex items-center space-x-3 mb-6">
               <BarChart3 className="h-6 w-6 text-blue-400" />
               <h3 className="text-lg font-semibold text-white">
@@ -467,7 +491,7 @@ const FantasyPointsTest: React.FC = () => {
                 </p>
               </div>
             )}
-          </FantasyCard>
+          </Card>
         </motion.div>
       </motion.div>
     </Layout>

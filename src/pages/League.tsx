@@ -205,47 +205,7 @@ const League: React.FC = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {leagues.map((league, index) => (
-              <div
-                key={index}
-                className="bg-slate-800/50 border border-slate-700/50 rounded-2xl p-6 hover:bg-slate-700/50 transition-colors"
-              >
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="text-xl font-bold text-white">
-                    {league.name}
-                  </h3>
-                  <span
-                    className={`px-3 py-1 rounded-lg text-sm font-medium ${
-                      league.variant === "champion"
-                        ? "bg-yellow-500/20 text-yellow-400 border border-yellow-500/30"
-                        : league.variant === "premium"
-                        ? "bg-blue-500/20 text-blue-400 border border-blue-500/30"
-                        : league.variant === "elite"
-                        ? "bg-purple-500/20 text-purple-400 border border-purple-500/30"
-                        : "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30"
-                    }`}
-                  >
-                    {league.status}
-                  </span>
-                </div>
-                <div className="space-y-3">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-slate-400">Type:</span>
-                    <span className="text-white">{league.type}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-slate-400">Record:</span>
-                    <span className="text-white">{league.record}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-slate-400">Standing:</span>
-                    <span className="text-white">{league.standing}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-slate-400">Points:</span>
-                    <span className="text-white">{league.points}</span>
-                  </div>
-                </div>
-              </div>
+              <FantasyCard key={index} cardType="league" cardData={league} />
             ))}
           </div>
         </motion.div>
