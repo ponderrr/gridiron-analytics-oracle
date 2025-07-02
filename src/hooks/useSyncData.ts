@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
 interface SyncResult {
@@ -33,25 +33,22 @@ export const useSyncData = () => {
     error: null,
   });
 
-  const syncPlayers = async () => {
+  const syncPlayers = useCallback(async () => {
     setPlayerSyncState({ isLoading: true, result: null, error: null });
-
     try {
-      const { data, error } = await supabase.functions.invoke('sync-nfl-data');
-      
+      const { data, error } = await supabase.functions.invoke("sync-nfl-data");
       if (error) {
-        throw new Error(error.message || 'Failed to sync player data');
+        throw new Error(error.message || "Failed to sync player data");
       }
-
       setPlayerSyncState({
         isLoading: false,
         result: data,
         error: null,
       });
-
       return data;
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error occurred";
       setPlayerSyncState({
         isLoading: false,
         result: null,
@@ -59,52 +56,65 @@ export const useSyncData = () => {
       });
       throw error;
     }
-  };
+  }, []);
 
-  const syncWeeklyStats = async (week: number, season: number = 2024) => {
-    setStatsSyncState({ isLoading: true, result: null, error: null });
-
-    try {
-      const { data, error } = await supabase.functions.invoke('sync-weekly-stats', {
-        body: { week, season }
-      });
-      
-      if (error) {
-        throw new Error(error.message || 'Failed to sync weekly stats');
+  const syncWeeklyStats = useCallback(
+    async (week: number, season: number = 2024) => {
+      setStatsSyncState({ isLoading: true, result: null, error: null });
+      try {
+        const { data, error } = await supabase.functions.invoke(
+          "sync-weekly-stats",
+          {
+            body: { week, season },
+          }
+        );
+        if (error) {
+          throw new Error(error.message || "Failed to sync weekly stats");
+        }
+        setStatsSyncState({
+          isLoading: false,
+          result: data,
+          error: null,
+        });
+        return data;
+      } catch (error) {
+        const errorMessage =
+          error instanceof Error ? error.message : "Unknown error occurred";
+        setStatsSyncState({
+          isLoading: false,
+          result: null,
+          error: errorMessage,
+        });
+        throw error;
       }
+    },
+    []
+  );
 
-      setStatsSyncState({
-        isLoading: false,
-        result: data,
-        error: null,
-      });
-
-      return data;
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
-      setStatsSyncState({
-        isLoading: false,
-        result: null,
-        error: errorMessage,
-      });
-      throw error;
-    }
-  };
-
-  const clearPlayerSync = () => {
+  const clearPlayerSync = useCallback(() => {
     setPlayerSyncState({ isLoading: false, result: null, error: null });
-  };
+  }, []);
 
-  const clearStatsSync = () => {
+  const clearStatsSync = useCallback(() => {
     setStatsSyncState({ isLoading: false, result: null, error: null });
-  };
+  }, []);
 
-  return {
-    playerSync: playerSyncState,
-    statsSync: statsSyncState,
-    syncPlayers,
-    syncWeeklyStats,
-    clearPlayerSync,
-    clearStatsSync,
-  };
+  return useMemo(
+    () => ({
+      playerSync: playerSyncState,
+      statsSync: statsSyncState,
+      syncPlayers,
+      syncWeeklyStats,
+      clearPlayerSync,
+      clearStatsSync,
+    }),
+    [
+      playerSyncState,
+      statsSyncState,
+      syncPlayers,
+      syncWeeklyStats,
+      clearPlayerSync,
+      clearStatsSync,
+    ]
+  );
 };

@@ -6,6 +6,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { routes } from "@/config/routes";
+import { createProtectedRoute, createPublicRoute } from "@/utils/routeHelpers";
 
 const queryClient = new QueryClient();
 
@@ -25,24 +26,16 @@ function App() {
                   protected: isProtected,
                   errorBoundary,
                 }) => {
-                  // Create the base element
-                  let element = <Component />;
-
-                  // Wrap with ProtectedRoute if needed
-                  if (isProtected) {
-                    element = <ProtectedRoute>{element}</ProtectedRoute>;
-                  }
-
-                  // Wrap with ErrorBoundary if specified
-                  if (errorBoundary) {
-                    element = (
-                      <ErrorBoundary context={`Route: ${path}`}>
-                        {element}
-                      </ErrorBoundary>
-                    );
-                  }
-
-                  return <Route key={path} path={path} element={element} />;
+                  const routeConfig = isProtected
+                    ? createProtectedRoute(path, Component, errorBoundary)
+                    : createPublicRoute(path, Component, errorBoundary);
+                  return (
+                    <Route
+                      key={routeConfig.path}
+                      path={routeConfig.path}
+                      element={routeConfig.element}
+                    />
+                  );
                 }
               )}
             </Routes>

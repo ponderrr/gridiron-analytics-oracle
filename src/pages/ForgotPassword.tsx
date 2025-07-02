@@ -5,18 +5,19 @@ import Layout from "../components/Layout";
 import LoadingSpinner from "../components/LoadingSpinner";
 import { useAuth } from "../contexts/AuthContext";
 import { validateEmail, formatErrorMessage } from "../lib/validation";
+import { useFormError } from "../hooks/useFormError";
 
 const ForgotPassword: React.FC = () => {
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState("");
-  const [error, setError] = useState("");
+  const { error, setError, clearError, formatAndSetError } = useFormError();
 
   const { resetPassword } = useAuth();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
+    clearError();
     setMessage("");
 
     const emailError = validateEmail(email);
@@ -29,7 +30,7 @@ const ForgotPassword: React.FC = () => {
       await resetPassword(email);
       setMessage("Password reset instructions have been sent to your email.");
     } catch (err) {
-      setError(formatErrorMessage(err));
+      formatAndSetError(err);
     } finally {
       setIsLoading(false);
     }

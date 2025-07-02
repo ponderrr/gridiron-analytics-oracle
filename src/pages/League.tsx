@@ -155,7 +155,7 @@ const League: React.FC = () => {
   };
 
   return (
-    <Layout isAuthenticated>
+    <Layout>
       <motion.div
         variants={containerVariants}
         initial="hidden"

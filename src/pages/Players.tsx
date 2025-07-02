@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { MOCK_FEATURED_PLAYERS } from "../lib/mockData";
-import { ICON_SIZES, TEXT_SIZES, GAP } from "@/lib/constants";
+import { MOCK_FEATURED_PLAYERS } from "../lib/mock";
+import { ICON_SIZES, TEXT_SIZES, GAP, THEME_CONSTANTS } from "@/lib/constants";
 import Layout from "../components/Layout";
 import { FantasyCard } from "../components/ui/cards/FantasyCard";
 import { SearchFilters, StatGrid } from "../components/ui/common";
@@ -135,7 +135,7 @@ const Players: React.FC = () => {
   ];
 
   return (
-    <Layout isAuthenticated>
+    <Layout>
       <motion.div
         variants={containerVariants}
         initial="hidden"

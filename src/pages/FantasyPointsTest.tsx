@@ -29,7 +29,7 @@ import {
 import { DEFAULT_SCORING_SETTINGS } from "@/lib/fantasyPoints.constants";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import ErrorBoundary from "@/components/ErrorBoundary";
-import { ERROR_FANTASY_POINTS, HEIGHT } from "@/lib/constants";
+import { MESSAGE_CONSTANTS, UI_CONSTANTS } from "@/lib/constants";
 
 // Form state interface for string values
 interface WeeklyStatsFormInput {
@@ -119,7 +119,7 @@ const FantasyPointsTest: React.FC = () => {
 
       setResult(calculatedResult);
     } catch (err) {
-      console.error(ERROR_FANTASY_POINTS, err);
+      console.error(MESSAGE_CONSTANTS.ERROR_FANTASY_POINTS, err);
       setError(err instanceof Error ? err.message : "An error occurred");
     } finally {
       setIsCalculating(false);
@@ -148,7 +148,7 @@ const FantasyPointsTest: React.FC = () => {
   };
 
   return (
-    <Layout isAuthenticated>
+    <Layout>
       <motion.div
         variants={containerVariants}
         initial="hidden"
@@ -482,7 +482,7 @@ const FantasyPointsTest: React.FC = () => {
               </div>
             ) : (
               <div
-                className={`flex flex-col items-center justify-center ${HEIGHT.MIN_400} text-center`}
+                className={`flex flex-col items-center justify-center ${UI_CONSTANTS.HEIGHT.MIN_400} text-center`}
               >
                 <BarChart3 className="h-16 w-16 text-slate-600 mb-4" />
                 <p className="text-slate-400">

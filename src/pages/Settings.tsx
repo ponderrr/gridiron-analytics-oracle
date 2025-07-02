@@ -13,7 +13,13 @@ import {
 import Layout from "../components/Layout";
 import { useAuth } from "@/contexts/AuthContext";
 import { FantasyCard } from "../components/ui/cards/FantasyCard";
-import { ICON_SIZES, TEXT_SIZES, GAP, PADDING } from "@/lib/constants";
+import {
+  ICON_SIZES,
+  TEXT_SIZES,
+  GAP,
+  PADDING,
+  THEME_CONSTANTS,
+} from "@/lib/constants";
 
 const Settings: React.FC = () => {
   const { user } = useAuth();
@@ -44,7 +50,7 @@ const Settings: React.FC = () => {
   };
 
   return (
-    <Layout isAuthenticated>
+    <Layout>
       <motion.div
         variants={containerVariants}
         initial="hidden"

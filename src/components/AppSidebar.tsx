@@ -20,17 +20,9 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
-  APP_NAME,
-  NAV_SECTIONS,
-  NAV_ITEMS,
-  NAV_PATHS,
-  SOON_LABEL,
-  PRO_TIER_TITLE,
-  PRO_TIER_DESCRIPTION,
-  UPGRADE_NOW_LABEL,
-  DOMINATE_LEAGUE,
-  SIDEBAR_EXPANDED_WIDTH_PX,
-  SIDEBAR_COLLAPSED_WIDTH_CSS_PX,
+  THEME_CONSTANTS,
+  UI_CONSTANTS,
+  MESSAGE_CONSTANTS,
 } from "@/lib/constants";
 
 interface NavItemProps {
@@ -74,7 +66,9 @@ function useSidebarWidth(isCollapsed: boolean) {
   useEffect(() => {
     document.documentElement.style.setProperty(
       "--sidebar-width",
-      isCollapsed ? SIDEBAR_COLLAPSED_WIDTH_CSS_PX : SIDEBAR_EXPANDED_WIDTH_PX
+      isCollapsed
+        ? THEME_CONSTANTS.SIDEBAR_COLLAPSED_WIDTH_CSS_PX
+        : THEME_CONSTANTS.SIDEBAR_EXPANDED_WIDTH_PX
     );
   }, [isCollapsed]);
 }
@@ -121,7 +115,7 @@ const NavItem: React.FC<NavItemProps> = React.memo(
         <span className="truncate relative z-10">{label}</span>
         {comingSoon && (
           <span className="ml-auto text-xs bg-yellow-500/20 text-yellow-400 px-2 py-1 rounded-full flex-shrink-0 relative z-10">
-            {SOON_LABEL}
+            {MESSAGE_CONSTANTS.SOON_LABEL}
           </span>
         )}
       </Link>
@@ -180,63 +174,67 @@ NavSection.displayName = "NavSection";
 
 const NAV_SECTIONS_CONFIG = [
   {
-    title: NAV_SECTIONS.MAIN,
+    title: MESSAGE_CONSTANTS.NAV_SECTIONS.MAIN,
     icon: ICONS.home,
     items: [
       {
-        href: NAV_PATHS.DASHBOARD,
+        href: MESSAGE_CONSTANTS.NAV_PATHS.DASHBOARD,
         icon: ICONS.home,
-        label: NAV_ITEMS.DASHBOARD,
+        label: MESSAGE_CONSTANTS.NAV_ITEMS.DASHBOARD,
       },
     ],
   },
   {
-    title: NAV_SECTIONS.ANALYSIS,
+    title: MESSAGE_CONSTANTS.NAV_SECTIONS.ANALYSIS,
     icon: ICONS.barChart3,
     items: [
-      { href: NAV_PATHS.PLAYERS, icon: ICONS.users, label: NAV_ITEMS.PLAYERS },
       {
-        href: NAV_PATHS.ANALYTICS,
-        icon: ICONS.trendingUp,
-        label: NAV_ITEMS.ANALYTICS,
+        href: MESSAGE_CONSTANTS.NAV_PATHS.PLAYERS,
+        icon: ICONS.users,
+        label: MESSAGE_CONSTANTS.NAV_ITEMS.PLAYERS,
       },
       {
-        href: NAV_PATHS.TRADE_ANALYZER,
+        href: MESSAGE_CONSTANTS.NAV_PATHS.ANALYTICS,
+        icon: ICONS.trendingUp,
+        label: MESSAGE_CONSTANTS.NAV_ITEMS.ANALYTICS,
+      },
+      {
+        href: MESSAGE_CONSTANTS.NAV_PATHS.TRADE_ANALYZER,
         icon: ICONS.arrowLeftRight,
-        label: NAV_ITEMS.TRADE_ANALYZER,
+        label: MESSAGE_CONSTANTS.NAV_ITEMS.TRADE_ANALYZER,
       },
     ],
   },
   {
-    title: NAV_SECTIONS.MANAGEMENT,
+    title: MESSAGE_CONSTANTS.NAV_SECTIONS.MANAGEMENT,
     icon: ICONS.target,
     items: [
       {
-        href: NAV_PATHS.LEAGUE,
+        href: MESSAGE_CONSTANTS.NAV_PATHS.LEAGUE,
         icon: ICONS.trophy,
-        label: NAV_ITEMS.LEAGUE,
+        label: MESSAGE_CONSTANTS.NAV_ITEMS.LEAGUE,
         comingSoon: true,
       },
       {
-        href: NAV_PATHS.ADMIN,
+        href: MESSAGE_CONSTANTS.NAV_PATHS.ADMIN,
         icon: ICONS.shield,
-        label: NAV_ITEMS.ADMIN_PANEL,
+        label: MESSAGE_CONSTANTS.NAV_ITEMS.ADMIN_PANEL,
       },
     ],
   },
   {
-    title: NAV_SECTIONS.TOOLS,
+    title: MESSAGE_CONSTANTS.NAV_SECTIONS.TOOLS,
     icon: ICONS.wrench,
     items: [
       {
-        href: NAV_PATHS.FANTASY_POINTS_TEST,
+        href: MESSAGE_CONSTANTS.NAV_PATHS.FANTASY_POINTS_TEST,
         icon: ICONS.calculator,
-        label: NAV_ITEMS.POINTS_CALCULATOR,
+        label: MESSAGE_CONSTANTS.NAV_ITEMS.POINTS_CALCULATOR,
       },
       {
-        href: NAV_PATHS.SETTINGS,
+        href: MESSAGE_CONSTANTS.NAV_PATHS.SETTINGS,
         icon: ICONS.settings,
-        label: NAV_ITEMS.SETTINGS,
+        label: MESSAGE_CONSTANTS.NAV_ITEMS.SETTINGS,
       },
     ],
   },
@@ -265,7 +263,7 @@ const AppSidebar: React.FC = React.memo(
               <div>
                 <span className="text-xl font-black text-white">FF META</span>
                 <div className="text-xs text-emerald-400 font-medium">
-                  {DOMINATE_LEAGUE}
+                  {MESSAGE_CONSTANTS.DOMINATE_LEAGUE}
                 </div>
               </div>
             </Link>
@@ -310,19 +308,19 @@ const AppSidebar: React.FC = React.memo(
               <div className="flex items-center space-x-2 mb-2">
                 <ICONS.zap className="h-4 w-4 text-emerald-400" />
                 <span className="text-sm font-bold text-emerald-400">
-                  {PRO_TIER_TITLE}
+                  {MESSAGE_CONSTANTS.PRO_TIER_TITLE}
                 </span>
               </div>
               <p className="text-xs text-slate-400 mb-3">
-                {PRO_TIER_DESCRIPTION}
+                {MESSAGE_CONSTANTS.PRO_TIER_DESCRIPTION}
               </p>
               <button className="w-full bg-gradient-to-r from-emerald-500 to-blue-500 text-white text-xs font-bold py-2 px-3 rounded-lg hover:from-emerald-600 hover:to-blue-600 transition-all duration-200">
-                {UPGRADE_NOW_LABEL}
+                {MESSAGE_CONSTANTS.UPGRADE_NOW_LABEL}
               </button>
             </div>
             <div className="mt-3 text-center">
               <p className="text-xs text-slate-500">
-                &copy; {new Date().getFullYear()} {APP_NAME}
+                &copy; {new Date().getFullYear()} {MESSAGE_CONSTANTS.APP_NAME}
               </p>
             </div>
           </div>

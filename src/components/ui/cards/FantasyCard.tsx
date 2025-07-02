@@ -4,11 +4,9 @@ import { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import {
   CARD_TYPES,
-  ICON_SIZES,
-  PADDING,
-  GAP,
-  TEXT_SIZES,
-  WIDTH,
+  THEME_CONSTANTS,
+  UI_CONSTANTS,
+  MESSAGE_CONSTANTS,
 } from "@/lib/constants";
 
 export type StatCardData = {
@@ -63,8 +61,6 @@ export interface FantasyCardProps {
   cardType?: string;
   cardData?: FantasyCardData;
   className?: string;
-  hover?: boolean;
-  glow?: boolean;
   onClick?: () => void;
   children?: React.ReactNode;
   variant?: "default" | "premium" | "elite" | "champion";
@@ -91,12 +87,10 @@ const glowVariants = {
   champion: "shadow-xl shadow-yellow-500/20",
 };
 
-export const FantasyCard: React.FC<FantasyCardProps> = ({
+const FantasyCard: React.FC<FantasyCardProps> = ({
   cardType,
   cardData,
   className,
-  hover = true,
-  glow = false,
   onClick,
   children,
   variant: propVariant,
@@ -161,8 +155,6 @@ export const FantasyCard: React.FC<FantasyCardProps> = ({
     const cardClass = cn(
       "rounded-2xl border backdrop-blur-sm transition-all duration-300",
       cardVariants[finalVariant],
-      glow && glowVariants[finalVariant],
-      hover && "hover:scale-[1.02] hover:shadow-2xl",
       onClick && "cursor-pointer",
       className
     );
@@ -170,7 +162,7 @@ export const FantasyCard: React.FC<FantasyCardProps> = ({
     if (onClick) {
       return (
         <motion.div
-          whileHover={{ scale: hover ? 1.02 : 1 }}
+          whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
           onClick={onClick}
           className={cardClass}
@@ -181,7 +173,7 @@ export const FantasyCard: React.FC<FantasyCardProps> = ({
     }
 
     return (
-      <motion.div whileHover={{ scale: hover ? 1.02 : 1 }} className={cardClass}>
+      <motion.div whileHover={{ scale: 1.02 }} className={cardClass}>
         {children}
       </motion.div>
     );
@@ -249,8 +241,6 @@ export const FantasyCard: React.FC<FantasyCardProps> = ({
     const cardClass = cn(
       "rounded-2xl border backdrop-blur-sm transition-all duration-300",
       cardVariants[finalVariant],
-      glow && glowVariants[finalVariant],
-      hover && "hover:scale-[1.02] hover:shadow-2xl",
       onClick && "cursor-pointer",
       className
     );
@@ -258,7 +248,7 @@ export const FantasyCard: React.FC<FantasyCardProps> = ({
     if (onClick) {
       return (
         <motion.div
-          whileHover={{ scale: hover ? 1.02 : 1 }}
+          whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
           onClick={onClick}
           className={cardClass}
@@ -269,7 +259,7 @@ export const FantasyCard: React.FC<FantasyCardProps> = ({
     }
 
     return (
-      <motion.div whileHover={{ scale: hover ? 1.02 : 1 }} className={cardClass}>
+      <motion.div whileHover={{ scale: 1.02 }} className={cardClass}>
         {content}
       </motion.div>
     );
@@ -282,7 +272,8 @@ export const FantasyCard: React.FC<FantasyCardProps> = ({
 
   // Card rendering logic
   let content: React.ReactNode = null;
-  let variant: "default" | "premium" | "elite" | "champion" = propVariant || "default";
+  let variant: "default" | "premium" | "elite" | "champion" =
+    propVariant || "default";
 
   if (cardType === "stat") {
     const data = cardData as StatCardData;
@@ -536,8 +527,6 @@ export const FantasyCard: React.FC<FantasyCardProps> = ({
   const cardClass = cn(
     "rounded-2xl border backdrop-blur-sm transition-all duration-300",
     cardVariants[variant],
-    glow && glowVariants[variant],
-    hover && "hover:scale-[1.02] hover:shadow-2xl",
     onClick && "cursor-pointer",
     className
   );
@@ -545,7 +534,7 @@ export const FantasyCard: React.FC<FantasyCardProps> = ({
   if (onClick) {
     return (
       <motion.div
-        whileHover={{ scale: hover ? 1.02 : 1 }}
+        whileHover={{ scale: 1.02 }}
         whileTap={{ scale: 0.98 }}
         onClick={onClick}
         className={cardClass}
@@ -556,8 +545,25 @@ export const FantasyCard: React.FC<FantasyCardProps> = ({
   }
 
   return (
-    <motion.div whileHover={{ scale: hover ? 1.02 : 1 }} className={cardClass}>
+    <motion.div whileHover={{ scale: 1.02 }} className={cardClass}>
       {content}
     </motion.div>
   );
 };
+
+const areEqual = (prev: FantasyCardProps, next: FantasyCardProps) => {
+  return (
+    prev.cardType === next.cardType &&
+    JSON.stringify(prev.cardData) === JSON.stringify(next.cardData) &&
+    prev.className === next.className &&
+    prev.variant === next.variant &&
+    prev.title === next.title &&
+    prev.description === next.description &&
+    prev.icon === next.icon &&
+    prev.comingSoon === next.comingSoon
+  );
+};
+
+const MemoFantasyCard = React.memo(FantasyCard, areEqual);
+export { MemoFantasyCard as FantasyCard };
+export default MemoFantasyCard;

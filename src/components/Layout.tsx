@@ -13,17 +13,13 @@ import {
 import ErrorBoundary from "./ErrorBoundary";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import {
-  APP_NAME,
-  APP_TAGLINE,
-  COPYRIGHT,
-  LOADING_MESSAGE,
-  ERROR_AUTH,
-  RETRY_LABEL,
+  THEME_CONSTANTS,
+  UI_CONSTANTS,
+  MESSAGE_CONSTANTS,
 } from "@/lib/constants";
 
 interface LayoutProps {
   children: React.ReactNode;
-  isAuthenticated?: boolean;
 }
 
 // Sidebar skeleton loader - moved outside to prevent recreation on every render
@@ -46,10 +42,9 @@ const SidebarSkeleton = React.memo(() => (
 
 SidebarSkeleton.displayName = "SidebarSkeleton";
 
-const Layout: React.FC<LayoutProps> = ({ children, isAuthenticated }) => {
+const Layout: React.FC<LayoutProps> = ({ children }) => {
   const { user, logout, isLoading, authError } = useAuth();
   const navigate = useNavigate();
-  const isLoggedIn = isAuthenticated || !!user;
 
   const handleLogout = useCallback(async () => {
     try {
@@ -83,7 +78,7 @@ const Layout: React.FC<LayoutProps> = ({ children, isAuthenticated }) => {
       <div className="min-h-screen flex items-center justify-center bg-slate-900">
         <div className="bg-slate-800 border border-slate-700 rounded-lg p-8 flex flex-col items-center">
           <div className="text-red-400 font-bold text-lg mb-2">
-            {ERROR_AUTH}
+            {MESSAGE_CONSTANTS.ERROR_AUTH}
           </div>
           <div className="text-slate-400 mb-4">
             {authError?.message || "An authentication error occurred"}
@@ -92,7 +87,7 @@ const Layout: React.FC<LayoutProps> = ({ children, isAuthenticated }) => {
             className="btn-primary px-6 py-2 rounded font-semibold"
             onClick={() => window.location.reload()}
           >
-            {RETRY_LABEL}
+            {MESSAGE_CONSTANTS.RETRY_LABEL}
           </button>
         </div>
       </div>
@@ -108,13 +103,16 @@ const Layout: React.FC<LayoutProps> = ({ children, isAuthenticated }) => {
           className="flex-1 flex items-center justify-center"
           style={{ marginLeft: "var(--sidebar-width, 16rem)" }}
         >
-          <LoadingSpinner size="lg" message={LOADING_MESSAGE} />
+          <LoadingSpinner
+            size="lg"
+            message={MESSAGE_CONSTANTS.LOADING_MESSAGE}
+          />
         </div>
       </div>
     );
   }
 
-  if (isLoggedIn) {
+  if (!!user) {
     return (
       <ErrorBoundary>
         <div className="min-h-screen bg-slate-900">
@@ -139,10 +137,10 @@ const Layout: React.FC<LayoutProps> = ({ children, isAuthenticated }) => {
                     </div>
                     <div className="hidden sm:block">
                       <h1 className="text-xl font-bold text-white">
-                        {APP_NAME}
+                        {THEME_CONSTANTS.APP_NAME}
                       </h1>
                       <p className="text-xs text-emerald-400 -mt-1">
-                        {APP_TAGLINE}
+                        {THEME_CONSTANTS.APP_TAGLINE}
                       </p>
                     </div>
                   </Link>
@@ -210,8 +208,12 @@ const Layout: React.FC<LayoutProps> = ({ children, isAuthenticated }) => {
                 <Trophy className="h-6 w-6 text-white" />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-white">{APP_NAME}</h1>
-                <p className="text-xs text-emerald-400 -mt-1">{APP_TAGLINE}</p>
+                <h1 className="text-xl font-bold text-white">
+                  {THEME_CONSTANTS.APP_NAME}
+                </h1>
+                <p className="text-xs text-emerald-400 -mt-1">
+                  {THEME_CONSTANTS.APP_TAGLINE}
+                </p>
               </div>
             </Link>
 
@@ -238,7 +240,9 @@ const Layout: React.FC<LayoutProps> = ({ children, isAuthenticated }) => {
       <footer className="bg-slate-800/50 border-t border-slate-700/50 mt-auto">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="text-center">
-            <p className="text-slate-400 text-sm">{COPYRIGHT}</p>
+            <p className="text-slate-400 text-sm">
+              {THEME_CONSTANTS.COPYRIGHT}
+            </p>
           </div>
         </div>
       </footer>

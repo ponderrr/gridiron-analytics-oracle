@@ -1,12 +1,12 @@
 import { useLocation } from "react-router-dom";
 import { useEffect } from "react";
-import { ERROR_404 } from "@/lib/constants";
+import { MESSAGE_CONSTANTS } from "@/lib/constants";
 
 const NotFound = () => {
   const location = useLocation();
 
   useEffect(() => {
-    console.error(ERROR_404, location.pathname);
+    console.error(MESSAGE_CONSTANTS.ERROR_404, location.pathname);
   }, [location.pathname]);
 
   return (

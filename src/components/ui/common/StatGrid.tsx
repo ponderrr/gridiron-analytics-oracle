@@ -77,4 +77,4 @@ const StatGrid: React.FC<StatGridProps> = ({
   return content;
 };
 
-export default StatGrid;
+export default React.memo(StatGrid);

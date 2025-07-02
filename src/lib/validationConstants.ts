@@ -43,4 +43,8 @@ export const VALIDATION_MESSAGES = {
   PASSWORD_NO_LOWERCASE: "Password must contain at least one lowercase letter.",
   PASSWORD_NO_NUMBER: "Password must contain at least one number.",
   PASSWORD_NO_SPECIAL: "Password must contain at least one special character.",
+  CONFIRM_PASSWORD_REQUIRED: "Please confirm your password.",
+  PASSWORDS_DONT_MATCH: "Passwords do not match.",
+  ACCOUNT_CREATED_SUCCESS:
+    "Account created successfully! Please check your email to confirm your account before signing in.",
 } as const;

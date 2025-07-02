@@ -1,6 +1,5 @@
 import { Users, TrendingUp, Target, Activity } from "lucide-react";
 
-// Top players for Dashboard
 export const MOCK_TOP_PLAYERS = [
   {
     name: "Josh Allen",
@@ -37,7 +36,6 @@ export const MOCK_TOP_PLAYERS = [
   },
 ];
 
-// Featured players for Players page
 export const MOCK_FEATURED_PLAYERS = [
   ...MOCK_TOP_PLAYERS,
   {
@@ -75,7 +73,6 @@ export const MOCK_FEATURED_PLAYERS = [
   },
 ];
 
-// Available players for TradeAnalyzer page
 export const MOCK_AVAILABLE_PLAYERS = [
   { name: "Josh Allen", position: "QB", team: "BUF", value: 95 },
   { name: "Christian McCaffrey", position: "RB", team: "SF", value: 92 },

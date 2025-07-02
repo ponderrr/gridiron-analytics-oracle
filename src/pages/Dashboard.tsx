@@ -1,11 +1,9 @@
 import { motion } from "framer-motion";
-import { MOCK_TOP_PLAYERS } from "../lib/mockData";
+import { MOCK_TOP_PLAYERS } from "../lib/mock";
 import {
-  NAV_ITEMS,
-  ICON_SIZES,
-  TEXT_SIZES,
-  PADDING,
-  GAP,
+  THEME_CONSTANTS,
+  UI_CONSTANTS,
+  MESSAGE_CONSTANTS,
 } from "@/lib/constants";
 import Layout from "../components/Layout";
 import { FantasyCard } from "../components/ui/cards/FantasyCard";
@@ -19,48 +17,60 @@ import {
   Brain,
   Target,
 } from "lucide-react";
+import React, { useMemo, useCallback } from "react";
 
 const Dashboard: React.FC = () => {
   const { user } = useAuth();
 
-  const dashboardStats = [
-    {
-      title: "Active Leagues",
-      value: "3",
-      subtitle: "Championship bound",
-      icon: Activity,
-      trend: "up" as const,
-      trendValue: "+1",
-      variant: "default" as const,
-    },
-    {
-      title: "Win Rate",
-      value: "73%",
-      subtitle: "Above average",
-      icon: TrendingUp,
-      trend: "up" as const,
-      trendValue: "+8%",
-      variant: "premium" as const,
-    },
-    {
-      title: "Players Tracked",
-      value: "247",
-      subtitle: "In your watchlist",
-      icon: Users,
-      trend: "up" as const,
-      trendValue: "+12",
-      variant: "elite" as const,
-    },
-    {
-      title: "Prediction Accuracy",
-      value: "89%",
-      subtitle: "This season",
-      icon: BarChart3,
-      trend: "up" as const,
-      trendValue: "+4%",
-      variant: "champion" as const,
-    },
-  ];
+  const dashboardStats = useMemo(
+    () => [
+      {
+        title: "Active Leagues",
+        value: "3",
+        subtitle: "Championship bound",
+        icon: Activity,
+        trend: "up" as const,
+        trendValue: "+1",
+        variant: "default" as const,
+      },
+      {
+        title: "Win Rate",
+        value: "73%",
+        subtitle: "Above average",
+        icon: TrendingUp,
+        trend: "up" as const,
+        trendValue: "+8%",
+        variant: "premium" as const,
+      },
+      {
+        title: "Players Tracked",
+        value: "247",
+        subtitle: "In your watchlist",
+        icon: Users,
+        trend: "up" as const,
+        trendValue: "+12",
+        variant: "elite" as const,
+      },
+      {
+        title: "Prediction Accuracy",
+        value: "89%",
+        subtitle: "This season",
+        icon: BarChart3,
+        trend: "up" as const,
+        trendValue: "+4%",
+        variant: "champion" as const,
+      },
+    ],
+    []
+  );
+
+  const handleAnalyticsClick = useCallback(() => {
+    console.log("Navigate to Analytics");
+  }, []);
+
+  const handleTradeAnalyzerClick = useCallback(() => {
+    console.log("Navigate to Trade Analyzer");
+  }, []);
 
   const topPlayers = MOCK_TOP_PLAYERS;
 
@@ -86,7 +96,7 @@ const Dashboard: React.FC = () => {
   };
 
   return (
-    <Layout isAuthenticated={true}>
+    <Layout>
       <motion.div
         variants={containerVariants}
         initial="hidden"
@@ -142,19 +152,19 @@ const Dashboard: React.FC = () => {
                 icon: Brain,
                 variant: "premium",
               }}
-              onClick={() => console.log("Navigate to Analytics")}
+              onClick={handleAnalyticsClick}
             />
 
             <FantasyCard
               cardType="feature"
               cardData={{
-                title: NAV_ITEMS.TRADE_ANALYZER,
+                title: UI_CONSTANTS.TRADE_ANALYZER,
                 description:
                   "Analyze potential trades with our AI-powered system that evaluates player values, team needs, and future projections.",
                 icon: Target,
                 variant: "elite",
               }}
-              onClick={() => console.log("Navigate to Trade Analyzer")}
+              onClick={handleTradeAnalyzerClick}
             />
           </div>
         </motion.div>

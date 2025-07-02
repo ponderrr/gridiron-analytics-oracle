@@ -5,25 +5,26 @@ import Layout from "../components/Layout";
 import LoadingSpinner from "../components/LoadingSpinner";
 import { useAuth } from "../contexts/AuthContext";
 import { validateEmail, formatErrorMessage } from "../lib/validation";
-import { PASSWORD_REQUIRED } from "@/lib/constants";
+import { VALIDATION_MESSAGES } from "../lib/validationConstants";
+import { useFormError } from "../hooks/useFormError";
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
-  const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   const { login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const { error, setError, clearError, formatAndSetError } = useFormError();
 
   const from = location.state?.from?.pathname || "/dashboard";
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
+    clearError();
 
     const emailError = validateEmail(email);
     if (emailError) {
@@ -31,7 +32,7 @@ const Login: React.FC = () => {
       return;
     }
     if (!password) {
-      setError(PASSWORD_REQUIRED);
+      setError(VALIDATION_MESSAGES.PASSWORD_REQUIRED);
       return;
     }
     setIsLoading(true);
@@ -39,7 +40,7 @@ const Login: React.FC = () => {
       await login(email, password);
       navigate(from, { replace: true });
     } catch (err) {
-      setError(formatErrorMessage(err));
+      formatAndSetError(err);
     } finally {
       setIsLoading(false);
     }

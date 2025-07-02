@@ -1,11 +1,18 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { MOCK_AVAILABLE_PLAYERS } from "../lib/mockData";
+import { MOCK_AVAILABLE_PLAYERS } from "../lib/mock";
 import Layout from "../components/Layout";
 import { FantasyCard } from "../components/ui/cards/FantasyCard";
 import { Button } from "@/components/ui/button";
 import { ArrowLeftRight, Plus, X, TrendingUp, ArrowRight } from "lucide-react";
-import { ICON_SIZES, TEXT_SIZES, PADDING, GAP, SPACING } from "@/lib/constants";
+import {
+  ICON_SIZES,
+  TEXT_SIZES,
+  PADDING,
+  GAP,
+  SPACING,
+  THEME_CONSTANTS,
+} from "@/lib/constants";
 
 const TradeAnalyzer: React.FC = () => {
   const [yourPlayers, setYourPlayers] = useState<string[]>([]);
@@ -68,7 +75,7 @@ const TradeAnalyzer: React.FC = () => {
   };
 
   return (
-    <Layout isAuthenticated>
+    <Layout>
       <motion.div
         variants={containerVariants}
         initial="hidden"

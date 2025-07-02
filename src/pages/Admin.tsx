@@ -34,6 +34,9 @@ import {
   PADDING,
   GAP,
   GRID_COLUMNS,
+  THEME_CONSTANTS,
+  UI_CONSTANTS,
+  MESSAGE_CONSTANTS,
 } from "@/lib/constants";
 import { appConfig } from "@/config/app";
 import {
@@ -54,196 +57,12 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-
-// Simplified table components specific to Admin usage
-const PlayersTable: React.FC<{ data: Player[] }> = React.memo(({ data }) => (
-  <table className="w-full">
-    <thead className="bg-slate-700/50">
-      <tr>
-        <th className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
-          Name
-        </th>
-        <th className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
-          Position
-        </th>
-        <th className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
-          Team
-        </th>
-        <th className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
-          Bye Week
-        </th>
-        <th className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
-          Status
-        </th>
-      </tr>
-    </thead>
-    <tbody className="divide-y divide-slate-700">
-      {data.map((player) => (
-        <tr key={player.id} className="hover:bg-slate-700/30">
-          <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-300">
-            {player.name}
-          </td>
-          <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-300">
-            {player.position}
-          </td>
-          <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-300">
-            {player.team}
-          </td>
-          <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-300">
-            {player.bye_week}
-          </td>
-          <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-300">
-            {player.active ? "Active" : "Inactive"}
-          </td>
-        </tr>
-      ))}
-    </tbody>
-  </table>
-));
-
-const StatsTable: React.FC<{
-  data: WeeklyStat[];
-  getPlayerName: (playerId: string | null) => string;
-}> = React.memo(({ data, getPlayerName }) => (
-  <table className="w-full">
-    <thead className="bg-slate-700/50">
-      <tr>
-        <th className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
-          Player
-        </th>
-        <th className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
-          Week
-        </th>
-        <th className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
-          Fantasy Points
-        </th>
-        <th className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
-          Passing
-        </th>
-        <th className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
-          Rushing
-        </th>
-        <th className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
-          Receiving
-        </th>
-      </tr>
-    </thead>
-    <tbody className="divide-y divide-slate-700">
-      {data.map((stat) => (
-        <tr key={stat.id} className="hover:bg-slate-700/30">
-          <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-300">
-            {getPlayerName(stat.player_id)}
-          </td>
-          <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-300">
-            {stat.week}
-          </td>
-          <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-300">
-            {stat.fantasy_points}
-          </td>
-          <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-300">
-            {stat.passing_yards}
-          </td>
-          <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-300">
-            {stat.rushing_yards}
-          </td>
-          <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-300">
-            {stat.receptions}
-          </td>
-        </tr>
-      ))}
-    </tbody>
-  </table>
-));
-
-const ProjectionsTable: React.FC<{
-  data: Projection[];
-  getPlayerName: (playerId: string | null) => string;
-}> = React.memo(({ data, getPlayerName }) => (
-  <table className="w-full">
-    <thead className="bg-slate-700/50">
-      <tr>
-        <th className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
-          Player
-        </th>
-        <th className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
-          Week
-        </th>
-        <th className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
-          Projected Points
-        </th>
-        <th className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
-          Type
-        </th>
-        <th className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
-          Confidence
-        </th>
-      </tr>
-    </thead>
-    <tbody className="divide-y divide-slate-700">
-      {data.map((projection) => (
-        <tr key={projection.id} className="hover:bg-slate-700/30">
-          <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-300">
-            {getPlayerName(projection.player_id)}
-          </td>
-          <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-300">
-            {projection.week}
-          </td>
-          <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-300">
-            {projection.projected_points}
-          </td>
-          <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-300">
-            {projection.projection_type}
-          </td>
-          <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-300">
-            {projection.confidence_score}
-          </td>
-        </tr>
-      ))}
-    </tbody>
-  </table>
-));
-
-const TradeValuesTable: React.FC<{
-  data: TradeValue[];
-  getPlayerName: (playerId: string | null) => string;
-}> = React.memo(({ data, getPlayerName }) => (
-  <table className="w-full">
-    <thead className="bg-slate-700/50">
-      <tr>
-        <th className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
-          Player
-        </th>
-        <th className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
-          Week
-        </th>
-        <th className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
-          Trade Value
-        </th>
-        <th className="px-6 py-3 text-left text-xs font-medium text-slate-300 uppercase tracking-wider">
-          Tier
-        </th>
-      </tr>
-    </thead>
-    <tbody className="divide-y divide-slate-700">
-      {data.map((value) => (
-        <tr key={value.id} className="hover:bg-slate-700/30">
-          <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-300">
-            {getPlayerName(value.player_id)}
-          </td>
-          <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-300">
-            {value.week}
-          </td>
-          <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-300">
-            {value.trade_value}
-          </td>
-          <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-300">
-            {value.tier}
-          </td>
-        </tr>
-      ))}
-    </tbody>
-  </table>
-));
+import {
+  PlayersTable,
+  StatsTable,
+  ProjectionsTable,
+  TradeValuesTable,
+} from "../components/ui/table";
 
 const Admin: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string>(ADMIN_TABS.PLAYERS);
@@ -385,7 +204,7 @@ const Admin: React.FC = () => {
 
   if (loading) {
     return (
-      <Layout isAuthenticated>
+      <Layout>
         <div className={`flex items-center justify-center ${HEIGHT.H_64}`}>
           <div
             className={`animate-spin rounded-full ${ICON_SIZES.XXL} border-b-2 border-emerald-500`}
@@ -397,7 +216,7 @@ const Admin: React.FC = () => {
 
   if (error) {
     return (
-      <Layout isAuthenticated>
+      <Layout>
         <div
           className={`flex flex-col items-center justify-center ${HEIGHT.H_64} text-center`}
         >
@@ -417,7 +236,7 @@ const Admin: React.FC = () => {
   }
 
   return (
-    <Layout isAuthenticated>
+    <Layout>
       <div className="space-y-6">
         {/* Header */}
         <div>

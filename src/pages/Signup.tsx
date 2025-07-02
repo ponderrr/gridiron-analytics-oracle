@@ -10,11 +10,8 @@ import {
   getPasswordStrength,
   formatErrorMessage,
 } from "../lib/validation";
-import {
-  ACCOUNT_CREATED_SUCCESS,
-  CONFIRM_PASSWORD_REQUIRED,
-  PASSWORDS_DONT_MATCH,
-} from "@/lib/constants";
+import { VALIDATION_MESSAGES } from "../lib/validationConstants";
+import { useFormError } from "../hooks/useFormError";
 
 const Signup: React.FC = () => {
   const [email, setEmail] = useState("");
@@ -22,16 +19,16 @@ const Signup: React.FC = () => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   const { signup } = useAuth();
   const navigate = useNavigate();
+  const { error, setError, clearError, formatAndSetError } = useFormError();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
+    clearError();
     setSuccess("");
 
     const emailError = validateEmail(email);
@@ -47,24 +44,24 @@ const Signup: React.FC = () => {
     }
 
     if (!confirmPassword) {
-      setError(CONFIRM_PASSWORD_REQUIRED);
+      setError(VALIDATION_MESSAGES.CONFIRM_PASSWORD_REQUIRED);
       return;
     }
 
     if (password !== confirmPassword) {
-      setError(PASSWORDS_DONT_MATCH);
+      setError(VALIDATION_MESSAGES.PASSWORDS_DONT_MATCH);
       return;
     }
 
     setIsLoading(true);
     try {
       await signup(email, password);
-      setSuccess(ACCOUNT_CREATED_SUCCESS);
+      setSuccess(VALIDATION_MESSAGES.ACCOUNT_CREATED_SUCCESS);
       setTimeout(() => {
         navigate("/login");
       }, 3000);
     } catch (err) {
-      setError(formatErrorMessage(err));
+      formatAndSetError(err);
     } finally {
       setIsLoading(false);
     }

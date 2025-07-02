@@ -27,21 +27,6 @@ export interface FantasyPointsResult {
   scoring_format: string;
 }
 
-// Custom error types
-export class FantasyPointsValidationError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = "FantasyPointsValidationError";
-  }
-}
-
-export class FantasyPointsCalculationError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = "FantasyPointsCalculationError";
-  }
-}
-
 /**
  * Validates that all stats are non-negative numbers.
  * @param stats WeeklyStatsInput
@@ -50,9 +35,7 @@ export class FantasyPointsCalculationError extends Error {
 export function validateStatsInput(stats: WeeklyStatsInput): void {
   for (const [key, value] of Object.entries(stats)) {
     if (typeof value !== "number" || value < 0) {
-      throw new FantasyPointsValidationError(
-        `Invalid stat '${key}': must be a non-negative number.`
-      );
+      throw new Error(`Invalid stat '${key}': must be a non-negative number.`);
     }
   }
 }
@@ -64,12 +47,10 @@ export function validateStatsInput(stats: WeeklyStatsInput): void {
  */
 export function validateScoringSettings(settings: ScoringSettings): void {
   if (!settings || typeof settings !== "object") {
-    throw new FantasyPointsValidationError(
-      "Scoring settings must be a valid object."
-    );
+    throw new Error("Scoring settings must be a valid object.");
   }
   if (!["standard", "ppr", "half_ppr"].includes(settings.format)) {
-    throw new FantasyPointsValidationError("Invalid scoring format.");
+    throw new Error("Invalid scoring format.");
   }
 
   const numericKeys: (keyof ScoringSettings)[] = [
@@ -84,9 +65,7 @@ export function validateScoringSettings(settings: ScoringSettings): void {
 
   numericKeys.forEach((key) => {
     if (typeof settings[key] !== "number") {
-      throw new FantasyPointsValidationError(
-        `Scoring setting '${key}' must be a number.`
-      );
+      throw new Error(`Scoring setting '${key}' must be a number.`);
     }
   });
 }
@@ -116,9 +95,7 @@ export async function calculateFantasyPoints(
     if (process.env.NODE_ENV === "development") {
       console.error("Error calculating fantasy points:", error);
     }
-    throw new FantasyPointsCalculationError(
-      `Failed to calculate fantasy points: ${error.message}`
-    );
+    throw new Error(`Failed to calculate fantasy points: ${error.message}`);
   }
 
   return data;
@@ -148,7 +125,7 @@ export async function calculateBatchFantasyPoints(
     if (process.env.NODE_ENV === "development") {
       console.error("Error calculating batch fantasy points:", error);
     }
-    throw new FantasyPointsCalculationError(
+    throw new Error(
       `Failed to calculate batch fantasy points: ${error.message}`
     );
   }
@@ -179,9 +156,7 @@ export async function updateWeeklyStatsWithFantasyPoints(
     .single();
 
   if (fetchError || !weeklyStats) {
-    throw new FantasyPointsCalculationError(
-      `Failed to fetch weekly stats: ${fetchError?.message}`
-    );
+    throw new Error(`Failed to fetch weekly stats: ${fetchError?.message}`);
   }
 
   const stats: WeeklyStatsInput = {
@@ -217,9 +192,7 @@ export async function updateWeeklyStatsWithFantasyPoints(
         updateError
       );
     }
-    throw new FantasyPointsCalculationError(
-      `Failed to update fantasy points: ${updateError.message}`
-    );
+    throw new Error(`Failed to update fantasy points: ${updateError.message}`);
   }
 }
 
@@ -236,9 +209,7 @@ export async function recalculateAllFantasyPoints(
     .select("*");
 
   if (fetchError) {
-    throw new FantasyPointsCalculationError(
-      `Failed to fetch all weekly stats: ${fetchError.message}`
-    );
+    throw new Error(`Failed to fetch all weekly stats: ${fetchError.message}`);
   }
 
   if (!allStats || allStats.length === 0) {
