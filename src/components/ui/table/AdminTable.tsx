@@ -41,7 +41,7 @@ export function AdminTable<T>({ columns, data, rowKey }: AdminTableProps<T>) {
               >
                 {typeof col.accessor === "function"
                   ? col.accessor(row)
-                  : (row as any)[col.accessor]}
+                  : (row[col.accessor as keyof T] as React.ReactNode)}
               </td>
             ))}
           </tr>
