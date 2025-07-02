@@ -1,7 +1,9 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
+import { MOCK_FEATURED_PLAYERS } from "../lib/mockData";
+import { ICON_SIZES, TEXT_SIZES, GAP } from "@/lib/constants";
 import Layout from "../components/Layout";
-import { FantasyCard, CardType } from "../components/ui/cards/FantasyCard";
+import { FantasyCard } from "../components/ui/cards/FantasyCard";
 import { SearchFilters, StatGrid } from "../components/ui/common";
 import { Users, TrendingUp, BarChart3, Target, Activity } from "lucide-react";
 
@@ -49,74 +51,7 @@ const Players: React.FC = () => {
     },
   ];
 
-  const featuredPlayers = [
-    {
-      name: "Josh Allen",
-      position: "QB",
-      team: "BUF",
-      projection: 24.8,
-      points: 28.4,
-      trend: "up" as const,
-      trendValue: "+12%",
-      tier: "Elite",
-      status: "active" as const,
-    },
-    {
-      name: "Christian McCaffrey",
-      position: "RB",
-      team: "SF",
-      projection: 18.4,
-      points: 22.1,
-      trend: "up" as const,
-      trendValue: "+8%",
-      tier: "RB1",
-      status: "active" as const,
-    },
-    {
-      name: "Cooper Kupp",
-      position: "WR",
-      team: "LAR",
-      projection: 16.2,
-      points: 19.7,
-      trend: "up" as const,
-      trendValue: "+15%",
-      tier: "WR1",
-      status: "questionable" as const,
-    },
-    {
-      name: "Travis Kelce",
-      position: "TE",
-      team: "KC",
-      projection: 14.8,
-      points: 17.3,
-      trend: "up" as const,
-      trendValue: "+6%",
-      tier: "Elite",
-      status: "active" as const,
-    },
-    {
-      name: "Stefon Diggs",
-      position: "WR",
-      team: "HOU",
-      projection: 15.9,
-      points: 18.2,
-      trend: "up" as const,
-      trendValue: "+9%",
-      tier: "WR1",
-      status: "active" as const,
-    },
-    {
-      name: "Derrick Henry",
-      position: "RB",
-      team: "BAL",
-      projection: 16.7,
-      points: 20.1,
-      trend: "up" as const,
-      trendValue: "+14%",
-      tier: "RB1",
-      status: "active" as const,
-    },
-  ];
+  const featuredPlayers = MOCK_FEATURED_PLAYERS;
 
   const playerCategories = [
     {
@@ -209,8 +144,10 @@ const Players: React.FC = () => {
         <motion.div variants={itemVariants} className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-4xl font-bold text-white flex items-center">
-                <Users className="h-8 w-8 mr-3 text-emerald-400" />
+              <h1
+                className={`${TEXT_SIZES.FOUR_XL} font-bold text-white flex items-center`}
+              >
+                <Users className={`${ICON_SIZES.XL} mr-3 text-emerald-400`} />
                 Player Database
               </h1>
               <p className="text-slate-400 mt-1">
@@ -235,7 +172,9 @@ const Players: React.FC = () => {
 
         {/* Player Categories */}
         <motion.div variants={itemVariants} className="space-y-6">
-          <h2 className="text-2xl font-bold text-white">Player Categories</h2>
+          <h2 className={`${TEXT_SIZES.TWO_XL} font-bold text-white`}>
+            Player Categories
+          </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {playerCategories.map((feature, index) => (
               <FantasyCard key={index} cardType="feature" cardData={feature} />

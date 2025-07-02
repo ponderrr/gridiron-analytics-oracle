@@ -2,8 +2,14 @@ import React from "react";
 import { motion } from "framer-motion";
 import { LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
-
-export type CardType = "stat" | "player" | "feature";
+import {
+  CARD_TYPES,
+  ICON_SIZES,
+  PADDING,
+  GAP,
+  TEXT_SIZES,
+  WIDTH,
+} from "@/lib/constants";
 
 export type StatCardData = {
   title: string;
@@ -43,7 +49,7 @@ export type FantasyCardData =
   | Record<string, any>;
 
 export interface FantasyCardProps {
-  cardType: CardType;
+  cardType: string;
   cardData: FantasyCardData;
   className?: string;
   hover?: boolean;

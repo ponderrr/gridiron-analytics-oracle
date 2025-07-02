@@ -1,23 +1,18 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
+import { MOCK_AVAILABLE_PLAYERS } from "../lib/mockData";
 import Layout from "../components/Layout";
 import { FantasyCard } from "../components/ui/cards/FantasyCard";
 import { Button } from "@/components/ui/button";
 import { ArrowLeftRight, Plus, X, TrendingUp, ArrowRight } from "lucide-react";
+import { ICON_SIZES, TEXT_SIZES, PADDING, GAP, SPACING } from "@/lib/constants";
 
 const TradeAnalyzer: React.FC = () => {
   const [yourPlayers, setYourPlayers] = useState<string[]>([]);
   const [targetPlayers, setTargetPlayers] = useState<string[]>([]);
   const [tradeAnalysis, setTradeAnalysis] = useState<any>(null);
 
-  const availablePlayers = [
-    { name: "Josh Allen", position: "QB", team: "BUF", value: 95 },
-    { name: "Christian McCaffrey", position: "RB", team: "SF", value: 92 },
-    { name: "Cooper Kupp", position: "WR", team: "LAR", value: 88 },
-    { name: "Travis Kelce", position: "TE", team: "KC", value: 85 },
-    { name: "Stefon Diggs", position: "WR", team: "HOU", value: 82 },
-    { name: "Derrick Henry", position: "RB", team: "BAL", value: 80 },
-  ];
+  const availablePlayers = MOCK_AVAILABLE_PLAYERS;
 
   const addPlayerToTrade = (player: any, side: "your" | "target") => {
     if (side === "your") {
@@ -78,12 +73,16 @@ const TradeAnalyzer: React.FC = () => {
         variants={containerVariants}
         initial="hidden"
         animate="visible"
-        className="max-w-6xl mx-auto space-y-8"
+        className={`max-w-6xl mx-auto space-y-${SPACING.XL}`}
       >
         {/* Header */}
         <motion.div variants={itemVariants}>
-          <h1 className="text-4xl font-bold text-white flex items-center">
-            <ArrowLeftRight className="h-8 w-8 mr-3 text-emerald-400" />
+          <h1
+            className={`${TEXT_SIZES.FOUR_XL} font-bold text-white flex items-center`}
+          >
+            <ArrowLeftRight
+              className={`${ICON_SIZES.XL} mr-3 text-emerald-400`}
+            />
             Trade Analyzer
           </h1>
           <p className="text-slate-400 mt-1">
@@ -93,18 +92,24 @@ const TradeAnalyzer: React.FC = () => {
 
         {/* Trade Builder */}
         <motion.div variants={itemVariants} className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <div className={`grid grid-cols-1 lg:grid-cols-2 ${GAP.XL}`}>
             {/* Your Team */}
-            <FantasyCard variant="default" className="p-6">
+            <FantasyCard variant="default" className={PADDING.XL}>
               <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
-                <TrendingUp className="h-5 w-5 mr-2 text-emerald-400" />
+                <TrendingUp
+                  className={`${ICON_SIZES.MD} mr-2 text-emerald-400`}
+                />
                 Your Players
               </h3>
 
               <div className="space-y-3 mb-4">
                 {yourPlayers.length === 0 ? (
-                  <div className="bg-slate-800/50 border-2 border-dashed border-slate-600 rounded-lg p-8 text-center">
-                    <Plus className="h-8 w-8 text-slate-500 mx-auto mb-2" />
+                  <div
+                    className={`bg-slate-800/50 border-2 border-dashed border-slate-600 rounded-lg ${PADDING.XXL} text-center`}
+                  >
+                    <Plus
+                      className={`${ICON_SIZES.XL} text-slate-500 mx-auto mb-2`}
+                    />
                     <p className="text-slate-500">
                       Select players to trade away
                     </p>
@@ -120,7 +125,7 @@ const TradeAnalyzer: React.FC = () => {
                         onClick={() => removePlayer(index, "your")}
                         className="text-slate-400 hover:text-red-400 transition-colors"
                       >
-                        <X className="h-4 w-4" />
+                        <X className={ICON_SIZES.SM} />
                       </button>
                     </div>
                   ))
@@ -153,16 +158,20 @@ const TradeAnalyzer: React.FC = () => {
             </FantasyCard>
 
             {/* Trade Target */}
-            <FantasyCard variant="premium" className="p-6">
+            <FantasyCard variant="premium" className={PADDING.XL}>
               <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
-                <ArrowRight className="h-5 w-5 mr-2 text-blue-400" />
+                <ArrowRight className={`${ICON_SIZES.MD} mr-2 text-blue-400`} />
                 Players to Receive
               </h3>
 
               <div className="space-y-3 mb-4">
                 {targetPlayers.length === 0 ? (
-                  <div className="bg-slate-800/50 border-2 border-dashed border-slate-600 rounded-lg p-8 text-center">
-                    <Plus className="h-8 w-8 text-slate-500 mx-auto mb-2" />
+                  <div
+                    className={`bg-slate-800/50 border-2 border-dashed border-slate-600 rounded-lg ${PADDING.XXL} text-center`}
+                  >
+                    <Plus
+                      className={`${ICON_SIZES.XL} text-slate-500 mx-auto mb-2`}
+                    />
                     <p className="text-slate-500">Select players to acquire</p>
                   </div>
                 ) : (
@@ -176,7 +185,7 @@ const TradeAnalyzer: React.FC = () => {
                         onClick={() => removePlayer(index, "target")}
                         className="text-slate-400 hover:text-red-400 transition-colors"
                       >
-                        <X className="h-4 w-4" />
+                        <X className={ICON_SIZES.SM} />
                       </button>
                     </div>
                   ))
@@ -216,7 +225,7 @@ const TradeAnalyzer: React.FC = () => {
               disabled={yourPlayers.length === 0 || targetPlayers.length === 0}
               className="bg-emerald-500 hover:bg-emerald-600 text-white px-8 py-4 text-lg rounded-xl font-medium transition-colors flex items-center space-x-2"
             >
-              <ArrowLeftRight className="h-5 w-5" />
+              <ArrowLeftRight className={ICON_SIZES.MD} />
               <span>Analyze Trade</span>
             </Button>
           </div>
@@ -225,9 +234,11 @@ const TradeAnalyzer: React.FC = () => {
         {/* Trade Analysis Results */}
         {tradeAnalysis && (
           <motion.div variants={itemVariants}>
-            <FantasyCard variant="elite" className="p-6">
+            <FantasyCard variant="elite" className={PADDING.XL}>
               <div className="space-y-6">
-                <div className="text-center p-6 bg-slate-800/50 rounded-xl">
+                <div
+                  className={`text-center ${PADDING.XL} bg-slate-800/50 rounded-xl`}
+                >
                   <div className="text-3xl font-bold text-emerald-400 mb-2">
                     {tradeAnalysis.fairness}
                   </div>
@@ -236,8 +247,8 @@ const TradeAnalyzer: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-slate-800/50 p-4 rounded-lg">
+                <div className={`grid grid-cols-2 ${GAP.MD}`}>
+                  <div className={`bg-slate-800/50 ${PADDING.LG} rounded-lg`}>
                     <div className="flex justify-between items-center">
                       <span className="text-slate-400">Risk Level</span>
                       <span className="text-yellow-400 font-medium">
@@ -245,7 +256,7 @@ const TradeAnalyzer: React.FC = () => {
                       </span>
                     </div>
                   </div>
-                  <div className="bg-slate-800/50 p-4 rounded-lg">
+                  <div className={`bg-slate-800/50 ${PADDING.LG} rounded-lg`}>
                     <div className="flex justify-between items-center">
                       <span className="text-slate-400">Short-term Impact</span>
                       <span className="text-emerald-400 font-medium">

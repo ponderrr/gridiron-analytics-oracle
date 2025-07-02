@@ -13,12 +13,13 @@ import {
 import Layout from "../components/Layout";
 import { useAuth } from "@/contexts/AuthContext";
 import { FantasyCard } from "../components/ui/cards/FantasyCard";
+import { ICON_SIZES, TEXT_SIZES, GAP, PADDING } from "@/lib/constants";
 
 const Settings: React.FC = () => {
   const { user } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [displayName, setDisplayName] = useState(
-    user?.email?.split("@")[0] || "",
+    user?.email?.split("@")[0] || ""
   );
 
   const containerVariants = {
@@ -52,8 +53,12 @@ const Settings: React.FC = () => {
       >
         {/* Header */}
         <motion.div variants={itemVariants}>
-          <h1 className="text-4xl font-bold text-white flex items-center">
-            <SettingsIcon className="h-8 w-8 mr-3 text-emerald-400" />
+          <h1
+            className={`${TEXT_SIZES.FOUR_XL} font-bold text-white flex items-center`}
+          >
+            <SettingsIcon
+              className={`${ICON_SIZES.XL} mr-3 text-emerald-400`}
+            />
             Settings
           </h1>
           <p className="text-slate-400 mt-1">
@@ -64,18 +69,20 @@ const Settings: React.FC = () => {
         {/* Settings Grid */}
         <motion.div
           variants={itemVariants}
-          className="grid grid-cols-1 lg:grid-cols-2 gap-6"
+          className={`grid grid-cols-1 lg:grid-cols-2 ${GAP.LG}`}
         >
           {/* Profile Settings */}
           <motion.div variants={itemVariants}>
-            <FantasyCard variant="premium" className="p-6">
+            <FantasyCard variant="premium" className={PADDING.XL}>
               <div className="flex items-center space-x-3 mb-6">
-                <User className="h-6 w-6 text-emerald-400" />
+                <User className={`${ICON_SIZES.LG} text-emerald-400`} />
                 <h3 className="text-lg font-semibold text-white">Profile</h3>
               </div>
               <div className="space-y-4">
                 <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-400" />
+                  <Mail
+                    className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${ICON_SIZES.MD} text-slate-400`}
+                  />
                   <input
                     type="email"
                     value={user?.email || ""}
@@ -84,7 +91,9 @@ const Settings: React.FC = () => {
                   />
                 </div>
                 <div className="relative">
-                  <User className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-400" />
+                  <User
+                    className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${ICON_SIZES.MD} text-slate-400`}
+                  />
                   <input
                     type="text"
                     value={displayName}
@@ -97,7 +106,7 @@ const Settings: React.FC = () => {
                   onClick={() => setIsEditing(!isEditing)}
                   className="w-full bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center justify-center"
                 >
-                  <Save className="h-4 w-4 mr-2" />
+                  <Save className={`${ICON_SIZES.SM} mr-2`} />
                   Save Changes
                 </button>
               </div>
@@ -106,14 +115,14 @@ const Settings: React.FC = () => {
 
           {/* Security Settings */}
           <motion.div variants={itemVariants}>
-            <FantasyCard variant="elite" className="p-6">
+            <FantasyCard variant="elite" className={PADDING.XL}>
               <div className="flex items-center space-x-3 mb-6">
-                <Shield className="h-6 w-6 text-blue-400" />
+                <Shield className={`${ICON_SIZES.LG} text-blue-400`} />
                 <h3 className="text-lg font-semibold text-white">Security</h3>
               </div>
               <div className="space-y-4">
                 <button className="w-full bg-slate-700/50 hover:bg-slate-600 rounded-lg p-4 text-left text-white transition-colors flex items-center">
-                  <Lock className="h-5 w-5 text-emerald-400 mr-3" />
+                  <Lock className={`${ICON_SIZES.MD} text-emerald-400 mr-3`} />
                   <span>Change Password</span>
                 </button>
               </div>
@@ -122,15 +131,15 @@ const Settings: React.FC = () => {
 
           {/* League Connection */}
           <motion.div variants={itemVariants}>
-            <FantasyCard variant="champion" className="p-6">
+            <FantasyCard variant="champion" className={PADDING.XL}>
               <div className="flex items-center space-x-3 mb-6">
-                <LinkIcon className="h-6 w-6 text-purple-400" />
+                <LinkIcon className={`${ICON_SIZES.LG} text-purple-400`} />
                 <h3 className="text-lg font-semibold text-white">
                   League Connection
                 </h3>
               </div>
               <div className="space-y-4">
-                <div className="bg-slate-800/50 p-4 rounded-lg">
+                <div className={`bg-slate-800/50 ${PADDING.LG} rounded-lg`}>
                   <p className="text-slate-300 mb-4">
                     Connect your fantasy leagues to enable advanced features and
                     tracking.
@@ -145,13 +154,13 @@ const Settings: React.FC = () => {
 
           {/* Theme Settings */}
           <motion.div variants={itemVariants}>
-            <FantasyCard variant="default" className="p-6">
+            <FantasyCard variant="default" className={PADDING.XL}>
               <div className="flex items-center space-x-3 mb-6">
-                <Palette className="h-6 w-6 text-emerald-400" />
+                <Palette className={`${ICON_SIZES.LG} text-emerald-400`} />
                 <h3 className="text-lg font-semibold text-white">Theme</h3>
               </div>
               <div className="space-y-4">
-                <div className="bg-slate-800/50 p-4 rounded-lg">
+                <div className={`bg-slate-800/50 ${PADDING.LG} rounded-lg`}>
                   <select className="w-full bg-slate-700 border border-slate-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500">
                     <option value="dark">Dark (Default)</option>
                     <option value="light">Light</option>

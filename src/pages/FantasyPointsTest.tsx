@@ -29,9 +29,23 @@ import {
 import { DEFAULT_SCORING_SETTINGS } from "@/lib/fantasyPoints.constants";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import { ERROR_FANTASY_POINTS, HEIGHT } from "@/lib/constants";
+
+// Form state interface for string values
+interface WeeklyStatsFormInput {
+  passing_yards: string;
+  passing_tds: string;
+  passing_interceptions: string;
+  rushing_yards: string;
+  rushing_tds: string;
+  receiving_yards: string;
+  receiving_tds: string;
+  receptions: string;
+  fumbles_lost: string;
+}
 
 const FantasyPointsTest: React.FC = () => {
-  const [stats, setStats] = useState<WeeklyStatsInput>({
+  const [stats, setStats] = useState<WeeklyStatsFormInput>({
     passing_yards: "",
     passing_tds: "",
     passing_interceptions: "",
@@ -50,7 +64,10 @@ const FantasyPointsTest: React.FC = () => {
   const [isCalculating, setIsCalculating] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
-  const handleStatChange = (field: keyof WeeklyStatsInput, value: string) => {
+  const handleStatChange = (
+    field: keyof WeeklyStatsFormInput,
+    value: string
+  ) => {
     setStats((prev) => ({
       ...prev,
       [field]: value,
@@ -66,9 +83,9 @@ const FantasyPointsTest: React.FC = () => {
       const parsedStats = Object.entries(stats).reduce(
         (acc, [key, value]) => ({
           ...acc,
-          [key]: parseInt(value) || 0,
+          [key]: Number(value) || 0,
         }),
-        {} as WeeklyStatsInput
+        {} as import("@/lib/fantasyPoints").WeeklyStatsInput
       );
 
       const calculatedResult = await calculateFantasyPoints(
@@ -78,7 +95,7 @@ const FantasyPointsTest: React.FC = () => {
 
       setResult(calculatedResult);
     } catch (err) {
-      console.error("Error calculating fantasy points:", err);
+      console.error(ERROR_FANTASY_POINTS, err);
       setError(err instanceof Error ? err.message : "An error occurred");
     } finally {
       setIsCalculating(false);
@@ -440,7 +457,9 @@ const FantasyPointsTest: React.FC = () => {
                 </div>
               </div>
             ) : (
-              <div className="flex flex-col items-center justify-center h-[400px] text-center">
+              <div
+                className={`flex flex-col items-center justify-center ${HEIGHT.MIN_400} text-center`}
+              >
                 <BarChart3 className="h-16 w-16 text-slate-600 mb-4" />
                 <p className="text-slate-400">
                   Enter player statistics and click "Calculate Fantasy Points"

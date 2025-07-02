@@ -113,7 +113,9 @@ export async function calculateFantasyPoints(
   );
 
   if (error) {
-    console.error("Error calculating fantasy points:", error);
+    if (process.env.NODE_ENV === "development") {
+      console.error("Error calculating fantasy points:", error);
+    }
     throw new FantasyPointsCalculationError(
       `Failed to calculate fantasy points: ${error.message}`
     );
@@ -143,7 +145,9 @@ export async function calculateBatchFantasyPoints(
   );
 
   if (error) {
-    console.error("Error calculating batch fantasy points:", error);
+    if (process.env.NODE_ENV === "development") {
+      console.error("Error calculating batch fantasy points:", error);
+    }
     throw new FantasyPointsCalculationError(
       `Failed to calculate batch fantasy points: ${error.message}`
     );
@@ -207,6 +211,12 @@ export async function updateWeeklyStatsWithFantasyPoints(
     .eq("week", week);
 
   if (updateError) {
+    if (process.env.NODE_ENV === "development") {
+      console.error(
+        `Failed to update fantasy points for ${playerId}:`,
+        updateError
+      );
+    }
     throw new FantasyPointsCalculationError(
       `Failed to update fantasy points: ${updateError.message}`
     );
@@ -274,7 +284,12 @@ export async function recalculateAllFantasyPoints(
       .eq("id", update.id);
 
     if (error) {
-      console.error(`Failed to update fantasy points for ${update.id}:`, error);
+      if (process.env.NODE_ENV === "development") {
+        console.error(
+          `Failed to update fantasy points for ${update.id}:`,
+          error
+        );
+      }
     }
   }
 }

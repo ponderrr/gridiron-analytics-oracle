@@ -1,5 +1,12 @@
-import React from "react";
 import { motion } from "framer-motion";
+import { MOCK_TOP_PLAYERS } from "../lib/mockData";
+import {
+  NAV_ITEMS,
+  ICON_SIZES,
+  TEXT_SIZES,
+  PADDING,
+  GAP,
+} from "@/lib/constants";
 import Layout from "../components/Layout";
 import { FantasyCard } from "../components/ui/cards/FantasyCard";
 import { StatGrid } from "../components/ui/common";
@@ -55,41 +62,7 @@ const Dashboard: React.FC = () => {
     },
   ];
 
-  const topPlayers = [
-    {
-      name: "Josh Allen",
-      position: "QB",
-      team: "BUF",
-      projection: 24.8,
-      points: 28.4,
-      trend: "up" as const,
-      trendValue: "+12%",
-      tier: "Elite",
-      status: "active" as const,
-    },
-    {
-      name: "Christian McCaffrey",
-      position: "RB",
-      team: "SF",
-      projection: 18.4,
-      points: 22.1,
-      trend: "up" as const,
-      trendValue: "+8%",
-      tier: "RB1",
-      status: "active" as const,
-    },
-    {
-      name: "Cooper Kupp",
-      position: "WR",
-      team: "LAR",
-      projection: 16.2,
-      points: 19.7,
-      trend: "up" as const,
-      trendValue: "+15%",
-      tier: "WR1",
-      status: "questionable" as const,
-    },
-  ];
+  const topPlayers = MOCK_TOP_PLAYERS;
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -175,7 +148,7 @@ const Dashboard: React.FC = () => {
             <FantasyCard
               cardType="feature"
               cardData={{
-                title: "Trade Analyzer",
+                title: NAV_ITEMS.TRADE_ANALYZER,
                 description:
                   "Analyze potential trades with our AI-powered system that evaluates player values, team needs, and future projections.",
                 icon: Target,

@@ -5,6 +5,7 @@ import Layout from "../components/Layout";
 import LoadingSpinner from "../components/LoadingSpinner";
 import { useAuth } from "../contexts/AuthContext";
 import { validateEmail, formatErrorMessage } from "../lib/validation";
+import { PASSWORD_REQUIRED } from "@/lib/constants";
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState("");
@@ -30,7 +31,7 @@ const Login: React.FC = () => {
       return;
     }
     if (!password) {
-      setError("Password is required.");
+      setError(PASSWORD_REQUIRED);
       return;
     }
     setIsLoading(true);

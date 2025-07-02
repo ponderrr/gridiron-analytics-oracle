@@ -11,7 +11,30 @@ import Layout from "../components/Layout";
 import { useQuery } from "@tanstack/react-query";
 import { Player, WeeklyStat, Projection, TradeValue } from "../lib/database";
 import { supabase } from "../integrations/supabase/client";
-import { APP_NAME, APP_TAGLINE } from "@/lib/constants";
+import {
+  APP_NAME,
+  APP_TAGLINE,
+  ADMIN_TABS,
+  ADMIN_TAB_LABELS,
+  SYNC_SECTIONS,
+  SYNC_DESCRIPTIONS,
+  SYNC_PLAYERS_LABEL,
+  SYNC_STATS_LABEL,
+  SYNCING_PLAYERS_LABEL,
+  SYNCING_STATS_LABEL,
+  PLAYER_SYNC_SUCCESS,
+  STATS_SYNC_SUCCESS,
+  PLAYERS_ADDED,
+  PLAYERS_PROCESSED,
+  FAILED_TO_LOAD_DATA,
+  ERROR_PLAYER_SYNC,
+  ERROR_STATS_SYNC,
+  ICON_SIZES,
+  HEIGHT,
+  PADDING,
+  GAP,
+  GRID_COLUMNS,
+} from "@/lib/constants";
 import { appConfig } from "@/config/app";
 import {
   fetchPlayers,
@@ -22,12 +45,18 @@ import {
 import { useSyncData } from "@/hooks/useSyncData";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
 // Simplified table components specific to Admin usage
-const PlayersTable: React.FC<{ data: Player[] }> = ({ data }) => (
+const PlayersTable: React.FC<{ data: Player[] }> = React.memo(({ data }) => (
   <table className="w-full">
     <thead className="bg-slate-700/50">
       <tr>
@@ -70,12 +99,12 @@ const PlayersTable: React.FC<{ data: Player[] }> = ({ data }) => (
       ))}
     </tbody>
   </table>
-);
+));
 
 const StatsTable: React.FC<{
   data: WeeklyStat[];
   getPlayerName: (playerId: string | null) => string;
-}> = ({ data, getPlayerName }) => (
+}> = React.memo(({ data, getPlayerName }) => (
   <table className="w-full">
     <thead className="bg-slate-700/50">
       <tr>
@@ -124,12 +153,12 @@ const StatsTable: React.FC<{
       ))}
     </tbody>
   </table>
-);
+));
 
 const ProjectionsTable: React.FC<{
   data: Projection[];
   getPlayerName: (playerId: string | null) => string;
-}> = ({ data, getPlayerName }) => (
+}> = React.memo(({ data, getPlayerName }) => (
   <table className="w-full">
     <thead className="bg-slate-700/50">
       <tr>
@@ -172,12 +201,12 @@ const ProjectionsTable: React.FC<{
       ))}
     </tbody>
   </table>
-);
+));
 
 const TradeValuesTable: React.FC<{
   data: TradeValue[];
   getPlayerName: (playerId: string | null) => string;
-}> = ({ data, getPlayerName }) => (
+}> = React.memo(({ data, getPlayerName }) => (
   <table className="w-full">
     <thead className="bg-slate-700/50">
       <tr>
@@ -214,13 +243,13 @@ const TradeValuesTable: React.FC<{
       ))}
     </tbody>
   </table>
-);
+));
 
 const Admin: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<string>("players");
+  const [activeTab, setActiveTab] = useState<string>(ADMIN_TABS.PLAYERS);
   const [selectedWeek, setSelectedWeek] = useState<string>("1");
   const [selectedSeason, setSelectedSeason] = useState<string>("2024");
-  
+
   // Sync data hook
   const {
     playerSync,
@@ -304,7 +333,7 @@ const Admin: React.FC = () => {
       // Auto-refresh data after successful sync
       refetchPlayers();
     } catch (error) {
-      console.error('Player sync failed:', error);
+      console.error(ERROR_PLAYER_SYNC, error);
     }
   };
 
@@ -314,43 +343,53 @@ const Admin: React.FC = () => {
       // Auto-refresh data after successful sync
       refetchWeeklyStats();
     } catch (error) {
-      console.error('Stats sync failed:', error);
+      console.error(ERROR_STATS_SYNC, error);
     }
   };
 
-  const tabs = [
-    { id: "players", label: "Players", icon: Users, count: players.length },
-    {
-      id: "stats",
-      label: "Weekly Stats",
-      icon: BarChart3,
-      count: weeklyStats.length,
-    },
-    {
-      id: "projections",
-      label: "Projections",
-      icon: TrendingUp,
-      count: projections.length,
-    },
-    {
-      id: "trade-values",
-      label: "Trade Values",
-      icon: ArrowLeftRight,
-      count: tradeValues.length,
-    },
-    {
-      id: "data-sync",
-      label: "Data Sync",
-      icon: RefreshCw,
-      count: 0,
-    },
-  ];
+  const tabs = useMemo(
+    () => [
+      {
+        id: ADMIN_TABS.PLAYERS,
+        label: ADMIN_TAB_LABELS.PLAYERS,
+        icon: Users,
+        count: players.length,
+      },
+      {
+        id: ADMIN_TABS.STATS,
+        label: ADMIN_TAB_LABELS.WEEKLY_STATS,
+        icon: BarChart3,
+        count: weeklyStats.length,
+      },
+      {
+        id: ADMIN_TABS.PROJECTIONS,
+        label: ADMIN_TAB_LABELS.PROJECTIONS,
+        icon: TrendingUp,
+        count: projections.length,
+      },
+      {
+        id: ADMIN_TABS.TRADE_VALUES,
+        label: ADMIN_TAB_LABELS.TRADE_VALUES,
+        icon: ArrowLeftRight,
+        count: tradeValues.length,
+      },
+      {
+        id: ADMIN_TABS.DATA_SYNC,
+        label: ADMIN_TAB_LABELS.DATA_SYNC,
+        icon: RefreshCw,
+        count: 0,
+      },
+    ],
+    [players.length, weeklyStats.length, projections.length, tradeValues.length]
+  );
 
   if (loading) {
     return (
       <Layout isAuthenticated>
-        <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-500"></div>
+        <div className={`flex items-center justify-center ${HEIGHT.H_64}`}>
+          <div
+            className={`animate-spin rounded-full ${ICON_SIZES.XXL} border-b-2 border-emerald-500`}
+          ></div>
         </div>
       </Layout>
     );
@@ -359,9 +398,11 @@ const Admin: React.FC = () => {
   if (error) {
     return (
       <Layout isAuthenticated>
-        <div className="flex flex-col items-center justify-center h-64 text-center">
+        <div
+          className={`flex flex-col items-center justify-center ${HEIGHT.H_64} text-center`}
+        >
           <div className="text-red-400 font-bold text-lg mb-2">
-            Failed to load data
+            {FAILED_TO_LOAD_DATA}
           </div>
           <div className="text-slate-400 mb-4">{error.message}</div>
           <button
@@ -381,7 +422,7 @@ const Admin: React.FC = () => {
         {/* Header */}
         <div>
           <h1 className="text-3xl font-bold text-white flex items-center">
-            <Database className="h-8 w-8 mr-3 text-emerald-400" />
+            <Database className={`${ICON_SIZES.XL} mr-3 text-emerald-400`} />
             {APP_NAME}
           </h1>
           <p className="text-slate-400 mt-1">{APP_TAGLINE}</p>
@@ -402,7 +443,7 @@ const Admin: React.FC = () => {
                       : "border-transparent text-slate-400 hover:text-slate-300"
                   }`}
                 >
-                  <Icon className="h-4 w-4" />
+                  <Icon className={ICON_SIZES.SM} />
                   <span>{tab.label}</span>
                   <span className="bg-slate-700 text-slate-300 px-2 py-1 rounded-full text-xs">
                     {tab.count}
@@ -415,19 +456,19 @@ const Admin: React.FC = () => {
 
         {/* Content */}
         <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl overflow-hidden">
-          {activeTab === "players" && (
+          {activeTab === ADMIN_TABS.PLAYERS && (
             <div className="overflow-x-auto">
               <PlayersTable data={players} />
             </div>
           )}
 
-          {activeTab === "stats" && (
+          {activeTab === ADMIN_TABS.STATS && (
             <div className="overflow-x-auto">
               <StatsTable data={weeklyStats} getPlayerName={getPlayerName} />
             </div>
           )}
 
-          {activeTab === "projections" && (
+          {activeTab === ADMIN_TABS.PROJECTIONS && (
             <div className="overflow-x-auto">
               <ProjectionsTable
                 data={projections}
@@ -436,7 +477,7 @@ const Admin: React.FC = () => {
             </div>
           )}
 
-          {activeTab === "trade-values" && (
+          {activeTab === ADMIN_TABS.TRADE_VALUES && (
             <div className="overflow-x-auto">
               <TradeValuesTable
                 data={tradeValues}
@@ -445,18 +486,18 @@ const Admin: React.FC = () => {
             </div>
           )}
 
-          {activeTab === "data-sync" && (
-            <div className="p-6 space-y-6">
+          {activeTab === ADMIN_TABS.DATA_SYNC && (
+            <div className={`${PADDING.XL} space-y-6`}>
               {/* Player Sync Section */}
               <div className="bg-slate-900/50 rounded-lg p-6 border border-slate-700/50">
                 <h3 className="text-lg font-bold text-white mb-4 flex items-center">
-                  <Users className="h-5 w-5 mr-2 text-emerald-400" />
-                  NFL Player Data Sync
+                  <Users className={`${ICON_SIZES.MD} mr-2 text-emerald-400`} />
+                  {SYNC_SECTIONS.PLAYER_SYNC}
                 </h3>
                 <p className="text-slate-400 text-sm mb-4">
-                  Sync current season player data from ESPN including names, positions, teams, and bye weeks.
+                  {SYNC_DESCRIPTIONS.PLAYER_SYNC}
                 </p>
-                
+
                 <div className="flex items-center justify-between">
                   <Button
                     onClick={handlePlayerSync}
@@ -466,23 +507,24 @@ const Admin: React.FC = () => {
                     {playerSync.isLoading ? (
                       <>
                         <LoadingSpinner size="sm" className="mr-2" />
-                        Syncing Players...
+                        {SYNCING_PLAYERS_LABEL}
                       </>
                     ) : (
                       <>
-                        <RefreshCw className="h-4 w-4 mr-2" />
-                        Sync NFL Players
+                        <RefreshCw className={`${ICON_SIZES.SM} mr-2`} />
+                        {SYNC_PLAYERS_LABEL}
                       </>
                     )}
                   </Button>
-                  
+
                   {playerSync.result && (
                     <div className="text-sm">
                       <span className="text-emerald-400">
-                        Added: {playerSync.result.players_added || 0}
+                        {PLAYERS_ADDED} {playerSync.result.players_added || 0}
                       </span>
                       <span className="text-blue-400 ml-4">
-                        Processed: {playerSync.result.total_processed || 0}
+                        {PLAYERS_PROCESSED}{" "}
+                        {playerSync.result.total_processed || 0}
                       </span>
                     </div>
                   )}
@@ -497,7 +539,8 @@ const Admin: React.FC = () => {
                 {playerSync.result && playerSync.result.success && (
                   <div className="mt-4 p-3 bg-emerald-500/20 border border-emerald-500/30 rounded-lg">
                     <p className="text-emerald-400 text-sm">
-                      Player sync completed successfully! Added {playerSync.result.players_added} players.
+                      {PLAYER_SYNC_SUCCESS} {playerSync.result.players_added}{" "}
+                      players.
                     </p>
                   </div>
                 )}
@@ -506,19 +549,27 @@ const Admin: React.FC = () => {
               {/* Weekly Stats Sync Section */}
               <div className="bg-slate-900/50 rounded-lg p-6 border border-slate-700/50">
                 <h3 className="text-lg font-bold text-white mb-4 flex items-center">
-                  <BarChart3 className="h-5 w-5 mr-2 text-blue-400" />
-                  Weekly Stats Sync
+                  <BarChart3
+                    className={`${ICON_SIZES.MD} mr-2 text-blue-400`}
+                  />
+                  {SYNC_SECTIONS.STATS_SYNC}
                 </h3>
                 <p className="text-slate-400 text-sm mb-4">
-                  Sync player statistics for a specific week and season from ESPN.
+                  {SYNC_DESCRIPTIONS.STATS_SYNC}
                 </p>
 
                 <div className="grid grid-cols-2 gap-4 mb-4">
                   <div>
-                    <Label htmlFor="week-select" className="text-sm font-medium text-slate-300">
+                    <Label
+                      htmlFor="week-select"
+                      className="text-sm font-medium text-slate-300"
+                    >
                       Week
                     </Label>
-                    <Select value={selectedWeek} onValueChange={setSelectedWeek}>
+                    <Select
+                      value={selectedWeek}
+                      onValueChange={setSelectedWeek}
+                    >
                       <SelectTrigger className="bg-slate-800 border-slate-600 text-white">
                         <SelectValue placeholder="Select week" />
                       </SelectTrigger>
@@ -531,9 +582,12 @@ const Admin: React.FC = () => {
                       </SelectContent>
                     </Select>
                   </div>
-                  
+
                   <div>
-                    <Label htmlFor="season-input" className="text-sm font-medium text-slate-300">
+                    <Label
+                      htmlFor="season-input"
+                      className="text-sm font-medium text-slate-300"
+                    >
                       Season
                     </Label>
                     <Input
@@ -547,7 +601,7 @@ const Admin: React.FC = () => {
                     />
                   </div>
                 </div>
-                
+
                 <div className="flex items-center justify-between">
                   <Button
                     onClick={handleStatsSync}
@@ -557,16 +611,16 @@ const Admin: React.FC = () => {
                     {statsSync.isLoading ? (
                       <>
                         <LoadingSpinner size="sm" className="mr-2" />
-                        Syncing Stats...
+                        {SYNCING_STATS_LABEL}
                       </>
                     ) : (
                       <>
-                        <RefreshCw className="h-4 w-4 mr-2" />
-                        Sync Weekly Stats
+                        <RefreshCw className={`${ICON_SIZES.SM} mr-2`} />
+                        {SYNC_STATS_LABEL}
                       </>
                     )}
                   </Button>
-                  
+
                   {statsSync.result && (
                     <div className="text-sm">
                       <span className="text-emerald-400">
@@ -588,8 +642,9 @@ const Admin: React.FC = () => {
                 {statsSync.result && statsSync.result.success && (
                   <div className="mt-4 p-3 bg-emerald-500/20 border border-emerald-500/30 rounded-lg">
                     <p className="text-emerald-400 text-sm">
-                      Stats sync completed for Week {statsSync.result.week} of {statsSync.result.season}! 
-                      Updated {statsSync.result.stats_updated} player records.
+                      Stats sync completed for Week {statsSync.result.week} of{" "}
+                      {statsSync.result.season}! Updated{" "}
+                      {statsSync.result.stats_updated} player records.
                     </p>
                   </div>
                 )}
@@ -599,7 +654,7 @@ const Admin: React.FC = () => {
         </div>
 
         {/* Summary Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className={`${GRID_COLUMNS.RESPONSIVE_FOUR} ${GAP.MD}`}>
           <div className="bg-slate-800/50 border border-slate-700/50 rounded-lg p-4">
             <div className="flex items-center justify-between">
               <div>

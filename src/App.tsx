@@ -25,29 +25,24 @@ function App() {
                   protected: isProtected,
                   errorBoundary,
                 }) => {
-                  const element = isProtected ? (
-                    <ProtectedRoute>
-                      <Component />
-                    </ProtectedRoute>
-                  ) : (
-                    <Component />
-                  );
+                  // Create the base element
+                  let element = <Component />;
 
-                  return (
-                    <Route
-                      key={path}
-                      path={path}
-                      element={
-                        errorBoundary ? (
-                          <ErrorBoundary context={`Route: ${path}`}>
-                            {element}
-                          </ErrorBoundary>
-                        ) : (
-                          element
-                        )
-                      }
-                    />
-                  );
+                  // Wrap with ProtectedRoute if needed
+                  if (isProtected) {
+                    element = <ProtectedRoute>{element}</ProtectedRoute>;
+                  }
+
+                  // Wrap with ErrorBoundary if specified
+                  if (errorBoundary) {
+                    element = (
+                      <ErrorBoundary context={`Route: ${path}`}>
+                        {element}
+                      </ErrorBoundary>
+                    );
+                  }
+
+                  return <Route key={path} path={path} element={element} />;
                 }
               )}
             </Routes>

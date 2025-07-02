@@ -5,6 +5,25 @@ export interface AppConfig {
   FEATURE_FLAGS: {
     enableTradeAnalyzer: boolean;
     enableAdmin: boolean;
+    enableFantasyPointsTest: boolean;
+    enableLeagueManagement: boolean;
+  };
+  UI: {
+    sidebarExpandedWidth: string;
+    sidebarCollapsedWidth: string;
+    defaultAnimationDuration: number;
+    maxTableRows: number;
+    refreshIntervalMs: number;
+  };
+  VALIDATION: {
+    maxEmailLength: number;
+    maxPasswordLength: number;
+    maxPlayerNameLength: number;
+  };
+  PAGINATION: {
+    defaultPageSize: number;
+    maxPageSize: number;
+    pageSizeOptions: number[];
   };
 }
 
@@ -16,5 +35,24 @@ export const appConfig: AppConfig = {
   FEATURE_FLAGS: {
     enableTradeAnalyzer: true,
     enableAdmin: true,
+    enableFantasyPointsTest: true,
+    enableLeagueManagement: false, // Coming soon
+  },
+  UI: {
+    sidebarExpandedWidth: "18rem",
+    sidebarCollapsedWidth: "5rem",
+    defaultAnimationDuration: 200,
+    maxTableRows: 100,
+    refreshIntervalMs: 30000, // 30 seconds
+  },
+  VALIDATION: {
+    maxEmailLength: 254,
+    maxPasswordLength: 128,
+    maxPlayerNameLength: 100,
+  },
+  PAGINATION: {
+    defaultPageSize: 20,
+    maxPageSize: 100,
+    pageSizeOptions: [10, 20, 50, 100],
   },
 };

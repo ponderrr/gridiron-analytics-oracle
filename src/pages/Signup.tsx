@@ -10,6 +10,13 @@ import {
   getPasswordStrength,
   formatErrorMessage,
 } from "../lib/validation";
+import {
+  ACCOUNT_CREATED_SUCCESS,
+  EMAIL_REQUIRED,
+  PASSWORD_REQUIRED,
+  CONFIRM_PASSWORD_REQUIRED,
+  PASSWORDS_DONT_MATCH,
+} from "@/lib/constants";
 
 const Signup: React.FC = () => {
   const [email, setEmail] = useState("");
@@ -42,21 +49,19 @@ const Signup: React.FC = () => {
     }
 
     if (!confirmPassword) {
-      setError("Please confirm your password.");
+      setError(CONFIRM_PASSWORD_REQUIRED);
       return;
     }
 
     if (password !== confirmPassword) {
-      setError("Passwords do not match.");
+      setError(PASSWORDS_DONT_MATCH);
       return;
     }
 
     setIsLoading(true);
     try {
       await signup(email, password);
-      setSuccess(
-        "Account created successfully! Please check your email to confirm your account before signing in."
-      );
+      setSuccess(ACCOUNT_CREATED_SUCCESS);
       setTimeout(() => {
         navigate("/login");
       }, 3000);

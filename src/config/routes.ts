@@ -1,28 +1,26 @@
 import { lazy } from "react";
-import ErrorBoundary from "@/components/ErrorBoundary";
 
-// Lazy load heavy components
+// Lazy load all heavy components for better performance
 const Dashboard = lazy(() => import("@/pages/Dashboard"));
 const Players = lazy(() => import("@/pages/Players"));
 const Analytics = lazy(() => import("@/pages/Analytics"));
 const Admin = lazy(() => import("@/pages/Admin"));
 const FantasyPointsTest = lazy(() => import("@/pages/FantasyPointsTest"));
+const TradeAnalyzer = lazy(() => import("@/pages/TradeAnalyzer"));
+const League = lazy(() => import("@/pages/League"));
+const Settings = lazy(() => import("@/pages/Settings"));
 
 // Regular imports for lighter components
 import Index from "@/pages/Index";
 import Login from "@/pages/Login";
 import Signup from "@/pages/Signup";
 import ForgotPassword from "@/pages/ForgotPassword";
-import TradeAnalyzer from "@/pages/TradeAnalyzer";
-import League from "@/pages/League";
-import Settings from "@/pages/Settings";
 import NotFound from "@/pages/NotFound";
 
 export interface RouteConfig {
   path: string;
   component: React.ComponentType;
   protected?: boolean;
-  lazy?: boolean;
   errorBoundary?: boolean;
 }
 
@@ -49,55 +47,54 @@ export const routes: RouteConfig[] = [
     protected: false,
   },
 
-  // Protected routes - Lazy loaded
+  // Protected routes - All lazy loaded for consistency
   {
     path: "/dashboard",
     component: Dashboard,
     protected: true,
-    lazy: true,
+    errorBoundary: true,
   },
   {
     path: "/players",
     component: Players,
     protected: true,
-    lazy: true,
+    errorBoundary: true,
   },
   {
     path: "/analytics",
     component: Analytics,
     protected: true,
-    lazy: true,
+    errorBoundary: true,
   },
   {
     path: "/admin",
     component: Admin,
     protected: true,
-    lazy: true,
     errorBoundary: true,
   },
   {
     path: "/fantasy-points-test",
     component: FantasyPointsTest,
     protected: true,
-    lazy: true,
     errorBoundary: true,
   },
-
-  // Protected routes - Regular imports
   {
     path: "/trade-analyzer",
     component: TradeAnalyzer,
     protected: true,
+    errorBoundary: true,
   },
   {
     path: "/league",
     component: League,
     protected: true,
+    errorBoundary: true,
   },
   {
     path: "/settings",
     component: Settings,
     protected: true,
+    errorBoundary: true,
   },
 
   // 404 page
