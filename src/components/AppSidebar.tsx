@@ -1,29 +1,24 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { Link, useLocation } from "react-router-dom";
-import {
-  Home,
-  Users,
-  TrendingUp,
-  ArrowLeftRight,
-  Trophy,
-  Settings,
-  ChevronLeft,
-  ChevronRight,
-  Shield,
-  Calculator,
-  BarChart3,
-  ChevronDown,
-  ChevronUp,
-  Zap,
-  Target,
-  Wrench,
-} from "lucide-react";
+import { Home } from "lucide-react";
+import { Users } from "lucide-react";
+import { TrendingUp } from "lucide-react";
+import { ArrowLeftRight } from "lucide-react";
+import { Trophy } from "lucide-react";
+import { Settings } from "lucide-react";
+import { ChevronLeft } from "lucide-react";
+import { ChevronRight } from "lucide-react";
+import { Shield } from "lucide-react";
+import { Calculator } from "lucide-react";
+import { BarChart3 } from "lucide-react";
+import { ChevronDown } from "lucide-react";
+import { ChevronUp } from "lucide-react";
+import { Zap } from "lucide-react";
+import { Target } from "lucide-react";
+import { Wrench } from "lucide-react";
 import { cn } from "@/lib/utils";
-import {
-  THEME_CONSTANTS,
-  UI_CONSTANTS,
-  MESSAGE_CONSTANTS,
-} from "@/lib/constants";
+import { MESSAGE_CONSTANTS } from "@/lib/constants";
+import useLocalStorage from "@/hooks/useLocalStorage";
 
 interface NavItemProps {
   href: string;
@@ -61,18 +56,6 @@ const ICONS = {
   wrench: Wrench,
 };
 
-// Custom hook for sidebar width CSS property
-function useSidebarWidth(isCollapsed: boolean) {
-  useEffect(() => {
-    document.documentElement.style.setProperty(
-      "--sidebar-width",
-      isCollapsed
-        ? THEME_CONSTANTS.SIDEBAR_COLLAPSED_WIDTH_CSS_PX
-        : THEME_CONSTANTS.SIDEBAR_EXPANDED_WIDTH_PX
-    );
-  }, [isCollapsed]);
-}
-
 const NavItem: React.FC<NavItemProps> = React.memo(
   ({ href, icon: Icon, label, comingSoon, isCollapsed }) => {
     const { pathname } = useLocation();
@@ -89,6 +72,9 @@ const NavItem: React.FC<NavItemProps> = React.memo(
               : "text-slate-400 hover:bg-slate-700/50 hover:text-white"
           )}
           title={label}
+          aria-label={label}
+          aria-current={isActive ? "page" : undefined}
+          tabIndex={0}
         >
           <Icon className="h-5 w-5" />
           {comingSoon && (
@@ -107,6 +93,9 @@ const NavItem: React.FC<NavItemProps> = React.memo(
             ? "bg-gradient-to-r from-emerald-500 to-blue-500 text-white shadow-lg shadow-emerald-500/25"
             : "text-slate-400 hover:bg-slate-700/50 hover:text-white"
         )}
+        aria-label={label}
+        aria-current={isActive ? "page" : undefined}
+        tabIndex={0}
       >
         {/* Hover gradient effect */}
         <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/10 to-blue-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
@@ -240,109 +229,121 @@ const NAV_SECTIONS_CONFIG = [
   },
 ];
 
-const AppSidebar: React.FC = React.memo(
-  () => {
-    const [isCollapsed, setIsCollapsed] = useState(false);
-    useSidebarWidth(isCollapsed);
-    const toggleSidebar = useCallback(() => setIsCollapsed((v) => !v), []);
-    const navSections = NAV_SECTIONS_CONFIG;
-
-    return (
-      <div
-        className={cn(
-          "bg-gradient-to-b from-slate-800 to-slate-900 border-r border-slate-700/50 transition-all duration-300 flex flex-col h-screen flex-shrink-0 relative fixed left-0 top-0 z-30",
-          isCollapsed ? "w-20" : "w-72"
-        )}
-      >
-        {/* Decorative gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 via-transparent to-blue-500/5 pointer-events-none" />
-        {/* Header Section */}
-        <div className="flex items-center justify-between px-4 py-4 border-b border-slate-700/50 relative z-10">
-          {!isCollapsed && (
-            <Link to="/dashboard" className="flex items-center space-x-3 group">
-              <div>
-                <span className="text-xl font-black text-white">FF META</span>
-                <div className="text-xs text-emerald-400 font-medium">
-                  {MESSAGE_CONSTANTS.DOMINATE_LEAGUE}
-                </div>
-              </div>
-            </Link>
-          )}
-          {isCollapsed && (
-            <Link
-              to="/dashboard"
-              className="flex justify-center w-full group"
-            ></Link>
-          )}
-          <button
-            onClick={toggleSidebar}
-            className="p-2 rounded-lg hover:bg-slate-700/50 transition-all duration-200 text-slate-400 hover:text-white flex-shrink-0"
-            aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-          >
-            {isCollapsed ? (
-              <ICONS.chevronRight className="h-5 w-5" />
-            ) : (
-              <ICONS.chevronLeft className="h-5 w-5" />
-            )}
-          </button>
-        </div>
-        {/* Navigation */}
-        <nav className="flex-1 px-4 py-6 space-y-6 overflow-y-auto relative z-10">
-          {navSections.map((section) => (
-            <NavSection
-              key={section.title}
-              title={section.title}
-              icon={section.icon}
-              isCollapsed={isCollapsed}
-            >
-              {section.items.map((item) => (
-                <NavItem key={item.href} {...item} isCollapsed={isCollapsed} />
-              ))}
-            </NavSection>
-          ))}
-        </nav>
-        {/* Footer Section */}
-        {!isCollapsed && (
-          <div className="px-4 py-4 border-t border-slate-700/50 relative z-10">
-            <div className="bg-gradient-to-r from-emerald-500/10 to-blue-500/10 border border-emerald-500/20 rounded-xl p-3">
-              <div className="flex items-center space-x-2 mb-2">
-                <ICONS.zap className="h-4 w-4 text-emerald-400" />
-                <span className="text-sm font-bold text-emerald-400">
-                  {MESSAGE_CONSTANTS.PRO_TIER_TITLE}
-                </span>
-              </div>
-              <p className="text-xs text-slate-400 mb-3">
-                {MESSAGE_CONSTANTS.PRO_TIER_DESCRIPTION}
-              </p>
-              <button className="w-full bg-gradient-to-r from-emerald-500 to-blue-500 text-white text-xs font-bold py-2 px-3 rounded-lg hover:from-emerald-600 hover:to-blue-600 transition-all duration-200">
-                {MESSAGE_CONSTANTS.UPGRADE_NOW_LABEL}
-              </button>
-            </div>
-            <div className="mt-3 text-center">
-              <p className="text-xs text-slate-500">
-                &copy; {new Date().getFullYear()} {MESSAGE_CONSTANTS.APP_NAME}
-              </p>
-            </div>
-          </div>
-        )}
-        {/* Collapsed footer */}
-        {isCollapsed && (
-          <div className="px-2 py-4 border-t border-slate-700/50 relative z-10">
-            <div className="flex justify-center">
-              <div className="bg-gradient-to-r from-emerald-500 to-blue-500 p-2 rounded-lg">
-                <ICONS.zap className="h-4 w-4 text-white" />
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
+const AppSidebar: React.FC = () => {
+  const [isCollapsed, setIsCollapsed] = useLocalStorage(
+    "sidebar-collapsed",
+    false
+  );
+  // Inline sidebar width effect
+  React.useEffect(() => {
+    document.documentElement.style.setProperty(
+      "--sidebar-width",
+      isCollapsed
+        ? THEME_CONSTANTS.SIDEBAR_COLLAPSED_WIDTH_CSS_PX
+        : THEME_CONSTANTS.SIDEBAR_EXPANDED_WIDTH_PX
     );
-  },
-  (prevProps, nextProps) => {
-    // Since AppSidebar has no props, it should never re-render unless internal state changes
-    return true;
-  }
-);
+  }, [isCollapsed]);
+  const toggleSidebar = React.useCallback(
+    () => setIsCollapsed((v: boolean) => !v),
+    [setIsCollapsed]
+  );
+  const navSections = NAV_SECTIONS_CONFIG;
+
+  return (
+    <div
+      className={cn(
+        "bg-gradient-to-b from-slate-800 to-slate-900 border-r border-slate-700/50 transition-all duration-300 flex flex-col h-screen flex-shrink-0 relative fixed left-0 top-0 z-30",
+        isCollapsed ? "w-20" : "w-72"
+      )}
+      role="navigation"
+      aria-label="Main sidebar navigation"
+    >
+      {/* Decorative gradient overlay */}
+      <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 via-transparent to-blue-500/5 pointer-events-none" />
+      {/* Header Section */}
+      <div className="flex items-center justify-between px-4 py-4 border-b border-slate-700/50 relative z-10">
+        {!isCollapsed && (
+          <Link to="/dashboard" className="flex items-center space-x-3 group">
+            <div>
+              <span className="text-xl font-black text-white">FF META</span>
+              <div className="text-xs text-emerald-400 font-medium">
+                {MESSAGE_CONSTANTS.DOMINATE_LEAGUE}
+              </div>
+            </div>
+          </Link>
+        )}
+        {isCollapsed && (
+          <Link
+            to="/dashboard"
+            className="flex justify-center w-full group"
+          ></Link>
+        )}
+        <button
+          onClick={toggleSidebar}
+          aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+          aria-expanded={!isCollapsed}
+          className="p-2 rounded-lg hover:bg-slate-700/50 transition-all duration-200 text-slate-400 hover:text-white flex-shrink-0 focus:ring-2 focus:ring-emerald-400"
+          tabIndex={0}
+        >
+          {isCollapsed ? (
+            <ICONS.chevronRight className="h-5 w-5" />
+          ) : (
+            <ICONS.chevronLeft className="h-5 w-5" />
+          )}
+        </button>
+      </div>
+      {/* Navigation */}
+      <nav className="flex-1 px-4 py-6 space-y-6 overflow-y-auto relative z-10">
+        {navSections.map((section) => (
+          <NavSection
+            key={section.title}
+            title={section.title}
+            icon={section.icon}
+            isCollapsed={isCollapsed}
+          >
+            {section.items.map((item) => (
+              <NavItem key={item.href} {...item} isCollapsed={isCollapsed} />
+            ))}
+          </NavSection>
+        ))}
+      </nav>
+      {/* Footer Section */}
+      {!isCollapsed && (
+        <div className="px-4 py-4 border-t border-slate-700/50 relative z-10">
+          <div className="bg-gradient-to-r from-emerald-500/10 to-blue-500/10 border border-emerald-500/20 rounded-xl p-3">
+            <div className="flex items-center space-x-2 mb-2">
+              <ICONS.zap className="h-4 w-4 text-emerald-400" />
+              <span className="text-sm font-bold text-emerald-400">
+                {MESSAGE_CONSTANTS.PRO_TIER_TITLE}
+              </span>
+            </div>
+            <p className="text-xs text-slate-400 mb-3">
+              {MESSAGE_CONSTANTS.PRO_TIER_DESCRIPTION}
+            </p>
+            <button className="w-full bg-gradient-to-r from-emerald-500 to-blue-500 text-white text-xs font-bold py-2 px-3 rounded-lg hover:from-emerald-600 hover:to-blue-600 transition-all duration-200">
+              {MESSAGE_CONSTANTS.UPGRADE_NOW_LABEL}
+            </button>
+          </div>
+          <div className="mt-3 text-center">
+            <p className="text-xs text-slate-500">
+              &copy; {new Date().getFullYear()} {MESSAGE_CONSTANTS.APP_NAME}
+            </p>
+          </div>
+        </div>
+      )}
+      {/* Collapsed footer */}
+      {isCollapsed && (
+        <div className="px-2 py-4 border-t border-slate-700/50 relative z-10">
+          <div className="flex justify-center">
+            <div className="bg-gradient-to-r from-emerald-500 to-blue-500 p-2 rounded-lg">
+              <ICONS.zap className="h-4 w-4 text-white" />
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
 
 AppSidebar.displayName = "AppSidebar";
 

@@ -1,6 +1,6 @@
-import React from "react";
+import React, { useCallback } from "react";
 import { motion } from "framer-motion";
-import { FantasyCard } from "../cards/FantasyCard";
+import StatCard from "../cards/StatCard";
 import { LucideIcon } from "lucide-react";
 
 export interface StatData {
@@ -57,7 +57,7 @@ const StatGrid: React.FC<StatGridProps> = ({
   const content = (
     <div className={`grid ${gridCols[columns]} gap-6 ${className}`}>
       {stats.map((stat, index) => (
-        <FantasyCard key={index} cardType="stat" cardData={stat} />
+        <StatCard key={index} {...stat} />
       ))}
     </div>
   );

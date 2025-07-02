@@ -12,7 +12,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const location = useLocation();
 
   if (isLoading) {
-    return <LoadingSpinner size="lg" fullPage message="Loading..." />;
+    return <LoadingSpinner size="lg" />;
   }
 
   if (!user) {

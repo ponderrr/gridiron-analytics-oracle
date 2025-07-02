@@ -1,6 +1,6 @@
 import { lazy } from "react";
 
-// Lazy load all heavy components for better performance
+// Lazy load heavy components for better performance
 const Dashboard = lazy(() => import("@/pages/Dashboard"));
 const Players = lazy(() => import("@/pages/Players"));
 const Analytics = lazy(() => import("@/pages/Analytics"));

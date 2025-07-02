@@ -1,10 +1,10 @@
-
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-}
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers":
+    "authorization, x-client-info, apikey, content-type",
+};
 
 interface WeeklyStatsInput {
   passing_yards: number;
@@ -19,7 +19,7 @@ interface WeeklyStatsInput {
 }
 
 interface ScoringSettings {
-  format: 'standard' | 'ppr' | 'half_ppr';
+  format: "standard" | "ppr" | "half_ppr";
   passing_yards_per_point: number; // default 25
   rushing_receiving_yards_per_point: number; // default 10
   passing_td_points: number; // default 6
@@ -48,7 +48,9 @@ interface BatchCalculationRequest {
   scoring_settings: ScoringSettings;
 }
 
-function getDefaultScoringSettings(format: 'standard' | 'ppr' | 'half_ppr'): ScoringSettings {
+function getDefaultScoringSettings(
+  format: "standard" | "ppr" | "half_ppr"
+): ScoringSettings {
   const baseSettings = {
     format,
     passing_yards_per_point: 25,
@@ -60,9 +62,9 @@ function getDefaultScoringSettings(format: 'standard' | 'ppr' | 'half_ppr'): Sco
   };
 
   switch (format) {
-    case 'ppr':
+    case "ppr":
       return { ...baseSettings, reception_points: 1 };
-    case 'half_ppr':
+    case "half_ppr":
       return { ...baseSettings, reception_points: 0.5 };
     default:
       return { ...baseSettings, reception_points: 0 };
@@ -73,7 +75,10 @@ function validateWeeklyStats(stats: any): WeeklyStatsInput {
   const validatedStats = {
     passing_yards: Math.max(0, Number(stats.passing_yards) || 0),
     passing_tds: Math.max(0, Number(stats.passing_tds) || 0),
-    passing_interceptions: Math.max(0, Number(stats.passing_interceptions) || 0),
+    passing_interceptions: Math.max(
+      0,
+      Number(stats.passing_interceptions) || 0
+    ),
     rushing_yards: Math.max(0, Number(stats.rushing_yards) || 0),
     rushing_tds: Math.max(0, Number(stats.rushing_tds) || 0),
     receiving_yards: Math.max(0, Number(stats.receiving_yards) || 0),
@@ -82,36 +87,47 @@ function validateWeeklyStats(stats: any): WeeklyStatsInput {
     fumbles_lost: Math.max(0, Number(stats.fumbles_lost) || 0),
   };
 
-  console.log('Validated stats:', validatedStats);
+  console.log("Validated stats:", validatedStats);
   return validatedStats;
 }
 
-function calculateFantasyPoints(stats: WeeklyStatsInput, settings: ScoringSettings): FantasyPointsResult {
-  console.log('Calculating points for stats:', stats);
-  console.log('Using scoring settings:', settings);
+function calculateFantasyPoints(
+  stats: WeeklyStatsInput,
+  settings: ScoringSettings
+): FantasyPointsResult {
+  console.log("Calculating points for stats:", stats);
+  console.log("Using scoring settings:", settings);
 
   // Calculate passing points
-  const passingYardPoints = stats.passing_yards / settings.passing_yards_per_point;
+  const passingYardPoints =
+    stats.passing_yards / settings.passing_yards_per_point;
   const passingTdPoints = stats.passing_tds * settings.passing_td_points;
   const passing_points = passingYardPoints + passingTdPoints;
 
   // Calculate rushing points
-  const rushingYardPoints = stats.rushing_yards / settings.rushing_receiving_yards_per_point;
-  const rushingTdPoints = stats.rushing_tds * settings.rushing_receiving_td_points;
+  const rushingYardPoints =
+    stats.rushing_yards / settings.rushing_receiving_yards_per_point;
+  const rushingTdPoints =
+    stats.rushing_tds * settings.rushing_receiving_td_points;
   const rushing_points = rushingYardPoints + rushingTdPoints;
 
   // Calculate receiving points
-  const receivingYardPoints = stats.receiving_yards / settings.rushing_receiving_yards_per_point;
-  const receivingTdPoints = stats.receiving_tds * settings.rushing_receiving_td_points;
+  const receivingYardPoints =
+    stats.receiving_yards / settings.rushing_receiving_yards_per_point;
+  const receivingTdPoints =
+    stats.receiving_tds * settings.rushing_receiving_td_points;
   const receptionPoints = stats.receptions * settings.reception_points;
-  const receiving_points = receivingYardPoints + receivingTdPoints + receptionPoints;
+  const receiving_points =
+    receivingYardPoints + receivingTdPoints + receptionPoints;
 
   // Calculate penalty points
-  const interceptionPoints = stats.passing_interceptions * settings.interception_penalty;
+  const interceptionPoints =
+    stats.passing_interceptions * settings.interception_penalty;
   const fumblePoints = stats.fumbles_lost * settings.fumble_penalty;
   const penalty_points = interceptionPoints + fumblePoints;
 
-  const total_points = passing_points + rushing_points + receiving_points + penalty_points;
+  const total_points =
+    passing_points + rushing_points + receiving_points + penalty_points;
 
   const result = {
     total_points: Math.round(total_points * 100) / 100, // Round to 2 decimal places
@@ -124,33 +140,36 @@ function calculateFantasyPoints(stats: WeeklyStatsInput, settings: ScoringSettin
     scoring_format: settings.format,
   };
 
-  console.log('Calculated result:', result);
+  console.log("Calculated result:", result);
   return result;
 }
 
 serve(async (req) => {
   // Handle CORS preflight requests
-  if (req.method === 'OPTIONS') {
+  if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    if (req.method !== 'POST') {
-      return new Response('Method not allowed', { 
-        status: 405, 
-        headers: corsHeaders 
+    if (req.method !== "POST") {
+      return new Response("Method not allowed", {
+        status: 405,
+        headers: corsHeaders,
       });
     }
 
     const body = await req.json();
-    console.log('Received request:', body);
+    console.log("Received request:", body);
 
     // Handle batch calculations
     if (body.players && Array.isArray(body.players)) {
       const batchRequest = body as BatchCalculationRequest;
       const results = batchRequest.players.map((player) => {
         const validatedStats = validateWeeklyStats(player.stats);
-        const calculation = calculateFantasyPoints(validatedStats, batchRequest.scoring_settings);
+        const calculation = calculateFantasyPoints(
+          validatedStats,
+          batchRequest.scoring_settings
+        );
         return {
           player_id: player.player_id,
           ...calculation,
@@ -158,17 +177,17 @@ serve(async (req) => {
       });
 
       return new Response(JSON.stringify({ results }), {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
     // Handle single calculation
     const { stats, scoring_settings } = body;
-    
+
     if (!stats) {
-      return new Response(JSON.stringify({ error: 'Stats are required' }), {
+      return new Response(JSON.stringify({ error: "Stats are required" }), {
         status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
@@ -177,7 +196,7 @@ serve(async (req) => {
     if (scoring_settings) {
       finalScoringSettings = scoring_settings;
     } else {
-      const format = body.format || 'standard';
+      const format = body.format || "standard";
       finalScoringSettings = getDefaultScoringSettings(format);
     }
 
@@ -185,17 +204,19 @@ serve(async (req) => {
     const result = calculateFantasyPoints(validatedStats, finalScoringSettings);
 
     return new Response(JSON.stringify(result), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
-
   } catch (error) {
-    console.error('Error in calculate-fantasy-points:', error);
-    return new Response(JSON.stringify({ 
-      error: 'Internal server error',
-      message: error.message 
-    }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+    console.error("Error in calculate-fantasy-points:", error);
+    return new Response(
+      JSON.stringify({
+        error: "Internal server error",
+        message: error.message,
+      }),
+      {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      }
+    );
   }
 });

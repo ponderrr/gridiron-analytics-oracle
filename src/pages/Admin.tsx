@@ -1,43 +1,21 @@
-import React, { useState, ReactNode, useMemo, useCallback } from "react";
-import {
-  Database,
-  Users,
-  BarChart3,
-  TrendingUp,
-  ArrowLeftRight,
-  RefreshCw,
-} from "lucide-react";
+import React, {
+  useState,
+  ReactNode,
+  useMemo,
+  useCallback,
+  lazy,
+  Suspense,
+} from "react";
+import { Users } from "lucide-react";
+import { BarChart3 } from "lucide-react";
+import { TrendingUp } from "lucide-react";
+import { ArrowLeftRight } from "lucide-react";
+import { RefreshCw } from "lucide-react";
 import Layout from "../components/Layout";
 import { useQuery } from "@tanstack/react-query";
 import { Player, WeeklyStat, Projection, TradeValue } from "../lib/database";
 import { supabase } from "../integrations/supabase/client";
-import {
-  APP_NAME,
-  APP_TAGLINE,
-  ADMIN_TABS,
-  ADMIN_TAB_LABELS,
-  SYNC_SECTIONS,
-  SYNC_DESCRIPTIONS,
-  SYNC_PLAYERS_LABEL,
-  SYNC_STATS_LABEL,
-  SYNCING_PLAYERS_LABEL,
-  SYNCING_STATS_LABEL,
-  PLAYER_SYNC_SUCCESS,
-  STATS_SYNC_SUCCESS,
-  PLAYERS_ADDED,
-  PLAYERS_PROCESSED,
-  FAILED_TO_LOAD_DATA,
-  ERROR_PLAYER_SYNC,
-  ERROR_STATS_SYNC,
-  ICON_SIZES,
-  HEIGHT,
-  PADDING,
-  GAP,
-  GRID_COLUMNS,
-  THEME_CONSTANTS,
-  UI_CONSTANTS,
-  MESSAGE_CONSTANTS,
-} from "@/lib/constants";
+import { MESSAGE_CONSTANTS } from "@/lib/constants";
 import { appConfig } from "@/config/app";
 import {
   fetchPlayers,
@@ -57,12 +35,23 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { THEME_CONSTANTS, UI_CONSTANTS } from "@/lib/constants";
 import {
-  PlayersTable,
-  StatsTable,
-  ProjectionsTable,
-  TradeValuesTable,
-} from "../components/ui/table";
+  ADMIN_TABS,
+  ADMIN_TAB_LABELS,
+  SYNC_SECTIONS,
+  SYNC_DESCRIPTIONS,
+} from "../lib/adminConstants";
+import type { ColumnConfig } from "../components/ui/table/AdminTable";
+
+const { ICON_SIZES } = THEME_CONSTANTS;
+const { HEIGHT } = UI_CONSTANTS;
+
+const AdminTable = lazy(() =>
+  import("../components/ui/table/AdminTable").then((mod) => ({
+    default: mod.AdminTable,
+  }))
+);
 
 const Admin: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string>(ADMIN_TABS.PLAYERS);
@@ -152,7 +141,7 @@ const Admin: React.FC = () => {
       // Auto-refresh data after successful sync
       refetchPlayers();
     } catch (error) {
-      console.error(ERROR_PLAYER_SYNC, error);
+      console.error(MESSAGE_CONSTANTS.ERROR_PLAYER_SYNC, error);
     }
   };
 
@@ -162,7 +151,7 @@ const Admin: React.FC = () => {
       // Auto-refresh data after successful sync
       refetchWeeklyStats();
     } catch (error) {
-      console.error(ERROR_STATS_SYNC, error);
+      console.error(MESSAGE_CONSTANTS.ERROR_STATS_SYNC, error);
     }
   };
 
@@ -202,6 +191,89 @@ const Admin: React.FC = () => {
     [players.length, weeklyStats.length, projections.length, tradeValues.length]
   );
 
+  // Column definitions for each table type
+  const playerColumns: ColumnConfig<Player>[] = [
+    { header: "Name", accessor: "name", sortable: true, filterable: true },
+    {
+      header: "Position",
+      accessor: "position",
+      sortable: true,
+      filterable: true,
+    },
+    { header: "Team", accessor: "team", sortable: true, filterable: true },
+    { header: "Bye Week", accessor: "bye_week", sortable: true },
+    {
+      header: "Status",
+      accessor: (row) => (row.active ? "Active" : "Inactive"),
+      sortable: true,
+      filterable: true,
+      filterFn: (row, filter) =>
+        (row.active ? "Active" : "Inactive")
+          .toLowerCase()
+          .includes(filter.toLowerCase()),
+    },
+  ];
+
+  const statsColumns: ColumnConfig<WeeklyStat>[] = [
+    {
+      header: "Player",
+      accessor: (row) => getPlayerName(row.player_id),
+      sortable: true,
+      filterable: true,
+      filterFn: (row, filter) =>
+        getPlayerName(row.player_id)
+          .toLowerCase()
+          .includes(filter.toLowerCase()),
+    },
+    { header: "Week", accessor: "week", sortable: true },
+    { header: "Fantasy Points", accessor: "fantasy_points", sortable: true },
+    { header: "Passing", accessor: "passing_yards", sortable: true },
+    { header: "Rushing", accessor: "rushing_yards", sortable: true },
+    { header: "Receiving", accessor: "receptions", sortable: true },
+  ];
+
+  const projectionsColumns: ColumnConfig<Projection>[] = [
+    {
+      header: "Player",
+      accessor: (row) => getPlayerName(row.player_id),
+      sortable: true,
+      filterable: true,
+      filterFn: (row, filter) =>
+        getPlayerName(row.player_id)
+          .toLowerCase()
+          .includes(filter.toLowerCase()),
+    },
+    { header: "Week", accessor: "week", sortable: true },
+    {
+      header: "Projected Points",
+      accessor: "projected_points",
+      sortable: true,
+    },
+    {
+      header: "Type",
+      accessor: "projection_type",
+      sortable: true,
+      filterable: true,
+    },
+    { header: "Confidence", accessor: "confidence_score", sortable: true },
+  ];
+
+  const tradeValuesColumns: ColumnConfig<TradeValue>[] = [
+    {
+      header: "Player",
+      accessor: (row) => getPlayerName(row.player_id),
+      sortable: true,
+      filterable: true,
+      filterFn: (row, filter) =>
+        getPlayerName(row.player_id)
+          .toLowerCase()
+          .includes(filter.toLowerCase()),
+    },
+    { header: "Week", accessor: "week", sortable: true },
+    { header: "Trade Value", accessor: "trade_value", sortable: true },
+    { header: "Tier", accessor: "tier", sortable: true },
+  ];
+
   if (loading) {
     return (
       <Layout>
@@ -221,9 +293,15 @@ const Admin: React.FC = () => {
           className={`flex flex-col items-center justify-center ${HEIGHT.H_64} text-center`}
         >
           <div className="text-red-400 font-bold text-lg mb-2">
-            {FAILED_TO_LOAD_DATA}
+            {MESSAGE_CONSTANTS.FAILED_TO_LOAD_DATA}
           </div>
-          <div className="text-slate-400 mb-4">{error.message}</div>
+          <div className="text-slate-400 mb-4">
+            {error
+              ? typeof error === "object" && "message" in error
+                ? error.message
+                : String(error)
+              : null}
+          </div>
           <button
             className="btn-primary px-6 py-2 rounded font-semibold"
             onClick={handleRetry}
@@ -241,10 +319,10 @@ const Admin: React.FC = () => {
         {/* Header */}
         <div>
           <h1 className="text-3xl font-bold text-white flex items-center">
-            <Database className={`${ICON_SIZES.XL} mr-3 text-emerald-400`} />
-            {APP_NAME}
+            <Users className={`${ICON_SIZES.XL} mr-3 text-emerald-400`} />
+            {MESSAGE_CONSTANTS.APP_NAME}
           </h1>
-          <p className="text-slate-400 mt-1">{APP_TAGLINE}</p>
+          <p className="text-slate-400 mt-1">{MESSAGE_CONSTANTS.APP_TAGLINE}</p>
         </div>
 
         {/* Tabs */}
@@ -277,36 +355,58 @@ const Admin: React.FC = () => {
         <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl overflow-hidden">
           {activeTab === ADMIN_TABS.PLAYERS && (
             <div className="overflow-x-auto">
-              <PlayersTable data={players} />
+              <Suspense fallback={<LoadingSpinner />}>
+                <AdminTable
+                  columns={playerColumns as any}
+                  data={players as any}
+                  rowKey={(row: any) => row.id as string}
+                  pageSize={20}
+                />
+              </Suspense>
             </div>
           )}
 
           {activeTab === ADMIN_TABS.STATS && (
             <div className="overflow-x-auto">
-              <StatsTable data={weeklyStats} getPlayerName={getPlayerName} />
+              <Suspense fallback={<LoadingSpinner />}>
+                <AdminTable
+                  columns={statsColumns as any}
+                  data={weeklyStats as any}
+                  rowKey={(row: any) => row.id as string}
+                  pageSize={20}
+                />
+              </Suspense>
             </div>
           )}
 
           {activeTab === ADMIN_TABS.PROJECTIONS && (
             <div className="overflow-x-auto">
-              <ProjectionsTable
-                data={projections}
-                getPlayerName={getPlayerName}
-              />
+              <Suspense fallback={<LoadingSpinner />}>
+                <AdminTable
+                  columns={projectionsColumns as any}
+                  data={projections as any}
+                  rowKey={(row: any) => row.id as string}
+                  pageSize={20}
+                />
+              </Suspense>
             </div>
           )}
 
           {activeTab === ADMIN_TABS.TRADE_VALUES && (
             <div className="overflow-x-auto">
-              <TradeValuesTable
-                data={tradeValues}
-                getPlayerName={getPlayerName}
-              />
+              <Suspense fallback={<LoadingSpinner />}>
+                <AdminTable
+                  columns={tradeValuesColumns as any}
+                  data={tradeValues as any}
+                  rowKey={(row: any) => row.id as string}
+                  pageSize={20}
+                />
+              </Suspense>
             </div>
           )}
 
           {activeTab === ADMIN_TABS.DATA_SYNC && (
-            <div className={`${PADDING.XL} space-y-6`}>
+            <div className="px-8 space-y-6">
               {/* Player Sync Section */}
               <div className="bg-slate-900/50 rounded-lg p-6 border border-slate-700/50">
                 <h3 className="text-lg font-bold text-white mb-4 flex items-center">
@@ -325,13 +425,15 @@ const Admin: React.FC = () => {
                   >
                     {playerSync.isLoading ? (
                       <>
-                        <LoadingSpinner size="sm" className="mr-2" />
-                        {SYNCING_PLAYERS_LABEL}
+                        <span className="mr-2">
+                          <LoadingSpinner size="sm" />
+                        </span>
+                        {MESSAGE_CONSTANTS.SYNCING_PLAYERS_LABEL}
                       </>
                     ) : (
                       <>
                         <RefreshCw className={`${ICON_SIZES.SM} mr-2`} />
-                        {SYNC_PLAYERS_LABEL}
+                        {MESSAGE_CONSTANTS.SYNC_PLAYERS_LABEL}
                       </>
                     )}
                   </Button>
@@ -339,10 +441,11 @@ const Admin: React.FC = () => {
                   {playerSync.result && (
                     <div className="text-sm">
                       <span className="text-emerald-400">
-                        {PLAYERS_ADDED} {playerSync.result.players_added || 0}
+                        {MESSAGE_CONSTANTS.PLAYERS_ADDED}{" "}
+                        {playerSync.result.players_added || 0}
                       </span>
                       <span className="text-blue-400 ml-4">
-                        {PLAYERS_PROCESSED}{" "}
+                        {MESSAGE_CONSTANTS.PLAYERS_PROCESSED}{" "}
                         {playerSync.result.total_processed || 0}
                       </span>
                     </div>
@@ -351,15 +454,17 @@ const Admin: React.FC = () => {
 
                 {playerSync.error && (
                   <div className="mt-4 p-3 bg-red-500/20 border border-red-500/30 rounded-lg">
-                    <p className="text-red-400 text-sm">{playerSync.error}</p>
+                    <p className="text-red-400 text-sm">
+                      {String(playerSync.error)}
+                    </p>
                   </div>
                 )}
 
                 {playerSync.result && playerSync.result.success && (
                   <div className="mt-4 p-3 bg-emerald-500/20 border border-emerald-500/30 rounded-lg">
                     <p className="text-emerald-400 text-sm">
-                      {PLAYER_SYNC_SUCCESS} {playerSync.result.players_added}{" "}
-                      players.
+                      {MESSAGE_CONSTANTS.PLAYER_SYNC_SUCCESS}{" "}
+                      {playerSync.result.players_added} players.
                     </p>
                   </div>
                 )}
@@ -429,13 +534,15 @@ const Admin: React.FC = () => {
                   >
                     {statsSync.isLoading ? (
                       <>
-                        <LoadingSpinner size="sm" className="mr-2" />
-                        {SYNCING_STATS_LABEL}
+                        <span className="mr-2">
+                          <LoadingSpinner size="sm" />
+                        </span>
+                        {MESSAGE_CONSTANTS.SYNCING_STATS_LABEL}
                       </>
                     ) : (
                       <>
                         <RefreshCw className={`${ICON_SIZES.SM} mr-2`} />
-                        {SYNC_STATS_LABEL}
+                        {MESSAGE_CONSTANTS.SYNC_STATS_LABEL}
                       </>
                     )}
                   </Button>
@@ -454,7 +561,9 @@ const Admin: React.FC = () => {
 
                 {statsSync.error && (
                   <div className="mt-4 p-3 bg-red-500/20 border border-red-500/30 rounded-lg">
-                    <p className="text-red-400 text-sm">{statsSync.error}</p>
+                    <p className="text-red-400 text-sm">
+                      {String(statsSync.error)}
+                    </p>
                   </div>
                 )}
 
@@ -473,7 +582,7 @@ const Admin: React.FC = () => {
         </div>
 
         {/* Summary Stats */}
-        <div className={`${GRID_COLUMNS.RESPONSIVE_FOUR} ${GAP.MD}`}>
+        <div className="grid grid-cols-2 gap-6">
           <div className="bg-slate-800/50 border border-slate-700/50 rounded-lg p-4">
             <div className="flex items-center justify-between">
               <div>

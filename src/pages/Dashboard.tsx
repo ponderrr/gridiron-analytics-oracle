@@ -6,7 +6,8 @@ import {
   MESSAGE_CONSTANTS,
 } from "@/lib/constants";
 import Layout from "../components/Layout";
-import { FantasyCard } from "../components/ui/cards/FantasyCard";
+import PlayerCard from "../components/ui/cards/PlayerCard";
+import FeatureCard from "../components/ui/cards/FeatureCard";
 import { StatGrid } from "../components/ui/common";
 import { useAuth } from "../contexts/AuthContext";
 import {
@@ -129,11 +130,7 @@ const Dashboard: React.FC = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {topPlayers.map((player, index) => (
-              <FantasyCard
-                key={player.name}
-                cardType="player"
-                cardData={player}
-              />
+              <PlayerCard key={player.name} {...player} />
             ))}
           </div>
         </motion.div>
@@ -143,27 +140,19 @@ const Dashboard: React.FC = () => {
           <h2 className="text-3xl font-bold text-white">Analytics & Tools</h2>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <FantasyCard
-              cardType="feature"
-              cardData={{
-                title: "Advanced Analytics",
-                description:
-                  "Get deep insights into player performance, matchup analysis, and predictive modeling to make the smartest lineup decisions.",
-                icon: Brain,
-                variant: "premium",
-              }}
+            <FeatureCard
+              title="Advanced Analytics"
+              description="Get deep insights into player performance, matchup analysis, and predictive modeling to make the smartest lineup decisions."
+              icon={Brain}
+              variant="premium"
               onClick={handleAnalyticsClick}
             />
 
-            <FantasyCard
-              cardType="feature"
-              cardData={{
-                title: UI_CONSTANTS.TRADE_ANALYZER,
-                description:
-                  "Analyze potential trades with our AI-powered system that evaluates player values, team needs, and future projections.",
-                icon: Target,
-                variant: "elite",
-              }}
+            <FeatureCard
+              title="Trade Analyzer"
+              description="Analyze potential trades with our AI-powered system that evaluates player values, team needs, and future projections."
+              icon={Target}
+              variant="elite"
               onClick={handleTradeAnalyzerClick}
             />
           </div>

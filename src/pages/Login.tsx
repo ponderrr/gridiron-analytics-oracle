@@ -114,7 +114,7 @@ const Login: React.FC = () => {
                 </div>
               </div>
 
-              {/* Remember Me & Forgot Password */}
+              {/* Remember Me and Forgot Password */}
               <div className="flex items-center justify-between">
                 <label className="flex items-center">
                   <input

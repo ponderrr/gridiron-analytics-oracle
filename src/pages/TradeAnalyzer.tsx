@@ -2,26 +2,40 @@ import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { MOCK_AVAILABLE_PLAYERS } from "../lib/mock";
 import Layout from "../components/Layout";
-import { FantasyCard } from "../components/ui/cards/FantasyCard";
 import { Button } from "@/components/ui/button";
 import { ArrowLeftRight, Plus, X, TrendingUp, ArrowRight } from "lucide-react";
-import {
-  ICON_SIZES,
-  TEXT_SIZES,
-  PADDING,
-  GAP,
-  SPACING,
-  THEME_CONSTANTS,
-} from "@/lib/constants";
+import { THEME_CONSTANTS } from "@/lib/constants";
+
+const { ICON_SIZES, TEXT_SIZES, PADDING, GAP, SPACING } = THEME_CONSTANTS;
+
+interface AvailablePlayer {
+  name: string;
+  position: string;
+  team: string;
+  value: number;
+}
+
+interface TradeAnalysis {
+  fairness: string;
+  riskLevel: string;
+  shortTermImpact: string;
+  longTermValue: string;
+  recommendation: string;
+}
 
 const TradeAnalyzer: React.FC = () => {
   const [yourPlayers, setYourPlayers] = useState<string[]>([]);
   const [targetPlayers, setTargetPlayers] = useState<string[]>([]);
-  const [tradeAnalysis, setTradeAnalysis] = useState<any>(null);
+  const [tradeAnalysis, setTradeAnalysis] = useState<TradeAnalysis | null>(
+    null
+  );
 
-  const availablePlayers = MOCK_AVAILABLE_PLAYERS;
+  const availablePlayers: AvailablePlayer[] = MOCK_AVAILABLE_PLAYERS;
 
-  const addPlayerToTrade = (player: any, side: "your" | "target") => {
+  const addPlayerToTrade = (
+    player: AvailablePlayer,
+    side: "your" | "target"
+  ) => {
     if (side === "your") {
       setYourPlayers([...yourPlayers, `${player.name} (${player.position})`]);
     } else {
@@ -42,8 +56,6 @@ const TradeAnalyzer: React.FC = () => {
 
   const analyzeTrade = () => {
     if (yourPlayers.length === 0 || targetPlayers.length === 0) return;
-
-    // Mock analysis result with realistic trade data
     setTradeAnalysis({
       fairness: "Fair Trade",
       riskLevel: "Medium",
@@ -101,7 +113,7 @@ const TradeAnalyzer: React.FC = () => {
         <motion.div variants={itemVariants} className="space-y-6">
           <div className={`grid grid-cols-1 lg:grid-cols-2 ${GAP.XL}`}>
             {/* Your Team */}
-            <FantasyCard variant="default" className={PADDING.XL}>
+            <div className="rounded-2xl border border-slate-800/50 p-6">
               <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
                 <TrendingUp
                   className={`${ICON_SIZES.MD} mr-2 text-emerald-400`}
@@ -162,10 +174,10 @@ const TradeAnalyzer: React.FC = () => {
                   ))}
                 </div>
               </div>
-            </FantasyCard>
+            </div>
 
             {/* Trade Target */}
-            <FantasyCard variant="premium" className={PADDING.XL}>
+            <div className="rounded-2xl border border-slate-800/50 p-6">
               <h3 className="text-lg font-semibold text-white mb-4 flex items-center">
                 <ArrowRight className={`${ICON_SIZES.MD} mr-2 text-blue-400`} />
                 Players to Receive
@@ -222,7 +234,7 @@ const TradeAnalyzer: React.FC = () => {
                   ))}
                 </div>
               </div>
-            </FantasyCard>
+            </div>
           </div>
 
           {/* Analyze Button */}
@@ -241,7 +253,7 @@ const TradeAnalyzer: React.FC = () => {
         {/* Trade Analysis Results */}
         {tradeAnalysis && (
           <motion.div variants={itemVariants}>
-            <FantasyCard variant="elite" className={PADDING.XL}>
+            <div className="rounded-2xl border border-slate-800/50 p-6">
               <div className="space-y-6">
                 <div
                   className={`text-center ${PADDING.XL} bg-slate-800/50 rounded-xl`}
@@ -273,7 +285,7 @@ const TradeAnalyzer: React.FC = () => {
                   </div>
                 </div>
               </div>
-            </FantasyCard>
+            </div>
           </motion.div>
         )}
       </motion.div>

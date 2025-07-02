@@ -7,13 +7,19 @@ import React, {
 } from "react";
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
+import {
+  createAppError,
+  formatErrorMessage,
+  AppError,
+  withErrorHandling,
+} from "@/lib/errorHandling";
 
 interface AuthContextType {
   user: User | null;
   session: Session | null;
   isLoading: boolean;
   isAuthLoading: boolean;
-  authError: AuthError | null;
+  authError: AppError | null;
   login: (email: string, password: string) => Promise<void>;
   signup: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
@@ -34,12 +40,6 @@ interface AuthProviderProps {
   children: ReactNode;
 }
 
-interface AuthError {
-  message: string;
-  status?: number;
-  [key: string]: any;
-}
-
 // AuthProvider manages authentication state and provides auth actions to the app.
 // It separates initial session loading from per-operation loading for better UX.
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
@@ -47,7 +47,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isAuthLoading, setIsAuthLoading] = useState(false);
-  const [authError, setAuthError] = useState<AuthError | null>(null);
+  const [authError, setAuthError] = useState<AppError | null>(null);
 
   // Helper to add a timeout to any async auth operation, so users aren't left waiting forever.
   function withTimeout<T>(
@@ -93,10 +93,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             `Auth session fetch error (attempt ${retryCount}):`,
             error
           );
-          setAuthError({
-            message:
-              (error as Error).message || "Failed to initialize session.",
-          });
+          setAuthError(createAppError(error));
           if (retryCount < maxRetries) {
             await new Promise((res) => setTimeout(res, retryDelay));
           } else {
@@ -117,9 +114,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setAuthError(null);
       } catch (error) {
         console.error("Auth state change error:", error);
-        setAuthError({
-          message: (error as Error).message || "Auth state change failed.",
-        });
+        setAuthError(createAppError(error));
       }
     });
 
@@ -132,130 +127,159 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     };
   }, []);
 
-  const login = async (email: string, password: string): Promise<void> => {
-    setIsAuthLoading(true);
-    try {
-      // Attempt login with a timeout to avoid indefinite loading.
-      const { data, error } = await withTimeout(
-        supabase.auth.signInWithPassword({ email, password }),
-        15000,
-        "login"
-      );
-      if (error) {
-        // Provide specific error messages for common auth issues.
-        if (error.message?.includes("Invalid login credentials")) {
-          throw new Error("Invalid email or password.");
-        }
-        if (error.message?.includes("Email not confirmed")) {
-          throw new Error(
-            "Please check your email and confirm your account before signing in."
+  const login = withErrorHandling(
+    async (email: string, password: string): Promise<void> => {
+      setIsAuthLoading(true);
+      try {
+        const { data, error } = await withTimeout(
+          supabase.auth.signInWithPassword({ email, password }),
+          15000,
+          "login"
+        );
+        if (error) {
+          if (error.message?.includes("Invalid login credentials")) {
+            throw createAppError("Invalid email or password.", "auth");
+          }
+          if (error.message?.includes("Email not confirmed")) {
+            throw createAppError(
+              "Please check your email and confirm your account before signing in.",
+              "auth"
+            );
+          }
+          throw createAppError(
+            error.message || "Failed to sign in. Please try again.",
+            "auth"
           );
         }
-        throw new Error(
-          error.message || "Failed to sign in. Please try again."
+        setAuthError(null);
+        console.log("Login successful:", data.user?.email);
+      } catch (error) {
+        setAuthError(
+          createAppError(
+            formatErrorMessage(error),
+            "auth",
+            undefined,
+            "login",
+            error
+          )
         );
+        throw error;
+      } finally {
+        setIsAuthLoading(false);
       }
-      console.log("Login successful:", data.user?.email);
-    } catch (error: unknown) {
-      if (typeof error === "object" && error !== null && "message" in error) {
-        console.error("Login error:", (error as AuthError).message);
-      } else {
-        console.error("Login error:", error);
-      }
-      throw error;
-    } finally {
-      setIsAuthLoading(false);
-    }
-  };
+    },
+    "login"
+  );
 
-  const signup = async (email: string, password: string): Promise<void> => {
-    setIsAuthLoading(true);
-    try {
-      const redirectUrl = `${window.location.origin}/`;
-      const { data, error } = await withTimeout(
-        supabase.auth.signUp({
-          email,
-          password,
-          options: { emailRedirectTo: redirectUrl },
-        }),
-        15000,
-        "signup"
-      );
-      if (error) {
-        if (error.message?.includes("User already registered")) {
-          throw new Error(
-            "An account with this email already exists. Please sign in instead."
+  const signup = withErrorHandling(
+    async (email: string, password: string): Promise<void> => {
+      setIsAuthLoading(true);
+      try {
+        const redirectUrl = `${window.location.origin}/`;
+        const { data, error } = await withTimeout(
+          supabase.auth.signUp({
+            email,
+            password,
+            options: { emailRedirectTo: redirectUrl },
+          }),
+          15000,
+          "signup"
+        );
+        if (error) {
+          if (error.message?.includes("User already registered")) {
+            throw createAppError(
+              "An account with this email already exists. Please sign in instead.",
+              "auth"
+            );
+          }
+          throw createAppError(
+            error.message || "Failed to create account. Please try again.",
+            "auth"
           );
         }
-        throw new Error(
-          error.message || "Failed to create account. Please try again."
+        setAuthError(null);
+        console.log("Signup successful:", data.user?.email);
+      } catch (error) {
+        setAuthError(
+          createAppError(
+            formatErrorMessage(error),
+            "auth",
+            undefined,
+            "signup",
+            error
+          )
         );
+        throw error;
+      } finally {
+        setIsAuthLoading(false);
       }
-      console.log("Signup successful:", data.user?.email);
-    } catch (error: unknown) {
-      if (typeof error === "object" && error !== null && "message" in error) {
-        console.error("Signup error:", (error as AuthError).message);
-      } else {
-        console.error("Signup error:", error);
-      }
-      throw error;
-    } finally {
-      setIsAuthLoading(false);
-    }
-  };
+    },
+    "signup"
+  );
 
-  const logout = async (): Promise<void> => {
+  const logout = withErrorHandling(async (): Promise<void> => {
     setIsAuthLoading(true);
     try {
       const { error } = await withTimeout(
         supabase.auth.signOut(),
-        10000,
+        15000,
         "logout"
       );
       if (error) {
-        throw new Error(
-          error.message || "Failed to log out. Please try again."
-        );
+        throw createAppError(error.message || "Failed to log out.", "auth");
       }
-      console.log("Logout successful");
-    } catch (error: unknown) {
-      if (typeof error === "object" && error !== null && "message" in error) {
-        console.error("Logout error:", (error as AuthError).message);
-      } else {
-        console.error("Logout error:", error);
-      }
-      throw error;
-    } finally {
-      setIsAuthLoading(false);
-    }
-  };
-
-  const resetPassword = async (email: string): Promise<void> => {
-    setIsAuthLoading(true);
-    try {
-      const redirectUrl = `${window.location.origin}/`;
-      const { error } = await withTimeout(
-        supabase.auth.resetPasswordForEmail(email, { redirectTo: redirectUrl }),
-        10000,
-        "password reset"
+      setAuthError(null);
+      setUser(null);
+      setSession(null);
+    } catch (error) {
+      setAuthError(
+        createAppError(
+          formatErrorMessage(error),
+          "auth",
+          undefined,
+          "logout",
+          error
+        )
       );
-      if (error) {
-        throw new Error(
-          error.message || "Failed to send reset email. Please try again."
-        );
-      }
-      console.log("Password reset email sent to:", email);
-    } catch (error: unknown) {
-      if (typeof error === "object" && error !== null && "message" in error) {
-        console.error("Password reset error:", (error as AuthError).message);
-      } else {
-        console.error("Password reset error:", error);
-      }
       throw error;
     } finally {
       setIsAuthLoading(false);
     }
-  };
+  }, "logout");
+
+  const resetPassword = withErrorHandling(
+    async (email: string): Promise<void> => {
+      setIsAuthLoading(true);
+      try {
+        const { error } = await withTimeout(
+          supabase.auth.resetPasswordForEmail(email),
+          15000,
+          "resetPassword"
+        );
+        if (error) {
+          throw createAppError(
+            error.message || "Failed to send password reset email.",
+            "auth"
+          );
+        }
+        setAuthError(null);
+      } catch (error) {
+        setAuthError(
+          createAppError(
+            formatErrorMessage(error),
+            "auth",
+            undefined,
+            "resetPassword",
+            error
+          )
+        );
+        throw error;
+      } finally {
+        setIsAuthLoading(false);
+      }
+    },
+    "resetPassword"
+  );
 
   const value: AuthContextType = {
     user,

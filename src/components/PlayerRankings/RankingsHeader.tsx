@@ -1,14 +1,21 @@
-import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
-import { Plus, Save, Download, Upload, Undo, Redo } from 'lucide-react';
-import { useRankings } from './RankingsProvider';
-import { CreateSetModal } from './CreateSetModal';
-import { toast } from 'sonner';
+import React, { useState } from "react";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { Plus, Save, Download, Upload, Undo, Redo } from "lucide-react";
+import { useRankings } from "./RankingsProvider";
+import { CreateSetModal } from "./CreateSetModal";
+import { toast } from "sonner";
 
 export function RankingsHeader() {
-  const { state, dispatch, selectSet, saveRankings, createDefaultRankings } = useRankings();
+  const { state, dispatch, selectSet, saveRankings, createDefaultRankings } =
+    useRankings();
   const [showCreateModal, setShowCreateModal] = useState(false);
 
   const handleSetChange = (setId: string) => {
@@ -17,42 +24,42 @@ export function RankingsHeader() {
 
   const handleUndo = () => {
     if (state.undoStack.length > 0) {
-      dispatch({ type: 'UNDO' });
+      dispatch({ type: "UNDO" });
     }
   };
 
   const handleRedo = () => {
     if (state.redoStack.length > 0) {
-      dispatch({ type: 'REDO' });
+      dispatch({ type: "REDO" });
     }
   };
 
   const handleExport = () => {
     if (!state.currentSet || state.rankedPlayers.length === 0) {
-      toast.error('No rankings to export');
+      toast.error("No rankings to export");
       return;
     }
 
     const csvData = [
-      ['Rank', 'Player', 'Position', 'Team', 'Tier'],
-      ...state.rankedPlayers.map(p => [
+      ["Rank", "Player", "Position", "Team", "Tier"],
+      ...state.rankedPlayers.map((p) => [
         p.overall_rank.toString(),
         p.player.name,
         p.player.position,
         p.player.team,
-        p.tier?.toString() || '',
-      ])
+        p.tier?.toString() || "",
+      ]),
     ];
 
-    const csvContent = csvData.map(row => row.join(',')).join('\n');
-    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const csvContent = csvData.map((row) => row.join(",")).join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
+    const a = document.createElement("a");
     a.href = url;
     a.download = `${state.currentSet.name}_rankings.csv`;
     a.click();
     URL.revokeObjectURL(url);
-    toast.success('Rankings exported successfully');
+    toast.success("Rankings exported successfully");
   };
 
   return (
@@ -62,18 +69,21 @@ export function RankingsHeader() {
           <h1 className="text-3xl font-bold text-white">Player Rankings</h1>
           {state.currentSet && (
             <Badge variant="outline" className="text-sm">
-              {state.currentSet.format === 'dynasty' ? 'Dynasty' : 'Redraft'}
+              {state.currentSet.format === "dynasty" ? "Dynasty" : "Redraft"}
             </Badge>
           )}
         </div>
-        
+
         <div className="flex items-center gap-2">
           {state.saving && (
-            <Badge variant="outline" className="text-yellow-400 border-yellow-400">
+            <Badge
+              variant="outline"
+              className="text-yellow-400 border-yellow-400"
+            >
               Saving...
             </Badge>
           )}
-          
+
           <Button
             variant="outline"
             size="sm"
@@ -83,7 +93,7 @@ export function RankingsHeader() {
           >
             <Undo className="h-4 w-4" />
           </Button>
-          
+
           <Button
             variant="outline"
             size="sm"
@@ -103,7 +113,7 @@ export function RankingsHeader() {
             <Save className="h-4 w-4 mr-2" />
             Save
           </Button>
-          
+
           <Button
             variant="outline"
             size="sm"
@@ -118,9 +128,11 @@ export function RankingsHeader() {
 
       <div className="flex items-center gap-4 flex-wrap">
         <div className="flex items-center gap-2">
-          <label className="text-sm font-medium text-slate-300">Rankings Set:</label>
+          <label className="text-sm font-medium text-slate-300">
+            Rankings Set:
+          </label>
           <Select
-            value={state.currentSet?.id || ''}
+            value={state.currentSet?.id || ""}
             onValueChange={handleSetChange}
             disabled={state.loading}
           >
@@ -128,7 +140,7 @@ export function RankingsHeader() {
               <SelectValue placeholder="Select a ranking set..." />
             </SelectTrigger>
             <SelectContent>
-              {state.sets.map(set => (
+              {state.sets.map((set) => (
                 <SelectItem key={set.id} value={set.id}>
                   <div className="flex items-center gap-2">
                     <span>{set.name}</span>

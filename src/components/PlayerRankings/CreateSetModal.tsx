@@ -1,17 +1,23 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogDescription,
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
-import { useRankings } from './RankingsProvider';
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import { useRankings } from "./RankingsProvider";
 
 interface CreateSetModalProps {
   open: boolean;
@@ -20,9 +26,9 @@ interface CreateSetModalProps {
 
 export function CreateSetModal({ open, onOpenChange }: CreateSetModalProps) {
   const { state, createSet } = useRankings();
-  const [name, setName] = useState('');
-  const [format, setFormat] = useState<'dynasty' | 'redraft'>('redraft');
-  const [copyFromSetId, setCopyFromSetId] = useState('');
+  const [name, setName] = useState("");
+  const [format, setFormat] = useState<"dynasty" | "redraft">("redraft");
+  const [copyFromSetId, setCopyFromSetId] = useState("");
   const [copyFromExisting, setCopyFromExisting] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -37,22 +43,22 @@ export function CreateSetModal({ open, onOpenChange }: CreateSetModalProps) {
         format,
         copyFromExisting && copyFromSetId ? copyFromSetId : undefined
       );
-      
+
       // Reset form
-      setName('');
-      setFormat('redraft');
-      setCopyFromSetId('');
+      setName("");
+      setFormat("redraft");
+      setCopyFromSetId("");
       setCopyFromExisting(false);
       onOpenChange(false);
     } catch (error) {
-      console.error('Error creating set:', error);
+      console.error("Error creating set:", error);
     } finally {
       setLoading(false);
     }
   };
 
-  const availableSetsForCopy = state.sets.filter(set => 
-    set.format === format && set.id !== state.currentSet?.id
+  const availableSetsForCopy = state.sets.filter(
+    (set) => set.format === format && set.id !== state.currentSet?.id
   );
 
   return (
@@ -79,7 +85,10 @@ export function CreateSetModal({ open, onOpenChange }: CreateSetModalProps) {
 
           <div className="space-y-2">
             <Label htmlFor="format">Format</Label>
-            <Select value={format} onValueChange={(value: 'dynasty' | 'redraft') => setFormat(value)}>
+            <Select
+              value={format}
+              onValueChange={(value: "dynasty" | "redraft") => setFormat(value)}
+            >
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
@@ -106,12 +115,15 @@ export function CreateSetModal({ open, onOpenChange }: CreateSetModalProps) {
               {copyFromExisting && (
                 <div className="space-y-2">
                   <Label htmlFor="copyFromSet">Copy From</Label>
-                  <Select value={copyFromSetId} onValueChange={setCopyFromSetId}>
+                  <Select
+                    value={copyFromSetId}
+                    onValueChange={setCopyFromSetId}
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Select a set to copy..." />
                     </SelectTrigger>
                     <SelectContent>
-                      {availableSetsForCopy.map(set => (
+                      {availableSetsForCopy.map((set) => (
                         <SelectItem key={set.id} value={set.id}>
                           {set.name}
                         </SelectItem>
@@ -137,7 +149,7 @@ export function CreateSetModal({ open, onOpenChange }: CreateSetModalProps) {
               disabled={!name.trim() || loading}
               className="flex-1"
             >
-              {loading ? 'Creating...' : 'Create Set'}
+              {loading ? "Creating..." : "Create Set"}
             </Button>
           </div>
         </form>

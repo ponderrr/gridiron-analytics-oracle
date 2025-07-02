@@ -12,11 +12,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import ErrorBoundary from "./ErrorBoundary";
 import LoadingSpinner from "@/components/LoadingSpinner";
-import {
-  THEME_CONSTANTS,
-  UI_CONSTANTS,
-  MESSAGE_CONSTANTS,
-} from "@/lib/constants";
+import { MESSAGE_CONSTANTS } from "@/lib/constants";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -103,10 +99,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           className="flex-1 flex items-center justify-center"
           style={{ marginLeft: "var(--sidebar-width, 16rem)" }}
         >
-          <LoadingSpinner
-            size="lg"
-            message={MESSAGE_CONSTANTS.LOADING_MESSAGE}
-          />
+          <LoadingSpinner size="lg" />
         </div>
       </div>
     );
@@ -137,10 +130,10 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                     </div>
                     <div className="hidden sm:block">
                       <h1 className="text-xl font-bold text-white">
-                        {THEME_CONSTANTS.APP_NAME}
+                        {MESSAGE_CONSTANTS.APP_NAME}
                       </h1>
                       <p className="text-xs text-emerald-400 -mt-1">
-                        {THEME_CONSTANTS.APP_TAGLINE}
+                        {MESSAGE_CONSTANTS.APP_TAGLINE}
                       </p>
                     </div>
                   </Link>
@@ -209,10 +202,10 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
               </div>
               <div>
                 <h1 className="text-xl font-bold text-white">
-                  {THEME_CONSTANTS.APP_NAME}
+                  {MESSAGE_CONSTANTS.APP_NAME}
                 </h1>
                 <p className="text-xs text-emerald-400 -mt-1">
-                  {THEME_CONSTANTS.APP_TAGLINE}
+                  {MESSAGE_CONSTANTS.APP_TAGLINE}
                 </p>
               </div>
             </Link>
@@ -241,7 +234,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="text-center">
             <p className="text-slate-400 text-sm">
-              {THEME_CONSTANTS.COPYRIGHT}
+              {MESSAGE_CONSTANTS.COPYRIGHT}
             </p>
           </div>
         </div>

@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import Layout from "../components/Layout";
-import { FantasyCard } from "../components/ui/cards/FantasyCard";
+import LeagueCard from "../components/ui/cards/LeagueCard";
+import FeatureCard from "../components/ui/cards/FeatureCard";
 import { StatGrid } from "../components/ui/common";
 import {
   Trophy,
@@ -205,7 +206,7 @@ const League: React.FC = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {leagues.map((league, index) => (
-              <FantasyCard key={index} cardType="league" cardData={league} />
+              <LeagueCard key={index} {...league} />
             ))}
           </div>
         </motion.div>
@@ -246,7 +247,7 @@ const League: React.FC = () => {
           <h2 className="text-3xl font-bold text-white">League Tools</h2>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
             {leagueFeatures.map((feature, index) => (
-              <FantasyCard key={index} cardType="feature" cardData={feature} />
+              <FeatureCard key={index} {...feature} />
             ))}
           </div>
         </motion.div>

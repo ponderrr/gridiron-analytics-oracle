@@ -1,15 +1,7 @@
 import React, { ReactNode } from "react";
 import { AlertTriangle, RefreshCw, Home } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-
-// Error type shapes
-export type AppErrorType = "network" | "auth" | "data" | "unknown";
-export interface AppError extends Error {
-  type?: AppErrorType;
-  status?: number;
-  stack?: string;
-  context?: string;
-}
+import { formatErrorMessage, getErrorType } from "@/lib/errorHandling";
 
 interface ErrorBoundaryProps {
   children: ReactNode;
@@ -19,27 +11,18 @@ interface ErrorBoundaryProps {
   showRetry?: boolean;
   showHome?: boolean;
   onRetry?: () => void;
-  onError?: (error: AppError, errorInfo: React.ErrorInfo) => void;
+  onError?: (error: Error, errorInfo: React.ErrorInfo) => void;
   context?: string;
   className?: string;
 }
 
 interface ErrorBoundaryState {
   hasError: boolean;
-  error: AppError | null;
+  error: Error | null;
   errorInfo: React.ErrorInfo | null;
 }
 
-const getErrorType = (error: AppError): AppErrorType => {
-  if (error.type) return error.type;
-  if (error.message?.toLowerCase().includes("network")) return "network";
-  if (error.message?.toLowerCase().includes("auth")) return "auth";
-  if (error.message?.toLowerCase().includes("token")) return "auth";
-  if (error.message?.toLowerCase().includes("not found")) return "data";
-  return "unknown";
-};
-
-const getDefaultErrorTitle = (type: AppErrorType) => {
+const getDefaultErrorTitle = (type: string) => {
   switch (type) {
     case "network":
       return "Network Error";
@@ -52,7 +35,7 @@ const getDefaultErrorTitle = (type: AppErrorType) => {
   }
 };
 
-const getDefaultErrorMessage = (type: AppErrorType) => {
+const getDefaultErrorMessage = (type: string) => {
   switch (type) {
     case "network":
       return "We couldn't connect to the server. Please check your internet connection and try again.";
@@ -67,7 +50,7 @@ const getDefaultErrorMessage = (type: AppErrorType) => {
 
 // Enhanced error reporting function
 function reportError(
-  error: AppError,
+  error: Error,
   errorInfo: React.ErrorInfo,
   context?: string
 ) {
@@ -79,7 +62,6 @@ function reportError(
       message: error.message,
       stack: error.stack,
       type: getErrorType(error),
-      status: error.status,
     },
     errorInfo: {
       componentStack: errorInfo.componentStack,
@@ -108,19 +90,18 @@ class ErrorBoundary extends React.Component<
   }
 
   static getDerivedStateFromError(error: Error): Partial<ErrorBoundaryState> {
-    return { hasError: true, error: error as AppError };
+    return { hasError: true, error: error };
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    const appError = error as AppError;
-    this.setState({ error: appError, errorInfo });
+    this.setState({ error: error, errorInfo });
 
     // Report error
-    reportError(appError, errorInfo, this.props.context);
+    reportError(error, errorInfo, this.props.context);
 
     // Call custom error handler if provided
     if (this.props.onError) {
-      this.props.onError(appError, errorInfo);
+      this.props.onError(error, errorInfo);
     }
   }
 
@@ -167,7 +148,8 @@ class ErrorBoundary extends React.Component<
                 </summary>
                 <div className="bg-slate-800/50 border border-slate-700 rounded-lg p-4 text-xs text-slate-400 font-mono overflow-auto">
                   <div className="mb-2">
-                    <strong>Error:</strong> {this.state.error.message}
+                    <strong>Error:</strong>{" "}
+                    {formatErrorMessage(this.state.error)}
                   </div>
                   {this.state.error.stack && (
                     <div className="mb-2">

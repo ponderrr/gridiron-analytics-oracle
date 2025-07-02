@@ -100,7 +100,7 @@ const ForgotPassword: React.FC = () => {
               </button>
             </form>
 
-            {/* Back to Login */}
+            {/* back to Login */}
             <div className="mt-6 text-center">
               <Link
                 to="/login"

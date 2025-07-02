@@ -1,7 +1,7 @@
 import { motion } from "framer-motion";
 import Layout from "../components/Layout";
 import { Brain, Construction, Zap } from "lucide-react";
-import { FantasyCard } from "../components/ui/cards/FantasyCard";
+import { Card } from "../components/ui/card";
 
 const Analytics: React.FC = () => {
   const containerVariants = {
@@ -46,7 +46,7 @@ const Analytics: React.FC = () => {
 
         {/* Coming Soon Message */}
         <motion.div variants={itemVariants}>
-          <FantasyCard variant="premium" className="p-8">
+          <Card className="p-8">
             <div className="flex flex-col items-center justify-center text-center space-y-6">
               <Construction className="h-16 w-16 text-emerald-400 animate-pulse" />
               <div className="space-y-4">
@@ -87,7 +87,7 @@ const Analytics: React.FC = () => {
                 </div>
               </div>
             </div>
-          </FantasyCard>
+          </Card>
         </motion.div>
       </motion.div>
     </Layout>

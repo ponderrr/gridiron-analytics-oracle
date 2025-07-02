@@ -1,5 +1,11 @@
 import { useState, useCallback, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import {
+  createAppError,
+  formatErrorMessage,
+  AppError,
+  withErrorHandling,
+} from "@/lib/errorHandling";
 
 interface SyncResult {
   success: boolean;
@@ -17,7 +23,7 @@ interface SyncResult {
 interface SyncState {
   isLoading: boolean;
   result: SyncResult | null;
-  error: string | null;
+  error: AppError | null;
 }
 
 export const useSyncData = () => {
@@ -33,12 +39,16 @@ export const useSyncData = () => {
     error: null,
   });
 
-  const syncPlayers = useCallback(async () => {
+  const syncPlayers = withErrorHandling(async () => {
     setPlayerSyncState({ isLoading: true, result: null, error: null });
     try {
       const { data, error } = await supabase.functions.invoke("sync-nfl-data");
       if (error) {
-        throw new Error(error.message || "Failed to sync player data");
+        throw createAppError(
+          error.message || "Failed to sync player data",
+          "data",
+          error.status
+        );
       }
       setPlayerSyncState({
         isLoading: false,
@@ -47,18 +57,22 @@ export const useSyncData = () => {
       });
       return data;
     } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : "Unknown error occurred";
       setPlayerSyncState({
         isLoading: false,
         result: null,
-        error: errorMessage,
+        error: createAppError(
+          formatErrorMessage(error),
+          "data",
+          undefined,
+          "syncPlayers",
+          error
+        ),
       });
       throw error;
     }
-  }, []);
+  }, "syncPlayers");
 
-  const syncWeeklyStats = useCallback(
+  const syncWeeklyStats = withErrorHandling(
     async (week: number, season: number = 2024) => {
       setStatsSyncState({ isLoading: true, result: null, error: null });
       try {
@@ -69,7 +83,11 @@ export const useSyncData = () => {
           }
         );
         if (error) {
-          throw new Error(error.message || "Failed to sync weekly stats");
+          throw createAppError(
+            error.message || "Failed to sync weekly stats",
+            "data",
+            error.status
+          );
         }
         setStatsSyncState({
           isLoading: false,
@@ -78,17 +96,21 @@ export const useSyncData = () => {
         });
         return data;
       } catch (error) {
-        const errorMessage =
-          error instanceof Error ? error.message : "Unknown error occurred";
         setStatsSyncState({
           isLoading: false,
           result: null,
-          error: errorMessage,
+          error: createAppError(
+            formatErrorMessage(error),
+            "data",
+            undefined,
+            "syncWeeklyStats",
+            error
+          ),
         });
         throw error;
       }
     },
-    []
+    "syncWeeklyStats"
   );
 
   const clearPlayerSync = useCallback(() => {

@@ -19,17 +19,23 @@ function PlayersContent() {
     if (!destination) return;
 
     // Save current state for undo
-    dispatch({ type: 'PUSH_UNDO', payload: [...state.rankedPlayers] });
+    dispatch({ type: "PUSH_UNDO", payload: [...state.rankedPlayers] });
 
     // Handle dragging from available players to rankings
-    if (source.droppableId === "available-players" && destination.droppableId === "ranked-players") {
-      const playerId = draggableId.replace('available-', '');
-      const player = state.availablePlayers.find(p => p.id === playerId);
-      
+    if (
+      source.droppableId === "available-players" &&
+      destination.droppableId === "ranked-players"
+    ) {
+      const playerId = draggableId.replace("available-", "");
+      const player = state.availablePlayers.find((p) => p.id === playerId);
+
       if (player) {
         const newRank = destination.index + 1;
-        dispatch({ type: 'ADD_RANKED_PLAYER', payload: { player, rank: newRank } });
-        
+        dispatch({
+          type: "ADD_RANKED_PLAYER",
+          payload: { player, rank: newRank },
+        });
+
         // Auto-save after a short delay
         setTimeout(() => {
           saveRankings();
@@ -39,7 +45,10 @@ function PlayersContent() {
     }
 
     // Handle reordering within rankings
-    if (source.droppableId === "ranked-players" && destination.droppableId === "ranked-players") {
+    if (
+      source.droppableId === "ranked-players" &&
+      destination.droppableId === "ranked-players"
+    ) {
       if (source.index === destination.index) return;
 
       const reorderedPlayers = [...state.rankedPlayers];
@@ -51,8 +60,8 @@ function PlayersContent() {
         player.overall_rank = index + 1;
       });
 
-      dispatch({ type: 'REORDER_RANKINGS', payload: reorderedPlayers });
-      
+      dispatch({ type: "REORDER_RANKINGS", payload: reorderedPlayers });
+
       // Auto-save after a short delay
       setTimeout(() => {
         saveRankings();
@@ -64,7 +73,7 @@ function PlayersContent() {
     <Layout>
       <div className="space-y-6">
         <RankingsHeader />
-        
+
         <DragDropContext onDragEnd={handleDragEnd}>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-[calc(100vh-200px)]">
             {/* Left Panel - Available Players */}
@@ -81,12 +90,22 @@ function PlayersContent() {
 
         {/* Keyboard Shortcuts Help */}
         <div className="bg-slate-800/30 border border-slate-700/50 rounded-xl p-4">
-          <h3 className="text-sm font-medium text-white mb-2">Keyboard Shortcuts</h3>
+          <h3 className="text-sm font-medium text-white mb-2">
+            Keyboard Shortcuts
+          </h3>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs text-slate-400">
-            <div><kbd className="bg-slate-700 px-1 rounded">Ctrl+Z</kbd> Undo</div>
-            <div><kbd className="bg-slate-700 px-1 rounded">Ctrl+Y</kbd> Redo</div>
-            <div><kbd className="bg-slate-700 px-1 rounded">Ctrl+S</kbd> Save</div>
-            <div><kbd className="bg-slate-700 px-1 rounded">Del</kbd> Remove player</div>
+            <div>
+              <kbd className="bg-slate-700 px-1 rounded">Ctrl+Z</kbd> Undo
+            </div>
+            <div>
+              <kbd className="bg-slate-700 px-1 rounded">Ctrl+Y</kbd> Redo
+            </div>
+            <div>
+              <kbd className="bg-slate-700 px-1 rounded">Ctrl+S</kbd> Save
+            </div>
+            <div>
+              <kbd className="bg-slate-700 px-1 rounded">Del</kbd> Remove player
+            </div>
           </div>
         </div>
       </div>
@@ -100,15 +119,15 @@ const Players: React.FC = () => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.ctrlKey || e.metaKey) {
         switch (e.key) {
-          case 'z':
+          case "z":
             e.preventDefault();
             // Undo functionality would be handled in context
             break;
-          case 'y':
+          case "y":
             e.preventDefault();
             // Redo functionality would be handled in context
             break;
-          case 's':
+          case "s":
             e.preventDefault();
             // Save functionality would be handled in context
             break;
@@ -116,8 +135,8 @@ const Players: React.FC = () => {
       }
     };
 
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
   return (

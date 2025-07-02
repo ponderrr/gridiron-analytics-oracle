@@ -1,0 +1,41 @@
+.wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.spinner {
+  border-radius: 9999px;
+  border-width: 2px;
+  border-style: solid;
+  border-color: #334155; /* slate-600 */
+  border-top-color: #10b981; /* emerald-500 */
+  animation: spin 1s linear infinite;
+  background: transparent;
+}
+
+.sm {
+  width: 1rem;
+  height: 1rem;
+}
+.md {
+  width: 2rem;
+  height: 2rem;
+}
+.lg {
+  width: 3rem;
+  height: 3rem;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.message {
+  margin-top: 0.75rem;
+  text-align: center;
+  font-size: 1rem;
+  color: #555;
+}

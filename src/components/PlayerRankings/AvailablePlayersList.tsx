@@ -1,11 +1,11 @@
-import React, { useState, useMemo } from 'react';
-import { Droppable, Draggable } from 'react-beautiful-dnd';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { PlayerCard } from './PlayerCard';
-import { PlayerSearch } from './PlayerSearch';
-import { useRankings } from './RankingsProvider';
+import React, { useState, useMemo } from "react";
+import { Droppable, Draggable } from "react-beautiful-dnd";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { PlayerCard } from "./PlayerCard";
+import { PlayerSearch } from "./PlayerSearch";
+import { useRankings } from "./RankingsProvider";
 
 const PLAYERS_PER_PAGE = 50;
 
@@ -13,16 +13,22 @@ export function AvailablePlayersList() {
   const { state, dispatch, getFilteredAvailablePlayers } = useRankings();
   const [currentPage, setCurrentPage] = useState(1);
 
-  const filteredPlayers = useMemo(() => getFilteredAvailablePlayers(), [getFilteredAvailablePlayers]);
-  
+  const filteredPlayers = useMemo(
+    () => getFilteredAvailablePlayers(),
+    [getFilteredAvailablePlayers]
+  );
+
   const totalPages = Math.ceil(filteredPlayers.length / PLAYERS_PER_PAGE);
   const startIndex = (currentPage - 1) * PLAYERS_PER_PAGE;
-  const paginatedPlayers = filteredPlayers.slice(startIndex, startIndex + PLAYERS_PER_PAGE);
+  const paginatedPlayers = filteredPlayers.slice(
+    startIndex,
+    startIndex + PLAYERS_PER_PAGE
+  );
 
   const handleAddToRankings = (player: any) => {
-    dispatch({ type: 'PUSH_UNDO', payload: [...state.rankedPlayers] });
+    dispatch({ type: "PUSH_UNDO", payload: [...state.rankedPlayers] });
     const newRank = state.rankedPlayers.length + 1;
-    dispatch({ type: 'ADD_RANKED_PLAYER', payload: { player, rank: newRank } });
+    dispatch({ type: "ADD_RANKED_PLAYER", payload: { player, rank: newRank } });
   };
 
   const handlePageChange = (page: number) => {
@@ -41,7 +47,7 @@ export function AvailablePlayersList() {
           <div className="text-sm text-slate-400">
             {filteredPlayers.length} players found
           </div>
-          
+
           {totalPages > 1 && (
             <div className="flex items-center gap-2">
               <Button
@@ -53,11 +59,11 @@ export function AvailablePlayersList() {
               >
                 <ChevronLeft className="h-4 w-4" />
               </Button>
-              
+
               <span className="text-sm text-slate-300">
                 Page {currentPage} of {totalPages}
               </span>
-              
+
               <Button
                 variant="outline"
                 size="sm"
