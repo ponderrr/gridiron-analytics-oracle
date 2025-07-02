@@ -4,18 +4,18 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import ErrorBoundary from "@/components/ErrorBoundary";
 
 export function createProtectedRoute(path: string, Component: React.ComponentType, errorBoundary?: boolean) {
-  let element = <Component />;
-  element = <ProtectedRoute>{element}</ProtectedRoute>;
+  let element = React.createElement(Component);
+  element = React.createElement(ProtectedRoute, {}, element);
   if (errorBoundary) {
-    element = <ErrorBoundary context={`Route: ${path}`}>{element}</ErrorBoundary>;
+    element = React.createElement(ErrorBoundary, { context: `Route: ${path}` }, element);
   }
   return { path, element };
 }
 
 export function createPublicRoute(path: string, Component: React.ComponentType, errorBoundary?: boolean) {
-  let element = <Component />;
+  let element = React.createElement(Component);
   if (errorBoundary) {
-    element = <ErrorBoundary context={`Route: ${path}`}>{element}</ErrorBoundary>;
+    element = React.createElement(ErrorBoundary, { context: `Route: ${path}` }, element);
   }
   return { path, element };
 }
@@ -23,6 +23,6 @@ export function createPublicRoute(path: string, Component: React.ComponentType, 
 export function createRouteWithErrorBoundary(path: string, element: React.ReactNode) {
   return {
     path,
-    element: <ErrorBoundary context={`Route: ${path}`}>{element}</ErrorBoundary>,
+    element: React.createElement(ErrorBoundary, { context: `Route: ${path}` }, element),
   };
-} 
+}
