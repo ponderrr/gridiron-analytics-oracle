@@ -29,6 +29,25 @@ interface SyncStatsResult {
   error_details: string[];
 }
 
+// Required secrets: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY
+// TypeScript types for environment variables
+interface Env {
+  SUPABASE_URL: string;
+  SUPABASE_SERVICE_ROLE_KEY: string;
+}
+
+// Validate environment variables
+const requiredEnvVars: Env = {
+  SUPABASE_URL: Deno.env.get("SUPABASE_URL")!,
+  SUPABASE_SERVICE_ROLE_KEY: Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+};
+const missingVars = Object.entries(requiredEnvVars)
+  .filter(([_, value]) => !value)
+  .map(([key]) => key);
+if (missingVars.length > 0) {
+  throw new Error(`Missing environment variables: ${missingVars.join(", ")}`);
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -44,8 +63,16 @@ serve(async (req) => {
     );
 
     // Initialize Supabase client
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
+    if (!supabaseUrl || !supabaseKey) {
+      const missingVars = [];
+      if (!supabaseUrl) missingVars.push("SUPABASE_URL");
+      if (!supabaseKey) missingVars.push("SUPABASE_SERVICE_ROLE_KEY");
+      const errorMsg = `Missing required environment variable(s): ${missingVars.join(", ")}`;
+      console.error(errorMsg);
+      return new Response(JSON.stringify({ error: errorMsg }), { status: 500 });
+    }
     const supabase = createClient(supabaseUrl, supabaseKey);
 
     let playersProcessed = 0;

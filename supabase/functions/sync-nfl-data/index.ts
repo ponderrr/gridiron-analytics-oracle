@@ -35,6 +35,25 @@ interface SyncResult {
   errors: string[];
 }
 
+// Required secrets: SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY
+// TypeScript types for environment variables
+interface Env {
+  SUPABASE_URL: string;
+  SUPABASE_SERVICE_ROLE_KEY: string;
+}
+
+// Validate environment variables
+const requiredEnvVars: Env = {
+  SUPABASE_URL: Deno.env.get("SUPABASE_URL")!,
+  SUPABASE_SERVICE_ROLE_KEY: Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+};
+const missingVars = Object.entries(requiredEnvVars)
+  .filter(([_, value]) => !value)
+  .map(([key]) => key);
+if (missingVars.length > 0) {
+  throw new Error(`Missing environment variables: ${missingVars.join(", ")}`);
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });

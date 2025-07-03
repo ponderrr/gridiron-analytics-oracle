@@ -19,6 +19,25 @@ interface UpdateSetBody {
   is_active?: boolean;
 }
 
+// Required secrets: SUPABASE_URL, SUPABASE_ANON_KEY
+// TypeScript types for environment variables
+interface Env {
+  SUPABASE_URL: string;
+  SUPABASE_ANON_KEY: string;
+}
+
+// Validate environment variables
+const requiredEnvVars: Env = {
+  SUPABASE_URL: Deno.env.get("SUPABASE_URL")!,
+  SUPABASE_ANON_KEY: Deno.env.get("SUPABASE_ANON_KEY")!,
+};
+const missingVars = Object.entries(requiredEnvVars)
+  .filter(([_, value]) => !value)
+  .map(([key]) => key);
+if (missingVars.length > 0) {
+  throw new Error(`Missing environment variables: ${missingVars.join(", ")}`);
+}
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
@@ -27,15 +46,21 @@ serve(async (req) => {
 
   try {
     // Initialize Supabase client
-    const supabaseClient = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_ANON_KEY") ?? "",
-      {
-        global: {
-          headers: { Authorization: req.headers.get("Authorization")! },
-        },
-      }
-    );
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY");
+    if (!supabaseUrl || !supabaseAnonKey) {
+      const missingVars = [];
+      if (!supabaseUrl) missingVars.push("SUPABASE_URL");
+      if (!supabaseAnonKey) missingVars.push("SUPABASE_ANON_KEY");
+      const errorMsg = `Missing required environment variable(s): ${missingVars.join(", ")}`;
+      console.error(errorMsg);
+      return new Response(JSON.stringify({ error: errorMsg }), { status: 500 });
+    }
+    const supabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
+      global: {
+        headers: { Authorization: req.headers.get("Authorization")! },
+      },
+    });
 
     // Get the authenticated user
     const {

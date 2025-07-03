@@ -1,5 +1,20 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
+// Required secrets: DEBUG, NODE_ENV
+// TypeScript types for environment variables
+interface Env {
+  DEBUG?: string;
+  NODE_ENV?: string;
+}
+
+const debug = Deno.env.get("DEBUG");
+const nodeEnv = Deno.env.get("NODE_ENV");
+if (!debug || !nodeEnv) {
+  console.warn(
+    `Warning: Missing environment variables: ${[!debug ? "DEBUG" : "", !nodeEnv ? "NODE_ENV" : ""].filter(Boolean).join(", ")}`
+  );
+}
+
 // Enable debug logging if the environment variable DEBUG or NODE_ENV=development is set
 const DEBUG =
   typeof Deno !== "undefined" &&
