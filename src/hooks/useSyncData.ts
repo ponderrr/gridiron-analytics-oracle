@@ -2,7 +2,6 @@ import { useState, useCallback, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import {
   createAppError,
-  formatErrorMessage,
   AppError,
   withErrorHandling,
 } from "@/lib/errorHandling";
@@ -61,7 +60,9 @@ export const useSyncData = () => {
         isLoading: false,
         result: null,
         error: createAppError(
-          formatErrorMessage(error),
+          error && typeof error === "object" && "message" in error
+            ? (error as Error).message
+            : String(error),
           "data",
           undefined,
           "syncPlayers",
@@ -100,7 +101,9 @@ export const useSyncData = () => {
           isLoading: false,
           result: null,
           error: createAppError(
-            formatErrorMessage(error),
+            error && typeof error === "object" && "message" in error
+              ? (error as Error).message
+              : String(error),
             "data",
             undefined,
             "syncWeeklyStats",

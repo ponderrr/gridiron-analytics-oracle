@@ -6,13 +6,10 @@ import FeatureCard from "../components/ui/cards/FeatureCard";
 import { StatGrid } from "../components/ui/common";
 import {
   Trophy,
-  Users,
-  Calendar,
   Target,
   Activity,
   BarChart3,
   TrendingUp,
-  Award,
   Crown,
   Zap,
 } from "lucide-react";

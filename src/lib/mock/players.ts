@@ -1,5 +1,3 @@
-import { Users, TrendingUp, Target, Activity } from "lucide-react";
-
 export const MOCK_TOP_PLAYERS = [
   {
     name: "Josh Allen",

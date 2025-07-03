@@ -1,11 +1,4 @@
-import React, {
-  useState,
-  ReactNode,
-  useMemo,
-  useCallback,
-  lazy,
-  Suspense,
-} from "react";
+import React, { useState, useMemo, useCallback, lazy, Suspense } from "react";
 import { Users } from "lucide-react";
 import { BarChart3 } from "lucide-react";
 import { TrendingUp } from "lucide-react";
@@ -24,7 +17,6 @@ import {
   fetchTradeValues,
 } from "@/lib/api/admin";
 import { useSyncData } from "@/hooks/useSyncData";
-import LoadingSpinner from "@/components/LoadingSpinner";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -43,12 +35,15 @@ import {
   SYNC_DESCRIPTIONS,
 } from "../lib/adminConstants";
 import type { ColumnConfig } from "../components/ui/table/AdminTable";
-import { formatErrorMessage } from "../lib/validation";
+import { createAppError, AppError } from "@/lib/errorHandling";
+import { LoadingState } from "@/components/ui/common";
+import LoadingSpinner from "@/components/LoadingSpinner";
 
 const { ICON_SIZES } = THEME_CONSTANTS;
 const { HEIGHT } = UI_CONSTANTS;
 
-const AdminTable = lazy(() =>
+// Lazy-load AdminTable for performance. TypeScript types are preserved with the cast below.
+const AdminTable = React.lazy(() =>
   import("../components/ui/table/AdminTable").then((mod) => ({
     default: mod.AdminTable,
   }))
@@ -113,8 +108,22 @@ const Admin: React.FC = () => {
 
   const loading =
     playersLoading || statsLoading || projectionsLoading || tradeValuesLoading;
-  const error =
+  let error =
     playersError || statsError || projectionsError || tradeValuesError;
+  if (error && !(error as AppError).type) {
+    // Try to infer error type
+    error = createAppError(
+      error.message || String(error),
+      error.name === "AuthError"
+        ? "auth"
+        : error.name === "NetworkError"
+          ? "network"
+          : "data",
+      (error as any).status,
+      "AdminPage",
+      error
+    );
+  }
 
   const handleRetry = useCallback(() => {
     refetchPlayers();
@@ -280,11 +289,7 @@ const Admin: React.FC = () => {
   if (loading) {
     return (
       <Layout>
-        <div className={`flex items-center justify-center ${HEIGHT.H_64}`}>
-          <div
-            className={`animate-spin rounded-full ${ICON_SIZES.XXL} border-b-2 border-emerald-500`}
-          ></div>
-        </div>
+        <LoadingState type="page" message="Loading admin data..." />
       </Layout>
     );
   }
@@ -299,7 +304,7 @@ const Admin: React.FC = () => {
             {MESSAGE_CONSTANTS.FAILED_TO_LOAD_DATA}
           </div>
           <div className="text-slate-400 mb-4">
-            {error ? formatErrorMessage(error) : null}
+            {error ? (error as AppError).message : null}
           </div>
           <button
             className="btn-primary px-6 py-2 rounded font-semibold"
@@ -354,6 +359,7 @@ const Admin: React.FC = () => {
         <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl overflow-hidden">
           {activeTab === ADMIN_TABS.PLAYERS && (
             <div className="overflow-x-auto">
+              {/* Suspense boundary for lazy-loaded AdminTable */}
               <Suspense fallback={<LoadingSpinner />}>
                 <AdminTable<Player>
                   columns={playerColumns}

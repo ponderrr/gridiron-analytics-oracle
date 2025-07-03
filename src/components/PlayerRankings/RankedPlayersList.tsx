@@ -3,7 +3,7 @@ import { Droppable, Draggable } from "react-beautiful-dnd";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { List, Grid3X3 } from "lucide-react";
-import { PlayerCard } from "./PlayerCard";
+import PlayerCard from "@/components/ui/cards/PlayerCard";
 import { useRankings } from "./RankingsProvider";
 
 export function RankedPlayersList() {

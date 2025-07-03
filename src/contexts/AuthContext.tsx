@@ -9,7 +9,6 @@ import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import {
   createAppError,
-  formatErrorMessage,
   AppError,
   withErrorHandling,
 } from "@/lib/errorHandling";
@@ -178,8 +177,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             );
           }
           throw createAppError(
-            error.message || "Failed to create account. Please try again.",
-            "auth"
+            error && typeof error === "object" && "message" in error
+              ? (error as Error).message
+              : String(error),
+            "auth",
+            undefined,
+            "signup",
+            error
           );
         }
         setAuthError(null);
@@ -187,7 +191,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       } catch (error) {
         setAuthError(
           createAppError(
-            formatErrorMessage(error),
+            error && typeof error === "object" && "message" in error
+              ? (error as Error).message
+              : String(error),
             "auth",
             undefined,
             "signup",
@@ -211,7 +217,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         "logout"
       );
       if (error) {
-        throw createAppError(error.message || "Failed to log out.", "auth");
+        throw createAppError(
+          error && typeof error === "object" && "message" in error
+            ? (error as Error).message
+            : String(error),
+          "auth",
+          undefined,
+          "logout",
+          error
+        );
       }
       setAuthError(null);
       setUser(null);
@@ -219,7 +233,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     } catch (error) {
       setAuthError(
         createAppError(
-          formatErrorMessage(error),
+          error && typeof error === "object" && "message" in error
+            ? (error as Error).message
+            : String(error),
           "auth",
           undefined,
           "logout",
@@ -251,7 +267,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       } catch (error) {
         setAuthError(
           createAppError(
-            formatErrorMessage(error),
+            error && typeof error === "object" && "message" in error
+              ? (error as Error).message
+              : String(error),
             "auth",
             undefined,
             "resetPassword",

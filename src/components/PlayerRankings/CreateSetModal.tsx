@@ -19,6 +19,7 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { useRankings } from "./RankingsProvider";
 import { toast } from "@/components/ui/sonner";
+import { useModal } from "@/hooks/useModal";
 
 interface CreateSetModalProps {
   open: boolean;
@@ -31,7 +32,7 @@ export function CreateSetModal({ open, onOpenChange }: CreateSetModalProps) {
   const [format, setFormat] = useState<"dynasty" | "redraft">("redraft");
   const [copyFromSetId, setCopyFromSetId] = useState("");
   const [copyFromExisting, setCopyFromExisting] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const { loading, setLoading } = useModal();
 
   useEffect(() => {
     setCopyFromSetId("");

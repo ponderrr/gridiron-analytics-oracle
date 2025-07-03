@@ -1,37 +1,68 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+
+function isLocalStorageAvailable() {
+  try {
+    if (typeof window === "undefined" || !window.localStorage) return false;
+    const testKey = "__test__";
+    window.localStorage.setItem(testKey, "1");
+    window.localStorage.removeItem(testKey);
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 function useLocalStorage<T>(
   key: string,
   initialValue: T
 ): [T, (value: T | ((val: T) => T)) => void] {
+  const isAvailable = isLocalStorageAvailable();
   const [storedValue, setStoredValue] = useState<T>(() => {
-    if (typeof window === "undefined") return initialValue;
+    if (!isAvailable) return initialValue;
     try {
       const item = window.localStorage.getItem(key);
       return item ? (JSON.parse(item) as T) : initialValue;
     } catch (error) {
+      console.error("Error reading localStorage key '", key, "':", error);
       return initialValue;
     }
   });
 
+  // Debounce timer ref
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   useEffect(() => {
-    try {
-      window.localStorage.setItem(key, JSON.stringify(storedValue));
-    } catch (error) {
-      console.error("Error setting localStorage key '", key, "':", error);
-    }
-  }, [key, storedValue]);
+    if (!isAvailable) return;
+    // Debounce localStorage update
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      try {
+        window.localStorage.setItem(key, JSON.stringify(storedValue));
+      } catch (error) {
+        console.error("Error setting localStorage key '", key, "':", error);
+      }
+    }, 300);
+    return () => {
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
+      }
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [key, storedValue, isAvailable]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
+      }
+    };
+  }, []);
 
   const setValue = (value: T | ((val: T) => T)) => {
     setStoredValue((prev) => {
       const valueToStore = value instanceof Function ? value(prev) : value;
-      if (typeof window !== "undefined") {
-        try {
-          window.localStorage.setItem(key, JSON.stringify(valueToStore));
-        } catch (error) {
-          console.error("Error setting localStorage key '", key, "':", error);
-        }
-      }
+      // Don't write immediately, let the effect handle it (debounced)
       return valueToStore;
     });
   };

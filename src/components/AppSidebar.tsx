@@ -1,21 +1,23 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Home } from "lucide-react";
-import { Users } from "lucide-react";
-import { TrendingUp } from "lucide-react";
-import { ArrowLeftRight } from "lucide-react";
-import { Trophy } from "lucide-react";
-import { Settings } from "lucide-react";
-import { ChevronLeft } from "lucide-react";
-import { ChevronRight } from "lucide-react";
-import { Shield } from "lucide-react";
-import { Calculator } from "lucide-react";
-import { BarChart3 } from "lucide-react";
-import { ChevronDown } from "lucide-react";
-import { ChevronUp } from "lucide-react";
-import { Zap } from "lucide-react";
-import { Target } from "lucide-react";
-import { Wrench } from "lucide-react";
+import {
+  Home,
+  Users,
+  TrendingUp,
+  ArrowLeftRight,
+  Trophy,
+  Settings,
+  ChevronLeft,
+  ChevronRight,
+  Shield,
+  Calculator,
+  BarChart3,
+  ChevronDown,
+  ChevronUp,
+  Zap,
+  Target,
+  Wrench,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { MESSAGE_CONSTANTS } from "@/lib/constants";
 import useLocalStorage from "@/hooks/useLocalStorage";
@@ -35,6 +37,7 @@ interface NavSectionProps {
   isCollapsed?: boolean;
   defaultOpen?: boolean;
   icon?: React.ComponentType<{ className?: string }>;
+  sectionId: string;
 }
 
 // Icon constants
@@ -115,7 +118,14 @@ const NavItem: React.FC<NavItemProps> = React.memo(
 NavItem.displayName = "NavItem";
 
 const NavSection: React.FC<NavSectionProps> = React.memo(
-  ({ title, children, isCollapsed, defaultOpen = true, icon: Icon }) => {
+  ({
+    title,
+    children,
+    isCollapsed,
+    defaultOpen = true,
+    icon: Icon,
+    sectionId,
+  }) => {
     const [isOpen, setIsOpen] = useState(defaultOpen);
     const handleToggle = useCallback(() => setIsOpen((open) => !open), []);
 
@@ -137,6 +147,8 @@ const NavSection: React.FC<NavSectionProps> = React.memo(
         <button
           onClick={handleToggle}
           className="flex items-center justify-between w-full px-3 py-2 text-xs font-bold text-slate-500 uppercase tracking-wider hover:text-slate-400 transition-colors"
+          aria-controls={sectionId}
+          aria-expanded={isOpen}
         >
           <div className="flex items-center">
             {Icon && <Icon className="h-4 w-4 mr-2" />}
@@ -251,7 +263,7 @@ const AppSidebar: React.FC = () => {
   const navSections = NAV_SECTIONS_CONFIG;
 
   return (
-    <div
+    <nav
       className={cn(
         "bg-gradient-to-b from-slate-800 to-slate-900 border-r border-slate-700/50 transition-all duration-300 flex flex-col h-screen flex-shrink-0 relative fixed left-0 top-0 z-30",
         isCollapsed ? "w-20" : "w-72"
@@ -264,7 +276,11 @@ const AppSidebar: React.FC = () => {
       {/* Header Section */}
       <div className="flex items-center justify-between px-4 py-4 border-b border-slate-700/50 relative z-10">
         {!isCollapsed && (
-          <Link to="/dashboard" className="flex items-center space-x-3 group">
+          <Link
+            to="/dashboard"
+            className="flex items-center space-x-3 group"
+            aria-label="Go to dashboard home"
+          >
             <div>
               <span className="text-xl font-black text-white">FF META</span>
               <div className="text-xs text-emerald-400 font-medium">
@@ -277,7 +293,7 @@ const AppSidebar: React.FC = () => {
           onClick={toggleSidebar}
           aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
           aria-expanded={!isCollapsed}
-          className="p-2 rounded-lg hover:bg-slate-700/50 transition-all duration-200 text-slate-400 hover:text-white flex-shrink-0 focus:ring-2 focus:ring-emerald-400"
+          className="p-2 rounded-lg hover:bg-slate-700/50 transition-all duration-200 text-slate-400 hover:text-white flex-shrink-0 focus:ring-2 focus:ring-emerald-400 focus:outline-none"
           tabIndex={0}
         >
           {isCollapsed ? (
@@ -288,20 +304,33 @@ const AppSidebar: React.FC = () => {
         </button>
       </div>
       {/* Navigation */}
-      <nav className="flex-1 px-4 py-6 space-y-6 overflow-y-auto relative z-10">
-        {navSections.map((section) => (
-          <NavSection
-            key={section.title}
-            title={section.title}
-            icon={section.icon}
-            isCollapsed={isCollapsed}
-          >
-            {section.items.map((item) => (
-              <NavItem key={item.href} {...item} isCollapsed={isCollapsed} />
-            ))}
-          </NavSection>
-        ))}
-      </nav>
+      <ul
+        className="flex-1 px-4 py-6 space-y-6 overflow-y-auto relative z-10"
+        style={{ listStyle: "none", margin: 0, padding: 0 }}
+      >
+        {navSections.map((section, sectionIdx) => {
+          const sectionId = `sidebar-section-${sectionIdx}`;
+          return (
+            <li key={section.title}>
+              <NavSection
+                title={section.title}
+                icon={section.icon}
+                isCollapsed={isCollapsed}
+                defaultOpen={true}
+                sectionId={sectionId}
+              >
+                <ul style={{ listStyle: "none", margin: 0, padding: 0 }}>
+                  {section.items.map((item, itemIdx) => (
+                    <li key={item.href}>
+                      <NavItem {...item} isCollapsed={isCollapsed} />
+                    </li>
+                  ))}
+                </ul>
+              </NavSection>
+            </li>
+          );
+        })}
+      </ul>
       {/* Footer Section */}
       {!isCollapsed && (
         <div className="px-4 py-4 border-t border-slate-700/50 relative z-10">
@@ -315,7 +344,10 @@ const AppSidebar: React.FC = () => {
             <p className="text-xs text-slate-400 mb-3">
               {MESSAGE_CONSTANTS.PRO_TIER_DESCRIPTION}
             </p>
-            <button className="w-full bg-gradient-to-r from-emerald-500 to-blue-500 text-white text-xs font-bold py-2 px-3 rounded-lg hover:from-emerald-600 hover:to-blue-600 transition-all duration-200">
+            <button
+              className="w-full bg-gradient-to-r from-emerald-500 to-blue-500 text-white text-xs font-bold py-2 px-3 rounded-lg hover:from-emerald-600 hover:to-blue-600 transition-all duration-200 focus:ring-2 focus:ring-emerald-400 focus:outline-none"
+              aria-label="Upgrade to Pro"
+            >
               {MESSAGE_CONSTANTS.UPGRADE_NOW_LABEL}
             </button>
           </div>
@@ -336,7 +368,7 @@ const AppSidebar: React.FC = () => {
           </div>
         </div>
       )}
-    </div>
+    </nav>
   );
 };
 

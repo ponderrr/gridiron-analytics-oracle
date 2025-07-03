@@ -106,7 +106,7 @@ function undoRedoReducer(
         undoStack: [...state.undoStack.slice(-9), action.payload],
         redoStack: [],
       };
-    case "UNDO":
+    case "UNDO": {
       if (state.undoStack.length === 0) return state;
       const previousState = state.undoStack[state.undoStack.length - 1];
       return {
@@ -115,7 +115,8 @@ function undoRedoReducer(
         undoStack: state.undoStack.slice(0, -1),
         redoStack: [state.rankedPlayers, ...state.redoStack.slice(0, 9)],
       };
-    case "REDO":
+    }
+    case "REDO": {
       if (state.redoStack.length === 0) return state;
       const nextState = state.redoStack[0];
       return {
@@ -124,6 +125,7 @@ function undoRedoReducer(
         undoStack: [...state.undoStack, state.rankedPlayers],
         redoStack: state.redoStack.slice(1),
       };
+    }
     default:
       return state;
   }

@@ -131,9 +131,3 @@ export const MESSAGE_CONSTANTS = {
     SETTINGS: "/settings",
   },
 };
-
-export const CARD_TYPES = {
-  STAT: "stat",
-  PLAYER: "player",
-  FEATURE: "feature",
-} as const;

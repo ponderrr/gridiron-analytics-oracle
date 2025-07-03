@@ -73,6 +73,7 @@ const Dashboard: React.FC = () => {
     console.log("Navigate to Trade Analyzer");
   }, []);
 
+  // No need for useMemo here: MOCK_TOP_PLAYERS is static. If this becomes dynamic or expensive, wrap in useMemo.
   const topPlayers = MOCK_TOP_PLAYERS;
 
   const containerVariants = {
@@ -129,9 +130,12 @@ const Dashboard: React.FC = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {topPlayers.map((player, index) => (
-              <PlayerCard key={player.name} {...player} />
-            ))}
+            {topPlayers.map((player, index) => {
+              const { tier, ...rest } = player;
+              return (
+                <PlayerCard key={player.name} {...rest} tierLabel={tier} />
+              );
+            })}
           </div>
         </motion.div>
 

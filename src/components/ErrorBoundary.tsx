@@ -1,19 +1,35 @@
 import React, { ReactNode } from "react";
 import { AlertTriangle, RefreshCw, Home } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { formatErrorMessage, getErrorType } from "@/lib/errorHandling";
+import { createAppError, getErrorType } from "@/lib/errorHandling";
+
+/**
+ * ErrorBoundary Component
+ *
+ * Usage examples:
+ *
+ * 1. Basic usage:
+ * <ErrorBoundary context="MyComponent">
+ *   <MyComponent />
+ * </ErrorBoundary>
+ *
+ * 2. With HOC:
+ * const SafeComponent = withErrorBoundary(MyComponent, "MyComponent");
+ *
+ * 3. With custom handlers:
+ * const SafeComponent = withErrorBoundary(
+ *   MyComponent,
+ *   "MyComponent",
+ *   (error, errorInfo) => console.error("Custom error handler", error),
+ *   () => console.log("Custom retry handler")
+ * );
+ */
 
 interface ErrorBoundaryProps {
   children: ReactNode;
-  // Customization props
-  title?: string;
-  message?: string;
-  showRetry?: boolean;
-  showHome?: boolean;
-  onRetry?: () => void;
-  onError?: (error: Error, errorInfo: React.ErrorInfo) => void;
   context?: string;
-  className?: string;
+  onError?: (error: Error, errorInfo: React.ErrorInfo) => void;
+  onRetry?: () => void;
 }
 
 interface ErrorBoundaryState {
@@ -22,62 +38,29 @@ interface ErrorBoundaryState {
   errorInfo: React.ErrorInfo | null;
 }
 
-const getDefaultErrorTitle = (type: string) => {
-  switch (type) {
-    case "network":
-      return "Network Error";
-    case "auth":
-      return "Authentication Error";
-    case "data":
-      return "Data Error";
-    default:
-      return "Something went wrong";
-  }
-};
-
-const getDefaultErrorMessage = (type: string) => {
-  switch (type) {
-    case "network":
-      return "We couldn't connect to the server. Please check your internet connection and try again.";
-    case "auth":
-      return "There was a problem with your authentication. Please log in again or contact support.";
-    case "data":
-      return "We couldn't load the requested data. Please try again later.";
-    default:
-      return "An unexpected error occurred. Please try again or contact support if the problem persists.";
-  }
-};
-
-// Enhanced error reporting function
+// Standardized error reporting
 function reportError(
   error: Error,
   errorInfo: React.ErrorInfo,
   context?: string
 ) {
-  // Add more sophisticated reporting here (e.g., Sentry, LogRocket)
-  const errorReport = {
-    timestamp: new Date().toISOString(),
-    error: {
-      name: error.name,
-      message: error.message,
-      stack: error.stack,
-      type: getErrorType(error),
-    },
-    errorInfo: {
-      componentStack: errorInfo.componentStack,
-    },
+  const appError = createAppError("unknown", error.message, {
+    originalError: error,
+    componentStack: errorInfo.componentStack,
     context,
-    userAgent: navigator.userAgent,
-    url: window.location.href,
-  };
+  });
 
   // Log to console in development
   if (process.env.NODE_ENV === "development") {
-    console.error("[ErrorBoundary]", errorReport);
+    console.error("[ErrorBoundary]", {
+      error: appError,
+      context,
+      url: window.location.href,
+    });
   }
 
   // TODO: Send to error reporting service in production
-  // Example: Sentry.captureException(error, { extra: errorReport });
+  // Example: Sentry.captureException(error, { extra: appError });
 }
 
 class ErrorBoundary extends React.Component<
@@ -117,15 +100,9 @@ class ErrorBoundary extends React.Component<
       const errorType = this.state.error
         ? getErrorType(this.state.error)
         : "unknown";
-      const title = this.props.title || getDefaultErrorTitle(errorType);
-      const message = this.props.message || getDefaultErrorMessage(errorType);
 
       return (
-        <div
-          className={`flex flex-col items-center justify-center min-h-[400px] text-center p-8 ${
-            this.props.className || ""
-          }`}
-        >
+        <div className="flex flex-col items-center justify-center min-h-[400px] text-center p-8">
           <div className="max-w-md mx-auto">
             {/* Error Icon */}
             <div className="flex justify-center mb-6">
@@ -135,10 +112,26 @@ class ErrorBoundary extends React.Component<
             </div>
 
             {/* Error Title */}
-            <h2 className="text-xl font-bold text-white mb-3">{title}</h2>
+            <h2 className="text-xl font-bold text-white mb-3">
+              {errorType === "network"
+                ? "Network Error"
+                : errorType === "auth"
+                  ? "Authentication Error"
+                  : errorType === "data"
+                    ? "Data Error"
+                    : "Something went wrong"}
+            </h2>
 
             {/* Error Message */}
-            <p className="text-slate-400 mb-6 leading-relaxed">{message}</p>
+            <p className="text-slate-400 mb-6 leading-relaxed">
+              {errorType === "network"
+                ? "We couldn't connect to the server. Please check your internet connection and try again."
+                : errorType === "auth"
+                  ? "There was a problem with your authentication. Please log in again or contact support."
+                  : errorType === "data"
+                    ? "We couldn't load the requested data. Please try again later."
+                    : "An unexpected error occurred. Please try again or contact support if the problem persists."}
+            </p>
 
             {/* Error Details (Development Only) */}
             {process.env.NODE_ENV === "development" && this.state.error && (
@@ -148,8 +141,7 @@ class ErrorBoundary extends React.Component<
                 </summary>
                 <div className="bg-slate-800/50 border border-slate-700 rounded-lg p-4 text-xs text-slate-400 font-mono overflow-auto">
                   <div className="mb-2">
-                    <strong>Error:</strong>{" "}
-                    {formatErrorMessage(this.state.error)}
+                    <strong>Error:</strong> {this.state.error.message}
                   </div>
                   {this.state.error.stack && (
                     <div className="mb-2">
@@ -173,17 +165,15 @@ class ErrorBoundary extends React.Component<
 
             {/* Action Buttons */}
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              {this.props.showRetry !== false && (
-                <button
-                  onClick={this.handleRetry}
-                  className="flex items-center justify-center space-x-2 bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-3 rounded-lg font-medium transition-colors"
-                >
-                  <RefreshCw className="h-4 w-4" />
-                  <span>Try Again</span>
-                </button>
-              )}
+              <button
+                onClick={this.handleRetry}
+                className="flex items-center justify-center space-x-2 bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-3 rounded-lg font-medium transition-colors"
+              >
+                <RefreshCw className="h-4 w-4" />
+                <span>Try Again</span>
+              </button>
 
-              {this.props.showHome !== false && <HomeButton />}
+              <HomeButton />
             </div>
           </div>
         </div>
@@ -212,6 +202,24 @@ function HomeButton() {
 // Wrapper component to provide router context
 function ErrorBoundaryWithRouter(props: ErrorBoundaryProps) {
   return <ErrorBoundary {...props} />;
+}
+
+// HOC for easier component wrapping
+export function withErrorBoundary<P extends object>(
+  Component: React.ComponentType<P>,
+  context?: string,
+  onError?: (error: Error, errorInfo: React.ErrorInfo) => void,
+  onRetry?: () => void
+) {
+  const WrappedComponent = (props: P) => (
+    <ErrorBoundary context={context} onError={onError} onRetry={onRetry}>
+      <Component {...props} />
+    </ErrorBoundary>
+  );
+
+  WrappedComponent.displayName = `withErrorBoundary(${Component.displayName || Component.name})`;
+
+  return WrappedComponent;
 }
 
 export default ErrorBoundaryWithRouter;
