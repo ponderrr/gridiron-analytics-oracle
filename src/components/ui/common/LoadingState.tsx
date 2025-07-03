@@ -16,6 +16,8 @@ export interface LoadingStateProps {
   // For skeleton: custom width/height
   skeletonWidth?: string | number;
   skeletonHeight?: string | number;
+  // For skeleton: shape of the skeleton block
+  skeletonShape?: "rectangle" | "circle";
   // For page: children to show after loading
   children?: React.ReactNode;
   // If true, show children as soon as loading is false
@@ -32,6 +34,7 @@ export const LoadingState: React.FC<LoadingStateProps> = ({
   skeletonCount = 3,
   skeletonWidth = "100%",
   skeletonHeight = 20,
+  skeletonShape = "rectangle",
   children,
   loading = true,
 }) => {
@@ -64,16 +67,22 @@ export const LoadingState: React.FC<LoadingStateProps> = ({
   if (type === "skeleton") {
     return (
       <div className={className} aria-busy="true" aria-live="polite">
-        {Array.from({ length: skeletonCount }).map((_, i) => (
-          <div
-            key={i}
-            className={skeletonBase}
-            style={{
-              width: skeletonWidth,
-              height: skeletonHeight,
-            }}
-          />
-        ))}
+        {Array.from({ length: skeletonCount }).map((_, i) => {
+          // Determine border radius for shape
+          const shapeStyle =
+            skeletonShape === "circle"
+              ? {
+                  borderRadius: "9999px",
+                  width: skeletonWidth || skeletonHeight,
+                  height: skeletonHeight || skeletonWidth,
+                }
+              : {
+                  borderRadius: "0.5rem",
+                  width: skeletonWidth,
+                  height: skeletonHeight,
+                };
+          return <div key={i} className={skeletonBase} style={shapeStyle} />;
+        })}
         {message && (
           <div className="mt-2 text-slate-400 text-sm">{message}</div>
         )}

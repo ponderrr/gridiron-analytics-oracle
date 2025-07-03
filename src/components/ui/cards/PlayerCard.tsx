@@ -43,13 +43,29 @@ export interface UnifiedPlayerCardProps {
   className?: string;
 }
 
+// Tier variant keys
+export enum TierVariant {
+  Default = "default",
+  Premium = "premium",
+  Elite = "elite",
+  Champion = "champion",
+}
+
+// Substrings that map to each tier variant
+const TIER_LABEL_SUBSTRINGS: Record<TierVariant, string[]> = {
+  [TierVariant.Elite]: ["elite"],
+  [TierVariant.Champion]: ["champion"],
+  [TierVariant.Premium]: ["wr1", "rb1", "qb1"],
+  [TierVariant.Default]: [],
+};
+
 const cardVariants = {
-  default: "bg-slate-800/50 border-slate-700/50",
-  premium:
+  [TierVariant.Default]: "bg-slate-800/50 border-slate-700/50",
+  [TierVariant.Premium]:
     "bg-gradient-to-br from-blue-900/30 to-slate-800/50 border-blue-500/30",
-  elite:
+  [TierVariant.Elite]:
     "bg-gradient-to-br from-purple-900/30 to-slate-800/50 border-purple-500/30",
-  champion:
+  [TierVariant.Champion]:
     "bg-gradient-to-br from-yellow-900/30 to-slate-800/50 border-yellow-500/30",
 };
 
@@ -102,15 +118,21 @@ const getStatusColor = (status?: string) => {
   }
 };
 
-const getTierVariant = (tierLabel?: string) => {
-  if (!tierLabel) return "default";
+const getTierVariant = (tierLabel?: string): TierVariant => {
+  if (!tierLabel) return TierVariant.Default;
   const t = tierLabel.toLowerCase();
-  if (t.includes("elite")) return "elite";
-  if (t.includes("champion")) return "champion";
-  if (t.includes("wr1") || t.includes("rb1") || t.includes("qb1"))
-    return "premium";
-  return "default";
+  if (TIER_LABEL_SUBSTRINGS[TierVariant.Elite].some((s) => t.includes(s)))
+    return TierVariant.Elite;
+  if (TIER_LABEL_SUBSTRINGS[TierVariant.Champion].some((s) => t.includes(s)))
+    return TierVariant.Champion;
+  if (TIER_LABEL_SUBSTRINGS[TierVariant.Premium].some((s) => t.includes(s)))
+    return TierVariant.Premium;
+  return TierVariant.Default;
 };
+
+// SVG background grid pattern for player card
+const PLAYER_CARD_GRID_BG =
+  "url(\"data:image/svg+xml,%3Csvg width='20' height='20' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3Cpattern id='grid' width='20' height='20' patternUnits='userSpaceOnUse'%3E%3Cpath d='M 20 0 L 0 0 0 20' fill='none' stroke='white' stroke-width='0.5'/%3E%3C/pattern%3E%3C/defs%3E%3Crect width='100%25' height='100%25' fill='url(%23grid)' /%3E%3C/svg%3E\")";
 
 const PlayerCard: React.FC<UnifiedPlayerCardProps> = React.memo((props) => {
   // Accessibility: Announce drag events
@@ -287,7 +309,7 @@ const PlayerCard: React.FC<UnifiedPlayerCardProps> = React.memo((props) => {
           <div
             className="absolute inset-0"
             style={{
-              backgroundImage: `url("data:image/svg+xml,%3Csvg width='20' height='20' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3Cpattern id='grid' width='20' height='20' patternUnits='userSpaceOnUse'%3E%3Cpath d='M 20 0 L 0 0 0 20' fill='none' stroke='white' stroke-width='0.5'/%3E%3C/pattern%3E%3C/defs%3E%3Crect width='100%25' height='100%25' fill='url(%23grid)' /%3E%3C/svg%3E")`,
+              backgroundImage: PLAYER_CARD_GRID_BG,
             }}
           />
         </div>
@@ -299,11 +321,13 @@ const PlayerCard: React.FC<UnifiedPlayerCardProps> = React.memo((props) => {
                 <span
                   className={cn(
                     "px-2 py-1 rounded-lg text-xs font-medium",
-                    variant === "elite" && "bg-purple-500/20 text-purple-400",
-                    variant === "premium" && "bg-blue-500/20 text-blue-400",
-                    variant === "champion" &&
+                    variant === TierVariant.Elite &&
+                      "bg-purple-500/20 text-purple-400",
+                    variant === TierVariant.Premium &&
+                      "bg-blue-500/20 text-blue-400",
+                    variant === TierVariant.Champion &&
                       "bg-yellow-500/20 text-yellow-400",
-                    variant === "default" &&
+                    variant === TierVariant.Default &&
                       "bg-emerald-500/20 text-emerald-400"
                   )}
                 >

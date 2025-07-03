@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useRef } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -10,13 +10,13 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Plus, Save, Download, Upload, Undo, Redo } from "lucide-react";
 import { useRankings } from "./RankingsProvider";
-import { CreateSetModal } from "./CreateSetModal";
+import { CreateSetModal, CreateSetModalRef } from "./CreateSetModal";
 import { toast } from "sonner";
 
 export function RankingsHeader() {
   const { state, dispatch, selectSet, saveRankings, createDefaultRankings } =
     useRankings();
-  const [showCreateModal, setShowCreateModal] = useState(false);
+  const createSetModalRef = useRef<CreateSetModalRef>(null);
 
   const handleSetChange = (setId: string) => {
     selectSet(setId);
@@ -60,6 +60,10 @@ export function RankingsHeader() {
     a.click();
     URL.revokeObjectURL(url);
     toast.success("Rankings exported successfully");
+  };
+
+  const handleCreateNew = () => {
+    createSetModalRef.current?.openModal();
   };
 
   return (
@@ -156,11 +160,7 @@ export function RankingsHeader() {
           </Select>
         </div>
 
-        <Button
-          onClick={() => setShowCreateModal(true)}
-          disabled={state.loading}
-          size="sm"
-        >
+        <Button onClick={handleCreateNew} disabled={state.loading} size="sm">
           <Plus className="h-4 w-4 mr-2" />
           Create New
         </Button>
@@ -181,10 +181,7 @@ export function RankingsHeader() {
         </div>
       </div>
 
-      <CreateSetModal
-        open={showCreateModal}
-        onOpenChange={setShowCreateModal}
-      />
+      <CreateSetModal ref={createSetModalRef} />
     </div>
   );
 }

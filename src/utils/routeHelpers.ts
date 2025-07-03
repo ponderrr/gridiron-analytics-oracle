@@ -2,6 +2,7 @@ import React from "react";
 import { RouteConfig } from "@/config/routes";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import ErrorBoundary, { withErrorBoundary } from "@/components/ErrorBoundary";
+import * as Sentry from "@sentry/react";
 
 /**
  * Route Helpers with Error Boundary Integration
@@ -27,11 +28,42 @@ import ErrorBoundary, { withErrorBoundary } from "@/components/ErrorBoundary";
 const handleRouteError = (error: Error, errorInfo: React.ErrorInfo) => {
   // Log route-specific errors
   console.error(`[Route Error] ${errorInfo.componentStack}`, error);
+
+  // Send to Sentry in production
+  // NOTE: Sentry.init should be called ONCE at app startup (e.g., in main.tsx or a sentry.ts). Do not call it here.
+  if (process.env.NODE_ENV === "production") {
+    Sentry.captureException(error, {
+      extra: {
+        componentStack: errorInfo.componentStack,
+        context: "Route Error",
+        url: window.location.href,
+      },
+    });
+  }
 };
 
+// Navigation singleton for programmatic navigation outside components
+let navigateRef: ((to: string, options?: any) => void) | null = null;
+
+export function setNavigate(fn: (to: string, options?: any) => void) {
+  navigateRef = fn;
+}
+
+function getCurrentPath() {
+  return (
+    window.location.pathname + window.location.search + window.location.hash
+  );
+}
+
 const handleRouteRetry = () => {
-  // Force a page refresh for route errors
-  window.location.reload();
+  // Gracefully retry the current route using the router if possible
+  if (navigateRef) {
+    // Reload the current route (replace: true to avoid pushing a new entry)
+    navigateRef(getCurrentPath(), { replace: true });
+  } else {
+    // Fallback: hard reload if navigation is not available
+    window.location.reload();
+  }
 };
 
 export function createProtectedRoute(

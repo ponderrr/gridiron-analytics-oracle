@@ -6,6 +6,14 @@ import {
   withErrorHandling,
 } from "@/lib/errorHandling";
 
+// Utility function to extract error message from unknown error input
+const extractErrorMessage = (error: unknown): string => {
+  if (error && typeof error === "object" && "message" in error) {
+    return (error as Error).message;
+  }
+  return String(error);
+};
+
 interface SyncResult {
   success: boolean;
   players_added?: number;
@@ -60,9 +68,7 @@ export const useSyncData = () => {
         isLoading: false,
         result: null,
         error: createAppError(
-          error && typeof error === "object" && "message" in error
-            ? (error as Error).message
-            : String(error),
+          extractErrorMessage(error),
           "data",
           undefined,
           "syncPlayers",
@@ -101,9 +107,7 @@ export const useSyncData = () => {
           isLoading: false,
           result: null,
           error: createAppError(
-            error && typeof error === "object" && "message" in error
-              ? (error as Error).message
-              : String(error),
+            extractErrorMessage(error),
             "data",
             undefined,
             "syncWeeklyStats",

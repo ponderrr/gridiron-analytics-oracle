@@ -13,6 +13,14 @@ import {
   withErrorHandling,
 } from "@/lib/errorHandling";
 
+// Helper to extract a message string from any error-like object
+function extractErrorMessage(error: unknown): string {
+  if (error && typeof error === "object" && "message" in error) {
+    return (error as { message?: string }).message || String(error);
+  }
+  return String(error);
+}
+
 interface AuthContextType {
   user: User | null;
   session: Session | null;
@@ -177,9 +185,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             );
           }
           throw createAppError(
-            error && typeof error === "object" && "message" in error
-              ? (error as Error).message
-              : String(error),
+            extractErrorMessage(error),
             "auth",
             undefined,
             "signup",
@@ -191,9 +197,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       } catch (error) {
         setAuthError(
           createAppError(
-            error && typeof error === "object" && "message" in error
-              ? (error as Error).message
-              : String(error),
+            extractErrorMessage(error),
             "auth",
             undefined,
             "signup",
@@ -218,9 +222,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       );
       if (error) {
         throw createAppError(
-          error && typeof error === "object" && "message" in error
-            ? (error as Error).message
-            : String(error),
+          extractErrorMessage(error),
           "auth",
           undefined,
           "logout",
@@ -233,9 +235,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     } catch (error) {
       setAuthError(
         createAppError(
-          error && typeof error === "object" && "message" in error
-            ? (error as Error).message
-            : String(error),
+          extractErrorMessage(error),
           "auth",
           undefined,
           "logout",
@@ -267,9 +267,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       } catch (error) {
         setAuthError(
           createAppError(
-            error && typeof error === "object" && "message" in error
-              ? (error as Error).message
-              : String(error),
+            extractErrorMessage(error),
             "auth",
             undefined,
             "resetPassword",

@@ -140,3 +140,29 @@ export function withErrorHandling<T, A extends any[]>(
     }
   };
 }
+
+/**
+ * Infers error type from an error object and creates a properly typed AppError
+ * This is useful for converting generic errors (like from React Query) into typed AppErrors
+ */
+export function inferAndCreateAppError(
+  error: unknown,
+  context?: string
+): AppError {
+  // If it's already an AppError with a type, return it as is
+  if (
+    error &&
+    typeof error === "object" &&
+    "type" in error &&
+    (error as AppError).type
+  ) {
+    return error as AppError;
+  }
+
+  // Infer the error type and create a new AppError
+  const errorType = getErrorType(error);
+  const message = formatErrorMessage(error);
+  const status = (error as any)?.status || (error as any)?.statusCode;
+
+  return createAppError(message, errorType, status, context, error);
+}

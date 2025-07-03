@@ -35,7 +35,11 @@ import {
   SYNC_DESCRIPTIONS,
 } from "../lib/adminConstants";
 import type { ColumnConfig } from "../components/ui/table/AdminTable";
-import { createAppError, AppError } from "@/lib/errorHandling";
+import {
+  createAppError,
+  AppError,
+  inferAndCreateAppError,
+} from "@/lib/errorHandling";
 import { LoadingState } from "@/components/ui/common";
 import LoadingSpinner from "@/components/LoadingSpinner";
 
@@ -110,19 +114,8 @@ const Admin: React.FC = () => {
     playersLoading || statsLoading || projectionsLoading || tradeValuesLoading;
   let error =
     playersError || statsError || projectionsError || tradeValuesError;
-  if (error && !(error as AppError).type) {
-    // Try to infer error type
-    error = createAppError(
-      error.message || String(error),
-      error.name === "AuthError"
-        ? "auth"
-        : error.name === "NetworkError"
-          ? "network"
-          : "data",
-      (error as any).status,
-      "AdminPage",
-      error
-    );
+  if (error) {
+    error = inferAndCreateAppError(error, "AdminPage");
   }
 
   const handleRetry = useCallback(() => {

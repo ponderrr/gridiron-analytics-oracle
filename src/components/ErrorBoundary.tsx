@@ -44,11 +44,13 @@ function reportError(
   errorInfo: React.ErrorInfo,
   context?: string
 ) {
-  const appError = createAppError("unknown", error.message, {
-    originalError: error,
-    componentStack: errorInfo.componentStack,
+  const appError = createAppError(
+    error.message,
+    "unknown",
+    undefined,
     context,
-  });
+    error
+  );
 
   // Log to console in development
   if (process.env.NODE_ENV === "development") {
@@ -101,6 +103,33 @@ class ErrorBoundary extends React.Component<
         ? getErrorType(this.state.error)
         : "unknown";
 
+      // Error type mapping for title and message
+      const errorTypeMap: Record<string, { title: string; message: string }> = {
+        network: {
+          title: "Network Error",
+          message:
+            "We couldn't connect to the server. Please check your internet connection and try again.",
+        },
+        auth: {
+          title: "Authentication Error",
+          message:
+            "There was a problem with your authentication. Please log in again or contact support.",
+        },
+        data: {
+          title: "Data Error",
+          message:
+            "We couldn't load the requested data. Please try again later.",
+        },
+        unknown: {
+          title: "Something went wrong",
+          message:
+            "An unexpected error occurred. Please try again or contact support if the problem persists.",
+        },
+      };
+
+      const { title, message } =
+        errorTypeMap[errorType] || errorTypeMap["unknown"];
+
       return (
         <div className="flex flex-col items-center justify-center min-h-[400px] text-center p-8">
           <div className="max-w-md mx-auto">
@@ -112,26 +141,10 @@ class ErrorBoundary extends React.Component<
             </div>
 
             {/* Error Title */}
-            <h2 className="text-xl font-bold text-white mb-3">
-              {errorType === "network"
-                ? "Network Error"
-                : errorType === "auth"
-                  ? "Authentication Error"
-                  : errorType === "data"
-                    ? "Data Error"
-                    : "Something went wrong"}
-            </h2>
+            <h2 className="text-xl font-bold text-white mb-3">{title}</h2>
 
             {/* Error Message */}
-            <p className="text-slate-400 mb-6 leading-relaxed">
-              {errorType === "network"
-                ? "We couldn't connect to the server. Please check your internet connection and try again."
-                : errorType === "auth"
-                  ? "There was a problem with your authentication. Please log in again or contact support."
-                  : errorType === "data"
-                    ? "We couldn't load the requested data. Please try again later."
-                    : "An unexpected error occurred. Please try again or contact support if the problem persists."}
-            </p>
+            <p className="text-slate-400 mb-6 leading-relaxed">{message}</p>
 
             {/* Error Details (Development Only) */}
             {process.env.NODE_ENV === "development" && this.state.error && (

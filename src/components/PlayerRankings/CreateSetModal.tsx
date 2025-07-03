@@ -1,4 +1,10 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, {
+  useState,
+  useEffect,
+  useMemo,
+  forwardRef,
+  useImperativeHandle,
+} from "react";
 import {
   Dialog,
   DialogContent,
@@ -21,18 +27,21 @@ import { useRankings } from "./RankingsProvider";
 import { toast } from "@/components/ui/sonner";
 import { useModal } from "@/hooks/useModal";
 
-interface CreateSetModalProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
+export interface CreateSetModalRef {
+  openModal: () => void;
 }
 
-export function CreateSetModal({ open, onOpenChange }: CreateSetModalProps) {
+export const CreateSetModal = forwardRef<CreateSetModalRef>((_, ref) => {
   const { state, createSet } = useRankings();
+  const { isOpen, openModal, closeModal, loading, setLoading } = useModal();
   const [name, setName] = useState("");
   const [format, setFormat] = useState<"dynasty" | "redraft">("redraft");
   const [copyFromSetId, setCopyFromSetId] = useState("");
   const [copyFromExisting, setCopyFromExisting] = useState(false);
-  const { loading, setLoading } = useModal();
+
+  useImperativeHandle(ref, () => ({
+    openModal,
+  }));
 
   useEffect(() => {
     setCopyFromSetId("");
@@ -55,7 +64,7 @@ export function CreateSetModal({ open, onOpenChange }: CreateSetModalProps) {
       setFormat("redraft");
       setCopyFromSetId("");
       setCopyFromExisting(false);
-      onOpenChange(false);
+      closeModal();
     } catch (error) {
       toast.error("Failed to create ranking set. Please try again.");
     } finally {
@@ -73,7 +82,7 @@ export function CreateSetModal({ open, onOpenChange }: CreateSetModalProps) {
   );
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={isOpen} onOpenChange={closeModal}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Create New Ranking Set</DialogTitle>
@@ -150,7 +159,7 @@ export function CreateSetModal({ open, onOpenChange }: CreateSetModalProps) {
             <Button
               type="button"
               variant="outline"
-              onClick={() => onOpenChange(false)}
+              onClick={closeModal}
               className="flex-1"
             >
               Cancel
@@ -167,4 +176,6 @@ export function CreateSetModal({ open, onOpenChange }: CreateSetModalProps) {
       </DialogContent>
     </Dialog>
   );
-}
+});
+
+CreateSetModal.displayName = "CreateSetModal";

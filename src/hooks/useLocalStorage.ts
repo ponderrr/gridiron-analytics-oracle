@@ -47,17 +47,7 @@ function useLocalStorage<T>(
         clearTimeout(debounceRef.current);
       }
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [key, storedValue, isAvailable]);
-
-  // Cleanup on unmount
-  useEffect(() => {
-    return () => {
-      if (debounceRef.current) {
-        clearTimeout(debounceRef.current);
-      }
-    };
-  }, []);
 
   const setValue = (value: T | ((val: T) => T)) => {
     setStoredValue((prev) => {

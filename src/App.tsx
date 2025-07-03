@@ -6,11 +6,20 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { routes } from "@/config/routes";
-import { createProtectedRoute, createPublicRoute } from "@/utils/routeHelpers";
+import {
+  createProtectedRoute,
+  createPublicRoute,
+  setNavigate,
+} from "@/utils/routeHelpers";
 
 const queryClient = new QueryClient();
 
 function App() {
+  const navigate = require("react-router-dom").useNavigate();
+  React.useEffect(() => {
+    setNavigate(navigate);
+  }, [navigate]);
+
   return (
     <QueryClientProvider client={queryClient}>
       <Router>

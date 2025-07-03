@@ -304,10 +304,7 @@ const AppSidebar: React.FC = () => {
         </button>
       </div>
       {/* Navigation */}
-      <ul
-        className="flex-1 px-4 py-6 space-y-6 overflow-y-auto relative z-10"
-        style={{ listStyle: "none", margin: 0, padding: 0 }}
-      >
+      <ul className="flex-1 px-4 py-6 space-y-6 overflow-y-auto relative z-10 sidebar-list">
         {navSections.map((section, sectionIdx) => {
           const sectionId = `sidebar-section-${sectionIdx}`;
           return (
@@ -319,7 +316,7 @@ const AppSidebar: React.FC = () => {
                 defaultOpen={true}
                 sectionId={sectionId}
               >
-                <ul style={{ listStyle: "none", margin: 0, padding: 0 }}>
+                <ul className="sidebar-nested-list">
                   {section.items.map((item, itemIdx) => (
                     <li key={item.href}>
                       <NavItem {...item} isCollapsed={isCollapsed} />

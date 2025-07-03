@@ -8,9 +8,7 @@ import PlayerCard from "@/components/ui/cards/PlayerCard";
 import { PlayerSearch } from "./PlayerSearch";
 import { useRankings, Player } from "./RankingsProvider";
 import { LoadingState } from "@/components/ui/common";
-
-const ROW_HEIGHT = 80; // px, adjust as needed for PlayerCard
-const LIST_HEIGHT = 600; // px, adjust for container
+import { useResponsiveListDimensions } from "@/hooks/useResponsiveListDimensions";
 
 // Custom outer element for react-window with correct ref typing
 const OuterElement = React.forwardRef<
@@ -21,6 +19,7 @@ OuterElement.displayName = "VirtualizedOuterElement";
 
 export function AvailablePlayersList() {
   const { state, dispatch, getFilteredAvailablePlayers } = useRankings();
+  const { rowHeight, listHeight } = useResponsiveListDimensions();
 
   const filteredPlayers = useMemo(
     () => getFilteredAvailablePlayers(),
@@ -74,11 +73,18 @@ export function AvailablePlayersList() {
           </div>
         </div>
         {filteredPlayers.length === 0 ? (
-          <LoadingState
-            type="skeleton"
-            skeletonCount={6}
-            message="No players found or loading..."
-          />
+          state.loading ? (
+            <LoadingState
+              type="skeleton"
+              skeletonCount={6}
+              message="Loading players..."
+            />
+          ) : (
+            <LoadingState
+              type="spinner"
+              message="No players found matching your current filters."
+            />
+          )
         ) : (
           <Droppable droppableId="available-players" isDropDisabled={true}>
             {(provided, snapshot) => (
@@ -88,9 +94,9 @@ export function AvailablePlayersList() {
                 className="overflow-y-auto max-h-full"
               >
                 <List
-                  height={LIST_HEIGHT}
+                  height={listHeight}
                   itemCount={filteredPlayers.length}
-                  itemSize={ROW_HEIGHT}
+                  itemSize={rowHeight}
                   width="100%"
                   outerElementType={OuterElement}
                   style={{ overflowX: "hidden" }}
