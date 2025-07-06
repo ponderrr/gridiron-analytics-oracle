@@ -14,4 +14,8 @@ import "./index.css";
 // Validate environment variables at startup
 validateEnvironment();
 
-createRoot(document.getElementById("root")!).render(<App />);
+createRoot(document.getElementById("root")!).render(
+  <>
+    <App />{" "}
+  </>,
+);

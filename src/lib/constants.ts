@@ -74,6 +74,68 @@ export const THEME_CONSTANTS = {
   SIDEBAR_COLLAPSED_WIDTH_CSS_PX: UI_CONSTANTS.SIDEBAR.COLLAPSED_WIDTH_CSS_PX,
 };
 
+export const THEME_CONSTANTS_EXTENDED = {
+  LIGHT: {
+    BG_PRIMARY: "bg-white",
+    BG_SECONDARY: "bg-slate-50",
+    BG_TERTIARY: "bg-slate-100",
+    BG_CARD: "bg-white",
+    BG_SIDEBAR: "bg-slate-50",
+    BG_HEADER: "bg-white/80",
+    BG_HOVER: "hover:bg-slate-100",
+    BG_ACTIVE: "bg-emerald-50",
+    TEXT_PRIMARY: "text-slate-900",
+    TEXT_SECONDARY: "text-slate-700",
+    TEXT_TERTIARY: "text-slate-500",
+    TEXT_MUTED: "text-slate-400",
+    BORDER: "border-slate-200",
+    BORDER_HOVER: "border-slate-300",
+    SHADOW: "shadow-sm",
+    RING: "ring-slate-200",
+  },
+  DARK: {
+    BG_PRIMARY: "bg-slate-900",
+    BG_SECONDARY: "bg-slate-800",
+    BG_TERTIARY: "bg-slate-700",
+    BG_CARD: "bg-slate-800/50",
+    BG_SIDEBAR: "bg-slate-800",
+    BG_HEADER: "bg-slate-800/80",
+    BG_HOVER: "hover:bg-slate-700/50",
+    BG_ACTIVE: "bg-slate-700",
+    TEXT_PRIMARY: "text-white",
+    TEXT_SECONDARY: "text-slate-300",
+    TEXT_TERTIARY: "text-slate-400",
+    TEXT_MUTED: "text-slate-500",
+    BORDER: "border-slate-700",
+    BORDER_HOVER: "border-slate-600",
+    SHADOW: "shadow-lg",
+    RING: "ring-slate-700",
+  },
+  COMMON: {
+    ACCENT_PRIMARY: "text-emerald-400",
+    ACCENT_SECONDARY: "text-blue-400",
+    ACCENT_TERTIARY: "text-purple-400",
+    ACCENT_WARNING: "text-yellow-400",
+    ACCENT_DANGER: "text-red-400",
+    BG_ACCENT_PRIMARY: "bg-emerald-500",
+    BG_ACCENT_SECONDARY: "bg-blue-500",
+    BG_ACCENT_TERTIARY: "bg-purple-500",
+    BG_ACCENT_WARNING: "bg-yellow-500",
+    BG_ACCENT_DANGER: "bg-red-500",
+    HOVER_ACCENT_PRIMARY: "hover:bg-emerald-600",
+    HOVER_ACCENT_SECONDARY: "hover:bg-blue-600",
+    HOVER_ACCENT_TERTIARY: "hover:bg-purple-600",
+    HOVER_ACCENT_WARNING: "hover:bg-yellow-600",
+    HOVER_ACCENT_DANGER: "hover:bg-red-600",
+  },
+};
+
+export const getThemeClasses = (theme: "light" | "dark") => {
+  return theme === "light"
+    ? THEME_CONSTANTS_EXTENDED.LIGHT
+    : THEME_CONSTANTS_EXTENDED.DARK;
+};
+
 export const MESSAGE_CONSTANTS = {
   APP_NAME: "FF META",
   APP_TAGLINE: "Fantasy Football Meta",

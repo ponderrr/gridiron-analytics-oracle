@@ -7,7 +7,7 @@ const Analytics = lazy(() => import("@/pages/Analytics"));
 const Admin = lazy(() => import("@/pages/Admin"));
 const FantasyPointsTest = lazy(() => import("@/pages/FantasyPointsTest"));
 const TradeAnalyzer = lazy(() => import("@/pages/TradeAnalyzer"));
-const League = lazy(() => import("@/pages/League"));
+
 const Settings = lazy(() => import("@/pages/Settings"));
 
 // Regular imports for lighter components
@@ -84,12 +84,7 @@ export const routes: RouteConfig[] = [
     protected: true,
     errorBoundary: true,
   },
-  {
-    path: "/league",
-    component: League,
-    protected: true,
-    errorBoundary: true,
-  },
+
   {
     path: "/settings",
     component: Settings,

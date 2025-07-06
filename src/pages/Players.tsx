@@ -9,9 +9,13 @@ import {
   RankedPlayersList,
 } from "../components/PlayerRankings";
 import { toast } from "sonner";
+import { useTheme } from "../contexts/ThemeContext";
+import { getThemeClasses } from "@/lib/constants";
 
 function PlayersContent() {
   const { state, dispatch, saveRankings } = useRankings();
+  const { effectiveTheme } = useTheme();
+  const themeClasses = getThemeClasses(effectiveTheme);
 
   const handleDragEnd = async (result: DropResult) => {
     const { destination, source, draggableId } = result;
@@ -77,34 +81,56 @@ function PlayersContent() {
         <DragDropContext onDragEnd={handleDragEnd}>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-[calc(100vh-200px)]">
             {/* Left Panel - Available Players */}
-            <div className="bg-slate-800/30 border border-slate-700/50 rounded-xl p-6">
+            <div
+              className={`${themeClasses.BG_CARD} border ${themeClasses.BORDER} rounded-xl p-6`}
+            >
               <AvailablePlayersList />
             </div>
 
             {/* Right Panel - Ranked Players */}
-            <div className="bg-slate-800/30 border border-slate-700/50 rounded-xl p-6">
+            <div
+              className={`${themeClasses.BG_CARD} border ${themeClasses.BORDER} rounded-xl p-6`}
+            >
               <RankedPlayersList />
             </div>
           </div>
         </DragDropContext>
 
         {/* Keyboard Shortcuts Help */}
-        <div className="bg-slate-800/30 border border-slate-700/50 rounded-xl p-4">
-          <h3 className="text-sm font-medium text-white mb-2">
+        <div
+          className={`${themeClasses.BG_CARD} border ${themeClasses.BORDER} rounded-xl p-4`}
+        >
+          <h3
+            className={`text-sm font-medium ${themeClasses.TEXT_PRIMARY} mb-2`}
+          >
             Keyboard Shortcuts
           </h3>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs text-slate-400">
+          <div
+            className={`grid grid-cols-2 md:grid-cols-4 gap-4 text-xs ${themeClasses.TEXT_TERTIARY}`}
+          >
             <div>
-              <kbd className="bg-slate-700 px-1 rounded">Ctrl+Z</kbd> Undo
+              <kbd className={`${themeClasses.BG_TERTIARY} px-1 rounded`}>
+                Ctrl+Z
+              </kbd>{" "}
+              Undo
             </div>
             <div>
-              <kbd className="bg-slate-700 px-1 rounded">Ctrl+Y</kbd> Redo
+              <kbd className={`${themeClasses.BG_TERTIARY} px-1 rounded`}>
+                Ctrl+Y
+              </kbd>{" "}
+              Redo
             </div>
             <div>
-              <kbd className="bg-slate-700 px-1 rounded">Ctrl+S</kbd> Save
+              <kbd className={`${themeClasses.BG_TERTIARY} px-1 rounded`}>
+                Ctrl+S
+              </kbd>{" "}
+              Save
             </div>
             <div>
-              <kbd className="bg-slate-700 px-1 rounded">Del</kbd> Remove player
+              <kbd className={`${themeClasses.BG_TERTIARY} px-1 rounded`}>
+                Del
+              </kbd>{" "}
+              Remove player
             </div>
           </div>
         </div>

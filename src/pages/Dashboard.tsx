@@ -4,34 +4,30 @@ import {
   THEME_CONSTANTS,
   UI_CONSTANTS,
   MESSAGE_CONSTANTS,
+  getThemeClasses,
 } from "@/lib/constants";
 import Layout from "../components/Layout";
 import PlayerCard from "../components/ui/cards/PlayerCard";
-import FeatureCard from "../components/ui/cards/FeatureCard";
 import { StatGrid } from "../components/ui/common";
 import { useAuth } from "../contexts/AuthContext";
-import {
-  Activity,
-  TrendingUp,
-  Users,
-  BarChart3,
-  Brain,
-  Target,
-} from "lucide-react";
+import { useTheme } from "../contexts/ThemeContext";
+import { Activity, TrendingUp, Users, BarChart3, Brain } from "lucide-react";
 import React, { useMemo, useCallback } from "react";
 
 const Dashboard: React.FC = () => {
   const { user } = useAuth();
+  const { effectiveTheme } = useTheme();
+  const themeClasses = getThemeClasses(effectiveTheme);
 
   const dashboardStats = useMemo(
     () => [
       {
-        title: "Active Leagues",
-        value: "3",
-        subtitle: "Championship bound",
+        title: "Weekly Points",
+        value: "124.7",
+        subtitle: "Last week's score",
         icon: Activity,
         trend: "up" as const,
-        trendValue: "+1",
+        trendValue: "+12.3",
         variant: "default" as const,
       },
       {
@@ -41,37 +37,11 @@ const Dashboard: React.FC = () => {
         icon: TrendingUp,
         trend: "up" as const,
         trendValue: "+8%",
-        variant: "premium" as const,
-      },
-      {
-        title: "Players Tracked",
-        value: "247",
-        subtitle: "In your watchlist",
-        icon: Users,
-        trend: "up" as const,
-        trendValue: "+12",
-        variant: "elite" as const,
-      },
-      {
-        title: "Prediction Accuracy",
-        value: "89%",
-        subtitle: "This season",
-        icon: BarChart3,
-        trend: "up" as const,
-        trendValue: "+4%",
-        variant: "champion" as const,
+        variant: "default" as const,
       },
     ],
-    []
+    [],
   );
-
-  const handleAnalyticsClick = useCallback(() => {
-    console.log("Navigate to Analytics");
-  }, []);
-
-  const handleTradeAnalyzerClick = useCallback(() => {
-    console.log("Navigate to Trade Analyzer");
-  }, []);
 
   // No need for useMemo here: MOCK_TOP_PLAYERS is static. If this becomes dynamic or expensive, wrap in useMemo.
   const topPlayers = MOCK_TOP_PLAYERS;
@@ -107,10 +77,12 @@ const Dashboard: React.FC = () => {
       >
         {/* Welcome Header */}
         <motion.div variants={itemVariants} className="mb-8">
-          <h1 className="text-4xl font-bold text-white mb-2">
+          <h1
+            className={`text-4xl font-bold ${themeClasses.TEXT_PRIMARY} mb-2`}
+          >
             Welcome back, {user?.email?.split("@")[0] || "Coach"}
           </h1>
-          <p className="text-xl text-slate-400">
+          <p className={`text-xl ${themeClasses.TEXT_TERTIARY}`}>
             Ready to dominate your fantasy leagues with data-driven insights?
           </p>
         </motion.div>
@@ -121,7 +93,7 @@ const Dashboard: React.FC = () => {
         {/* Top Players Section */}
         <motion.div variants={itemVariants} className="space-y-6">
           <div className="flex items-center justify-between">
-            <h2 className="text-3xl font-bold text-white">
+            <h2 className={`text-3xl font-bold ${themeClasses.TEXT_PRIMARY}`}>
               Your Top Performers
             </h2>
             <button className="bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-2 rounded-lg font-medium transition-colors">
@@ -137,47 +109,6 @@ const Dashboard: React.FC = () => {
               );
             })}
           </div>
-        </motion.div>
-
-        {/* Features Section */}
-        <motion.div variants={itemVariants} className="space-y-6">
-          <h2 className="text-3xl font-bold text-white">Analytics & Tools</h2>
-
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <FeatureCard
-              title="Advanced Analytics"
-              description="Get deep insights into player performance, matchup analysis, and predictive modeling to make the smartest lineup decisions."
-              icon={Brain}
-              variant="premium"
-              onClick={handleAnalyticsClick}
-            />
-
-            <FeatureCard
-              title="Trade Analyzer"
-              description="Analyze potential trades with our AI-powered system that evaluates player values, team needs, and future projections."
-              icon={Target}
-              variant="elite"
-              onClick={handleTradeAnalyzerClick}
-            />
-          </div>
-        </motion.div>
-
-        {/* Call to Action */}
-        <motion.div
-          variants={itemVariants}
-          className="bg-slate-800/50 border border-slate-700/50 rounded-2xl p-8 text-center"
-        >
-          <h3 className="text-2xl font-bold text-white mb-4">
-            Ready to Take Your Fantasy Game to the Next Level?
-          </h3>
-          <p className="text-slate-400 mb-6 max-w-2xl mx-auto">
-            Our advanced analytics platform gives you the competitive edge you
-            need. Get powerful insights that will transform how you play fantasy
-            football.
-          </p>
-          <button className="bg-emerald-500 hover:bg-emerald-600 text-white px-8 py-3 rounded-lg font-medium transition-colors">
-            Explore Features
-          </button>
         </motion.div>
       </motion.div>
     </Layout>

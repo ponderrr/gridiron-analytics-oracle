@@ -19,9 +19,10 @@ import {
   Wrench,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { MESSAGE_CONSTANTS } from "@/lib/constants";
+import { MESSAGE_CONSTANTS, getThemeClasses } from "@/lib/constants";
 import useLocalStorage from "@/hooks/useLocalStorage";
 import { THEME_CONSTANTS } from "@/lib/constants";
+import { useTheme } from "@/contexts/ThemeContext";
 
 interface NavItemProps {
   href: string;
@@ -63,6 +64,8 @@ const ICONS = {
 const NavItem: React.FC<NavItemProps> = React.memo(
   ({ href, icon: Icon, label, comingSoon, isCollapsed }) => {
     const { pathname } = useLocation();
+    const { effectiveTheme } = useTheme();
+    const themeClasses = getThemeClasses(effectiveTheme);
     const isActive = pathname === href;
 
     if (isCollapsed) {
@@ -73,7 +76,7 @@ const NavItem: React.FC<NavItemProps> = React.memo(
             "flex items-center justify-center p-3 rounded-xl transition-all duration-200 group relative",
             isActive
               ? "bg-gradient-to-r from-emerald-500 to-blue-500 text-white shadow-lg shadow-emerald-500/25"
-              : "text-slate-400 hover:bg-slate-700/50 hover:text-white"
+              : `${themeClasses.TEXT_TERTIARY} ${themeClasses.BG_HOVER} hover:${themeClasses.TEXT_PRIMARY}`,
           )}
           title={label}
           aria-label={label}
@@ -95,7 +98,7 @@ const NavItem: React.FC<NavItemProps> = React.memo(
           "flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 group relative overflow-hidden",
           isActive
             ? "bg-gradient-to-r from-emerald-500 to-blue-500 text-white shadow-lg shadow-emerald-500/25"
-            : "text-slate-400 hover:bg-slate-700/50 hover:text-white"
+            : `${themeClasses.TEXT_TERTIARY} ${themeClasses.BG_HOVER} hover:${themeClasses.TEXT_PRIMARY}`,
         )}
         aria-label={label}
         aria-current={isActive ? "page" : undefined}
@@ -113,7 +116,7 @@ const NavItem: React.FC<NavItemProps> = React.memo(
         )}
       </Link>
     );
-  }
+  },
 );
 NavItem.displayName = "NavItem";
 
@@ -127,13 +130,17 @@ const NavSection: React.FC<NavSectionProps> = React.memo(
     sectionId,
   }) => {
     const [isOpen, setIsOpen] = useState(defaultOpen);
+    const { effectiveTheme } = useTheme();
+    const themeClasses = getThemeClasses(effectiveTheme);
     const handleToggle = useCallback(() => setIsOpen((open) => !open), []);
 
     if (isCollapsed) {
       return (
         <div className="space-y-2">
           {Icon && (
-            <div className="flex items-center justify-center p-2 text-slate-500">
+            <div
+              className={`flex items-center justify-center p-2 ${themeClasses.TEXT_MUTED}`}
+            >
               <Icon className="h-4 w-4" />
             </div>
           )}
@@ -146,7 +153,7 @@ const NavSection: React.FC<NavSectionProps> = React.memo(
       <div className="space-y-2">
         <button
           onClick={handleToggle}
-          className="flex items-center justify-between w-full px-3 py-2 text-xs font-bold text-slate-500 uppercase tracking-wider hover:text-slate-400 transition-colors"
+          className={`flex items-center justify-between w-full px-3 py-2 text-xs font-bold ${themeClasses.TEXT_MUTED} uppercase tracking-wider hover:${themeClasses.TEXT_TERTIARY} transition-colors`}
           aria-controls={sectionId}
           aria-expanded={isOpen}
         >
@@ -163,14 +170,14 @@ const NavSection: React.FC<NavSectionProps> = React.memo(
         <div
           className={cn(
             "space-y-1 transition-all duration-200 overflow-hidden",
-            isOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
+            isOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0",
           )}
         >
           {children}
         </div>
       </div>
     );
-  }
+  },
 );
 NavSection.displayName = "NavSection";
 
@@ -212,12 +219,6 @@ const NAV_SECTIONS_CONFIG = [
     icon: ICONS.target,
     items: [
       {
-        href: MESSAGE_CONSTANTS.NAV_PATHS.LEAGUE,
-        icon: ICONS.trophy,
-        label: MESSAGE_CONSTANTS.NAV_ITEMS.LEAGUE,
-        comingSoon: true,
-      },
-      {
         href: MESSAGE_CONSTANTS.NAV_PATHS.ADMIN,
         icon: ICONS.shield,
         label: MESSAGE_CONSTANTS.NAV_ITEMS.ADMIN_PANEL,
@@ -243,9 +244,11 @@ const NAV_SECTIONS_CONFIG = [
 ];
 
 const AppSidebar: React.FC = () => {
+  const { effectiveTheme } = useTheme();
+  const themeClasses = getThemeClasses(effectiveTheme);
   const [isCollapsed, setIsCollapsed] = useLocalStorage(
     "sidebar-collapsed",
-    false
+    false,
   );
   // Inline sidebar width effect
   React.useEffect(() => {
@@ -253,28 +256,35 @@ const AppSidebar: React.FC = () => {
       "--sidebar-width",
       isCollapsed
         ? THEME_CONSTANTS.SIDEBAR_COLLAPSED_WIDTH_CSS_PX
-        : THEME_CONSTANTS.SIDEBAR_EXPANDED_WIDTH_PX
+        : THEME_CONSTANTS.SIDEBAR_EXPANDED_WIDTH_PX,
     );
   }, [isCollapsed]);
   const toggleSidebar = React.useCallback(
     () => setIsCollapsed((v: boolean) => !v),
-    [setIsCollapsed]
+    [setIsCollapsed],
   );
   const navSections = NAV_SECTIONS_CONFIG;
 
   return (
     <nav
       className={cn(
-        "bg-gradient-to-b from-slate-800 to-slate-900 border-r border-slate-700/50 transition-all duration-300 flex flex-col h-screen flex-shrink-0 relative fixed left-0 top-0 z-30",
-        isCollapsed ? "w-20" : "w-72"
+        `${themeClasses.BG_SIDEBAR} border-r ${themeClasses.BORDER} transition-all duration-300 flex flex-col h-screen flex-shrink-0 relative fixed left-0 top-0 z-30`,
+        isCollapsed ? "w-20" : "w-72",
+        effectiveTheme === "dark"
+          ? "bg-gradient-to-b from-slate-800 to-slate-900"
+          : "bg-gradient-to-b from-slate-50 to-slate-100",
       )}
       role="navigation"
       aria-label="Main sidebar navigation"
     >
       {/* Decorative gradient overlay */}
-      <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 via-transparent to-blue-500/5 pointer-events-none" />
+      <div
+        className={`absolute inset-0 ${effectiveTheme === "dark" ? "bg-gradient-to-br from-emerald-500/5 via-transparent to-blue-500/5" : "bg-gradient-to-br from-emerald-500/2 via-transparent to-blue-500/2"} pointer-events-none`}
+      />
       {/* Header Section */}
-      <div className="flex items-center justify-between px-4 py-4 border-b border-slate-700/50 relative z-10">
+      <div
+        className={`flex items-center justify-between px-4 py-4 border-b ${themeClasses.BORDER} relative z-10`}
+      >
         {!isCollapsed && (
           <Link
             to="/dashboard"
@@ -282,7 +292,11 @@ const AppSidebar: React.FC = () => {
             aria-label="Go to dashboard home"
           >
             <div>
-              <span className="text-xl font-black text-white">FF META</span>
+              <span
+                className={`text-xl font-black ${themeClasses.TEXT_PRIMARY}`}
+              >
+                FF META
+              </span>
               <div className="text-xs text-emerald-400 font-medium">
                 {MESSAGE_CONSTANTS.DOMINATE_LEAGUE}
               </div>
@@ -293,7 +307,7 @@ const AppSidebar: React.FC = () => {
           onClick={toggleSidebar}
           aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
           aria-expanded={!isCollapsed}
-          className="p-2 rounded-lg hover:bg-slate-700/50 transition-all duration-200 text-slate-400 hover:text-white flex-shrink-0 focus:ring-2 focus:ring-emerald-400 focus:outline-none"
+          className={`p-2 rounded-lg ${themeClasses.BG_HOVER} transition-all duration-200 ${themeClasses.TEXT_TERTIARY} hover:${themeClasses.TEXT_PRIMARY} flex-shrink-0 focus:ring-2 focus:ring-emerald-400 focus:outline-none`}
           tabIndex={0}
         >
           {isCollapsed ? (
@@ -329,42 +343,15 @@ const AppSidebar: React.FC = () => {
         })}
       </ul>
       {/* Footer Section */}
-      {!isCollapsed && (
-        <div className="px-4 py-4 border-t border-slate-700/50 relative z-10">
-          <div className="bg-gradient-to-r from-emerald-500/10 to-blue-500/10 border border-emerald-500/20 rounded-xl p-3">
-            <div className="flex items-center space-x-2 mb-2">
-              <ICONS.zap className="h-4 w-4 text-emerald-400" />
-              <span className="text-sm font-bold text-emerald-400">
-                {MESSAGE_CONSTANTS.PRO_TIER_TITLE}
-              </span>
-            </div>
-            <p className="text-xs text-slate-400 mb-3">
-              {MESSAGE_CONSTANTS.PRO_TIER_DESCRIPTION}
-            </p>
-            <button
-              className="w-full bg-gradient-to-r from-emerald-500 to-blue-500 text-white text-xs font-bold py-2 px-3 rounded-lg hover:from-emerald-600 hover:to-blue-600 transition-all duration-200 focus:ring-2 focus:ring-emerald-400 focus:outline-none"
-              aria-label="Upgrade to Pro"
-            >
-              {MESSAGE_CONSTANTS.UPGRADE_NOW_LABEL}
-            </button>
-          </div>
-          <div className="mt-3 text-center">
-            <p className="text-xs text-slate-500">
-              &copy; {new Date().getFullYear()} {MESSAGE_CONSTANTS.APP_NAME}
-            </p>
-          </div>
+      <div
+        className={`px-4 py-4 border-t ${themeClasses.BORDER} relative z-10`}
+      >
+        <div className="text-center">
+          <p className={`text-xs ${themeClasses.TEXT_MUTED}`}>
+            &copy; {new Date().getFullYear()} {MESSAGE_CONSTANTS.APP_NAME}
+          </p>
         </div>
-      )}
-      {/* Collapsed footer */}
-      {isCollapsed && (
-        <div className="px-2 py-4 border-t border-slate-700/50 relative z-10">
-          <div className="flex justify-center">
-            <div className="bg-gradient-to-r from-emerald-500 to-blue-500 p-2 rounded-lg">
-              <ICONS.zap className="h-4 w-4 text-white" />
-            </div>
-          </div>
-        </div>
-      )}
+      </div>
     </nav>
   );
 };

@@ -29,7 +29,12 @@ import {
 import { DEFAULT_SCORING_SETTINGS } from "@/lib/fantasyPoints.constants";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import ErrorBoundary from "@/components/ErrorBoundary";
-import { MESSAGE_CONSTANTS, UI_CONSTANTS } from "@/lib/constants";
+import {
+  MESSAGE_CONSTANTS,
+  UI_CONSTANTS,
+  getThemeClasses,
+} from "@/lib/constants";
+import { useTheme } from "@/contexts/ThemeContext";
 
 // Form state interface for string values
 interface WeeklyStatsFormInput {
@@ -45,6 +50,9 @@ interface WeeklyStatsFormInput {
 }
 
 const FantasyPointsTest: React.FC = () => {
+  const { effectiveTheme } = useTheme();
+  const themeClasses = getThemeClasses(effectiveTheme);
+
   const [stats, setStats] = useState<WeeklyStatsFormInput>({
     passing_yards: "",
     passing_tds: "",
@@ -66,7 +74,7 @@ const FantasyPointsTest: React.FC = () => {
 
   const handleStatChange = (
     field: keyof WeeklyStatsFormInput,
-    value: string
+    value: string,
   ) => {
     setStats((prev) => ({
       ...prev,
@@ -109,12 +117,12 @@ const FantasyPointsTest: React.FC = () => {
           ...acc,
           [key]: value.trim() === "" ? 0 : Number(value),
         }),
-        {} as import("@/lib/fantasyPoints").WeeklyStatsInput
+        {} as import("@/lib/fantasyPoints").WeeklyStatsInput,
       );
 
       const calculatedResult = await calculateFantasyPoints(
         parsedStats,
-        DEFAULT_SCORING_SETTINGS[scoringFormat]
+        DEFAULT_SCORING_SETTINGS[scoringFormat],
       );
 
       setResult(calculatedResult);
@@ -157,11 +165,13 @@ const FantasyPointsTest: React.FC = () => {
       >
         {/* Header */}
         <motion.div variants={itemVariants}>
-          <h1 className="text-4xl font-bold text-white flex items-center">
+          <h1
+            className={`text-4xl font-bold ${themeClasses.TEXT_PRIMARY} flex items-center`}
+          >
             <Calculator className="h-8 w-8 mr-3 text-emerald-400" />
             Fantasy Points Calculator
           </h1>
-          <p className="text-slate-400 mt-1">
+          <p className={`${themeClasses.TEXT_TERTIARY} mt-1`}>
             Calculate fantasy points with our advanced scoring engine
           </p>
         </motion.div>
@@ -172,20 +182,24 @@ const FantasyPointsTest: React.FC = () => {
           className="grid grid-cols-1 lg:grid-cols-2 gap-6"
         >
           {/* Input Card */}
-          <Card className="p-6 bg-gradient-to-br from-blue-900/30 to-slate-800/50 border-blue-500/30">
+          <Card
+            className={`p-6 ${themeClasses.BG_CARD} border ${themeClasses.BORDER} ${effectiveTheme === "dark" ? "bg-gradient-to-br from-blue-900/30 to-slate-800/50 border-blue-500/30" : "bg-gradient-to-br from-blue-50/30 to-slate-50/50 border-blue-200/30"}`}
+          >
             <div className="flex items-center space-x-3 mb-6">
               <Brain className="h-6 w-6 text-emerald-400" />
-              <h3 className="text-lg font-semibold text-white">
+              <h3
+                className={`text-lg font-semibold ${themeClasses.TEXT_PRIMARY}`}
+              >
                 Player Statistics
               </h3>
             </div>
 
-            <div className="space-y-6">
-              {/* Sample Data Buttons */}
-              <div className="sticky top-0 bg-slate-900/95 backdrop-blur-sm z-10 -mx-6 px-6 py-4 border-b border-slate-700/50">
+            <div className="space-y-6 pb-20">
+              {/* Calculate Button - Fixed Position */}
+              <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-20 w-[calc(100%-3rem)] max-w-xl">
                 <Button
                   onClick={handleCalculate}
-                  className="w-full bg-emerald-500 hover:bg-emerald-600"
+                  className="w-full bg-emerald-500 hover:bg-emerald-600 py-6 text-lg shadow-lg"
                   disabled={isCalculating}
                 >
                   {isCalculating ? (
@@ -204,7 +218,10 @@ const FantasyPointsTest: React.FC = () => {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="passing_yards" className="text-slate-300">
+                    <Label
+                      htmlFor="passing_yards"
+                      className={themeClasses.TEXT_SECONDARY}
+                    >
                       Passing Yards
                     </Label>
                     <Input
@@ -214,11 +231,14 @@ const FantasyPointsTest: React.FC = () => {
                       onChange={(e) =>
                         handleStatChange("passing_yards", e.target.value)
                       }
-                      className="bg-slate-800 border-slate-600 text-white"
+                      className={`${themeClasses.BG_SECONDARY} border ${themeClasses.BORDER} ${themeClasses.TEXT_PRIMARY}`}
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="passing_tds" className="text-slate-300">
+                    <Label
+                      htmlFor="passing_tds"
+                      className={themeClasses.TEXT_SECONDARY}
+                    >
                       Passing TDs
                     </Label>
                     <Input
@@ -228,13 +248,13 @@ const FantasyPointsTest: React.FC = () => {
                       onChange={(e) =>
                         handleStatChange("passing_tds", e.target.value)
                       }
-                      className="bg-slate-800 border-slate-600 text-white"
+                      className={`${themeClasses.BG_SECONDARY} border ${themeClasses.BORDER} ${themeClasses.TEXT_PRIMARY}`}
                     />
                   </div>
                   <div className="col-span-2 space-y-2">
                     <Label
                       htmlFor="passing_interceptions"
-                      className="text-slate-300"
+                      className={themeClasses.TEXT_SECONDARY}
                     >
                       Interceptions
                     </Label>
@@ -245,10 +265,10 @@ const FantasyPointsTest: React.FC = () => {
                       onChange={(e) =>
                         handleStatChange(
                           "passing_interceptions",
-                          e.target.value
+                          e.target.value,
                         )
                       }
-                      className="bg-slate-800 border-slate-600 text-white"
+                      className={`${themeClasses.BG_SECONDARY} border ${themeClasses.BORDER} ${themeClasses.TEXT_PRIMARY}`}
                     />
                   </div>
                 </div>
@@ -262,7 +282,10 @@ const FantasyPointsTest: React.FC = () => {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="rushing_yards" className="text-slate-300">
+                    <Label
+                      htmlFor="rushing_yards"
+                      className={themeClasses.TEXT_SECONDARY}
+                    >
                       Rushing Yards
                     </Label>
                     <Input
@@ -272,11 +295,14 @@ const FantasyPointsTest: React.FC = () => {
                       onChange={(e) =>
                         handleStatChange("rushing_yards", e.target.value)
                       }
-                      className="bg-slate-800 border-slate-600 text-white"
+                      className={`${themeClasses.BG_SECONDARY} border ${themeClasses.BORDER} ${themeClasses.TEXT_PRIMARY}`}
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="rushing_tds" className="text-slate-300">
+                    <Label
+                      htmlFor="rushing_tds"
+                      className={themeClasses.TEXT_SECONDARY}
+                    >
                       Rushing TDs
                     </Label>
                     <Input
@@ -286,7 +312,7 @@ const FantasyPointsTest: React.FC = () => {
                       onChange={(e) =>
                         handleStatChange("rushing_tds", e.target.value)
                       }
-                      className="bg-slate-800 border-slate-600 text-white"
+                      className={`${themeClasses.BG_SECONDARY} border ${themeClasses.BORDER} ${themeClasses.TEXT_PRIMARY}`}
                     />
                   </div>
                 </div>
@@ -300,7 +326,10 @@ const FantasyPointsTest: React.FC = () => {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="receiving_yards" className="text-slate-300">
+                    <Label
+                      htmlFor="receiving_yards"
+                      className={themeClasses.TEXT_SECONDARY}
+                    >
                       Receiving Yards
                     </Label>
                     <Input
@@ -310,11 +339,14 @@ const FantasyPointsTest: React.FC = () => {
                       onChange={(e) =>
                         handleStatChange("receiving_yards", e.target.value)
                       }
-                      className="bg-slate-800 border-slate-600 text-white"
+                      className={`${themeClasses.BG_SECONDARY} border ${themeClasses.BORDER} ${themeClasses.TEXT_PRIMARY}`}
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="receiving_tds" className="text-slate-300">
+                    <Label
+                      htmlFor="receiving_tds"
+                      className={themeClasses.TEXT_SECONDARY}
+                    >
                       Receiving TDs
                     </Label>
                     <Input
@@ -324,11 +356,14 @@ const FantasyPointsTest: React.FC = () => {
                       onChange={(e) =>
                         handleStatChange("receiving_tds", e.target.value)
                       }
-                      className="bg-slate-800 border-slate-600 text-white"
+                      className={`${themeClasses.BG_SECONDARY} border ${themeClasses.BORDER} ${themeClasses.TEXT_PRIMARY}`}
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="receptions" className="text-slate-300">
+                    <Label
+                      htmlFor="receptions"
+                      className={themeClasses.TEXT_SECONDARY}
+                    >
                       Receptions
                     </Label>
                     <Input
@@ -338,11 +373,14 @@ const FantasyPointsTest: React.FC = () => {
                       onChange={(e) =>
                         handleStatChange("receptions", e.target.value)
                       }
-                      className="bg-slate-800 border-slate-600 text-white"
+                      className={`${themeClasses.BG_SECONDARY} border ${themeClasses.BORDER} ${themeClasses.TEXT_PRIMARY}`}
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="fumbles_lost" className="text-slate-300">
+                    <Label
+                      htmlFor="fumbles_lost"
+                      className={themeClasses.TEXT_SECONDARY}
+                    >
                       Fumbles Lost
                     </Label>
                     <Input
@@ -352,7 +390,7 @@ const FantasyPointsTest: React.FC = () => {
                       onChange={(e) =>
                         handleStatChange("fumbles_lost", e.target.value)
                       }
-                      className="bg-slate-800 border-slate-600 text-white"
+                      className={`${themeClasses.BG_SECONDARY} border ${themeClasses.BORDER} ${themeClasses.TEXT_PRIMARY}`}
                     />
                   </div>
                 </div>
@@ -360,17 +398,23 @@ const FantasyPointsTest: React.FC = () => {
 
               {/* Scoring Format */}
               <div className="space-y-3">
-                <Label className="text-slate-300">Scoring Format</Label>
+                <Label className={themeClasses.TEXT_SECONDARY}>
+                  Scoring Format
+                </Label>
                 <Select
                   value={scoringFormat}
                   onValueChange={(value: "standard" | "ppr" | "half_ppr") =>
                     setScoringFormat(value)
                   }
                 >
-                  <SelectTrigger className="bg-slate-800 border-slate-600 text-white">
+                  <SelectTrigger
+                    className={`${themeClasses.BG_SECONDARY} border ${themeClasses.BORDER} ${themeClasses.TEXT_PRIMARY}`}
+                  >
                     <SelectValue />
                   </SelectTrigger>
-                  <SelectContent className="bg-slate-700 border-slate-600">
+                  <SelectContent
+                    className={`${themeClasses.BG_CARD} border ${themeClasses.BORDER}`}
+                  >
                     <SelectItem value="standard">Standard</SelectItem>
                     <SelectItem value="ppr">
                       PPR (Point Per Reception)
@@ -391,65 +435,89 @@ const FantasyPointsTest: React.FC = () => {
           </Card>
 
           {/* Results Card */}
-          <Card className="p-6 bg-gradient-to-br from-purple-900/30 to-slate-800/50 border-purple-500/30">
+          <Card
+            className={`p-6 ${themeClasses.BG_CARD} border ${themeClasses.BORDER} ${effectiveTheme === "dark" ? "bg-gradient-to-br from-purple-900/30 to-slate-800/50 border-purple-500/30" : "bg-gradient-to-br from-purple-50/30 to-slate-50/50 border-purple-200/30"}`}
+          >
             <div className="flex items-center space-x-3 mb-6">
               <BarChart3 className="h-6 w-6 text-blue-400" />
-              <h3 className="text-lg font-semibold text-white">
+              <h3
+                className={`text-lg font-semibold ${themeClasses.TEXT_PRIMARY}`}
+              >
                 Fantasy Points Result
               </h3>
             </div>
 
             {result ? (
               <div className="space-y-6">
-                <div className="text-center p-8 bg-slate-800/50 rounded-xl">
+                <div
+                  className={`text-center p-8 ${themeClasses.BG_SECONDARY} rounded-xl`}
+                >
                   <div className="text-5xl font-bold text-emerald-400 mb-2">
                     {result.total_points}
                   </div>
-                  <p className="text-slate-400">
+                  <p className={themeClasses.TEXT_TERTIARY}>
                     Total Fantasy Points ({result.scoring_format})
                   </p>
                 </div>
 
-                <Separator className="bg-slate-700" />
+                <Separator className={themeClasses.BORDER} />
 
                 <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-white">
+                  <h3
+                    className={`text-lg font-semibold ${themeClasses.TEXT_PRIMARY}`}
+                  >
                     Points Breakdown
                   </h3>
 
                   <div className="grid grid-cols-2 gap-4">
-                    <div className="bg-slate-800/50 p-4 rounded-lg">
+                    <div
+                      className={`${themeClasses.BG_SECONDARY} p-4 rounded-lg`}
+                    >
                       <div className="flex justify-between items-center">
-                        <span className="text-slate-400">Passing</span>
+                        <span className={themeClasses.TEXT_TERTIARY}>
+                          Passing
+                        </span>
                         <span className="text-emerald-400 font-medium text-lg">
                           {result.breakdown.passing_points}
                         </span>
                       </div>
                     </div>
-                    <div className="bg-slate-800/50 p-4 rounded-lg">
+                    <div
+                      className={`${themeClasses.BG_SECONDARY} p-4 rounded-lg`}
+                    >
                       <div className="flex justify-between items-center">
-                        <span className="text-slate-400">Rushing</span>
+                        <span className={themeClasses.TEXT_TERTIARY}>
+                          Rushing
+                        </span>
                         <span className="text-blue-400 font-medium text-lg">
                           {result.breakdown.rushing_points}
                         </span>
                       </div>
                     </div>
-                    <div className="bg-slate-800/50 p-4 rounded-lg">
+                    <div
+                      className={`${themeClasses.BG_SECONDARY} p-4 rounded-lg`}
+                    >
                       <div className="flex justify-between items-center">
-                        <span className="text-slate-400">Receiving</span>
+                        <span className={themeClasses.TEXT_TERTIARY}>
+                          Receiving
+                        </span>
                         <span className="text-purple-400 font-medium text-lg">
                           {result.breakdown.receiving_points}
                         </span>
                       </div>
                     </div>
-                    <div className="bg-slate-800/50 p-4 rounded-lg">
+                    <div
+                      className={`${themeClasses.BG_SECONDARY} p-4 rounded-lg`}
+                    >
                       <div className="flex justify-between items-center">
-                        <span className="text-slate-400">Penalties</span>
+                        <span className={themeClasses.TEXT_TERTIARY}>
+                          Penalties
+                        </span>
                         <span
                           className={`font-medium text-lg ${
                             result.breakdown.penalty_points < 0
                               ? "text-red-400"
-                              : "text-white"
+                              : themeClasses.TEXT_PRIMARY
                           }`}
                         >
                           {result.breakdown.penalty_points}
@@ -459,13 +527,19 @@ const FantasyPointsTest: React.FC = () => {
                   </div>
                 </div>
 
-                <Separator className="bg-slate-700" />
+                <Separator className={themeClasses.BORDER} />
 
-                <div className="space-y-3 bg-slate-800/50 p-4 rounded-lg">
-                  <p className="text-sm font-semibold text-white">
+                <div
+                  className={`space-y-3 ${themeClasses.BG_SECONDARY} p-4 rounded-lg`}
+                >
+                  <p
+                    className={`text-sm font-semibold ${themeClasses.TEXT_PRIMARY}`}
+                  >
                     Scoring Rules:
                   </p>
-                  <div className="space-y-2 text-xs text-slate-400">
+                  <div
+                    className={`space-y-2 text-xs ${themeClasses.TEXT_TERTIARY}`}
+                  >
                     <p>• Passing: 1 pt/25 yds, 6 pts/TD, -2 pts/INT</p>
                     <p>• Rushing/Receiving: 1 pt/10 yds, 6 pts/TD</p>
                     <p>
@@ -473,8 +547,8 @@ const FantasyPointsTest: React.FC = () => {
                       {scoringFormat === "ppr"
                         ? "1 pt"
                         : scoringFormat === "half_ppr"
-                        ? "0.5 pts"
-                        : "0 pts"}
+                          ? "0.5 pts"
+                          : "0 pts"}
                     </p>
                     <p>• Fumbles Lost: -2 pts</p>
                   </div>
@@ -484,8 +558,10 @@ const FantasyPointsTest: React.FC = () => {
               <div
                 className={`flex flex-col items-center justify-center ${UI_CONSTANTS.HEIGHT.MIN_400} text-center`}
               >
-                <BarChart3 className="h-16 w-16 text-slate-600 mb-4" />
-                <p className="text-slate-400">
+                <BarChart3
+                  className={`h-16 w-16 ${themeClasses.TEXT_MUTED} mb-4`}
+                />
+                <p className={themeClasses.TEXT_TERTIARY}>
                   Enter player statistics and click "Calculate Fantasy Points"
                   to see the results.
                 </p>

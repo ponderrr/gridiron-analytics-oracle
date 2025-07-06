@@ -5,6 +5,8 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { GripVertical, Plus, X } from "lucide-react";
+import { useTheme } from "@/contexts/ThemeContext";
+import { getThemeClasses } from "@/lib/constants";
 
 /**
  * Props for the unified PlayerCard component.
@@ -59,15 +61,24 @@ const TIER_LABEL_SUBSTRINGS: Record<TierVariant, string[]> = {
   [TierVariant.Default]: [],
 };
 
-const cardVariants = {
-  [TierVariant.Default]: "bg-slate-800/50 border-slate-700/50",
+const getCardVariants = (theme: "light" | "dark") => ({
+  [TierVariant.Default]:
+    theme === "dark"
+      ? "bg-slate-800/50 border-slate-700/50"
+      : "bg-white border-slate-200",
   [TierVariant.Premium]:
-    "bg-gradient-to-br from-blue-900/30 to-slate-800/50 border-blue-500/30",
+    theme === "dark"
+      ? "bg-gradient-to-br from-blue-900/30 to-slate-800/50 border-blue-500/30"
+      : "bg-gradient-to-br from-blue-50/30 to-white border-blue-200/30",
   [TierVariant.Elite]:
-    "bg-gradient-to-br from-purple-900/30 to-slate-800/50 border-purple-500/30",
+    theme === "dark"
+      ? "bg-gradient-to-br from-purple-900/30 to-slate-800/50 border-purple-500/30"
+      : "bg-gradient-to-br from-purple-50/30 to-white border-purple-200/30",
   [TierVariant.Champion]:
-    "bg-gradient-to-br from-yellow-900/30 to-slate-800/50 border-yellow-500/30",
-};
+    theme === "dark"
+      ? "bg-gradient-to-br from-yellow-900/30 to-slate-800/50 border-yellow-500/30"
+      : "bg-gradient-to-br from-yellow-50/30 to-white border-yellow-200/30",
+});
 
 const getPositionColor = (position: string) => {
   switch (position) {
@@ -135,6 +146,10 @@ const PLAYER_CARD_GRID_BG =
   "url(\"data:image/svg+xml,%3Csvg width='20' height='20' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3Cpattern id='grid' width='20' height='20' patternUnits='userSpaceOnUse'%3E%3Cpath d='M 20 0 L 0 0 0 20' fill='none' stroke='white' stroke-width='0.5'/%3E%3C/pattern%3E%3C/defs%3E%3Crect width='100%25' height='100%25' fill='url(%23grid)' /%3E%3C/svg%3E\")";
 
 const PlayerCard: React.FC<UnifiedPlayerCardProps> = React.memo((props) => {
+  const { effectiveTheme } = useTheme();
+  const themeClasses = getThemeClasses(effectiveTheme);
+  const cardVariants = getCardVariants(effectiveTheme);
+
   // Accessibility: Announce drag events
   const liveRegionRef = useRef<HTMLDivElement>(null);
   const announce = (msg: string) => {
@@ -165,9 +180,9 @@ const PlayerCard: React.FC<UnifiedPlayerCardProps> = React.memo((props) => {
         className={cn(
           "p-3 transition-all duration-200",
           isDragging
-            ? "bg-slate-700/80 border-primary/50 shadow-lg"
-            : "bg-slate-800/50 border-slate-700/50 hover:bg-slate-700/50",
-          className
+            ? `${themeClasses.BG_TERTIARY} border-primary/50 shadow-lg`
+            : `${themeClasses.BG_CARD} border ${themeClasses.BORDER} ${themeClasses.BG_HOVER}`,
+          className,
         )}
       >
         {/* ARIA live region for announcements */}
@@ -219,7 +234,11 @@ const PlayerCard: React.FC<UnifiedPlayerCardProps> = React.memo((props) => {
 
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1">
-              <h4 className="font-medium text-white truncate">{player.name}</h4>
+              <h4
+                className={`font-medium ${themeClasses.TEXT_PRIMARY} truncate`}
+              >
+                {player.name}
+              </h4>
               <Badge
                 variant="outline"
                 className={getPositionColor(player.position)}
@@ -230,7 +249,9 @@ const PlayerCard: React.FC<UnifiedPlayerCardProps> = React.memo((props) => {
                 {player.team}
               </Badge>
             </div>
-            <div className="flex items-center gap-2 text-xs text-slate-400">
+            <div
+              className={`flex items-center gap-2 text-xs ${themeClasses.TEXT_TERTIARY}`}
+            >
               {player.bye_week && <span>Bye: {player.bye_week}</span>}
               {player.fantasy_points && (
                 <span>FP: {player.fantasy_points.toFixed(1)}</span>
@@ -252,7 +273,7 @@ const PlayerCard: React.FC<UnifiedPlayerCardProps> = React.memo((props) => {
                   onRemoveFromRankings?.(player.id);
                   announce(`Removed ${player.name} from rankings`);
                 }}
-                className="h-8 w-8 p-0 text-red-400 hover:text-red-300 hover:bg-red-500/20 focus:ring-2 focus:ring-red-400 focus:outline-none"
+                className={`h-8 w-8 p-0 text-red-400 hover:text-red-300 hover:bg-red-500/20 focus:ring-2 focus:ring-red-400 focus:outline-none`}
                 aria-label={`Remove ${player.name} from rankings`}
               >
                 <X className="h-4 w-4" />
@@ -265,7 +286,7 @@ const PlayerCard: React.FC<UnifiedPlayerCardProps> = React.memo((props) => {
                   onAddToRankings?.(player);
                   announce(`Added ${player.name} to rankings`);
                 }}
-                className="h-8 w-8 p-0 text-green-400 hover:text-green-300 hover:bg-green-500/20 focus:ring-2 focus:ring-green-400 focus:outline-none"
+                className={`h-8 w-8 p-0 text-green-400 hover:text-green-300 hover:bg-green-500/20 focus:ring-2 focus:ring-green-400 focus:outline-none`}
                 aria-label={`Add ${player.name} to rankings`}
               >
                 <Plus className="h-4 w-4" />
@@ -298,7 +319,7 @@ const PlayerCard: React.FC<UnifiedPlayerCardProps> = React.memo((props) => {
       className={cn(
         "rounded-2xl border backdrop-blur-sm transition-all duration-300",
         cardVariants[variant],
-        className
+        className,
       )}
       role="region"
       aria-label={`Player card for ${name}, ${position} on ${team}`}
@@ -316,7 +337,9 @@ const PlayerCard: React.FC<UnifiedPlayerCardProps> = React.memo((props) => {
         <div className="relative z-10">
           <div className="mb-4">
             <div className="flex items-center justify-between mb-2">
-              <h3 className="text-xl font-bold text-white">{name}</h3>
+              <h3 className={`text-xl font-bold ${themeClasses.TEXT_PRIMARY}`}>
+                {name}
+              </h3>
               {tierLabel && (
                 <span
                   className={cn(
@@ -328,7 +351,7 @@ const PlayerCard: React.FC<UnifiedPlayerCardProps> = React.memo((props) => {
                     variant === TierVariant.Champion &&
                       "bg-yellow-500/20 text-yellow-400",
                     variant === TierVariant.Default &&
-                      "bg-emerald-500/20 text-emerald-400"
+                      "bg-emerald-500/20 text-emerald-400",
                   )}
                 >
                   {tierLabel}
@@ -337,15 +360,19 @@ const PlayerCard: React.FC<UnifiedPlayerCardProps> = React.memo((props) => {
             </div>
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
-                <span className="bg-slate-700 text-white px-2 py-1 rounded text-sm font-medium">
+                <span
+                  className={`${themeClasses.BG_TERTIARY} ${themeClasses.TEXT_PRIMARY} px-2 py-1 rounded text-sm font-medium`}
+                >
                   {position}
                 </span>
-                <span className="text-slate-400 font-medium">{team}</span>
+                <span className={`${themeClasses.TEXT_TERTIARY} font-medium`}>
+                  {team}
+                </span>
               </div>
               <span
                 className={cn(
                   "px-2 py-1 rounded text-xs font-medium",
-                  getStatusColor(status)
+                  getStatusColor(status),
                 )}
               >
                 {(status || "active").toUpperCase()}
@@ -354,19 +381,31 @@ const PlayerCard: React.FC<UnifiedPlayerCardProps> = React.memo((props) => {
           </div>
           <div className="grid grid-cols-2 gap-4">
             {projection && (
-              <div className="bg-slate-900/50 rounded-lg p-3 text-center">
-                <div className="text-xl font-bold text-white mb-1">
+              <div
+                className={`${themeClasses.BG_SECONDARY} rounded-lg p-3 text-center`}
+              >
+                <div
+                  className={`text-xl font-bold ${themeClasses.TEXT_PRIMARY} mb-1`}
+                >
                   {projection}
                 </div>
-                <div className="text-xs text-slate-400">PROJECTED</div>
+                <div className={`text-xs ${themeClasses.TEXT_TERTIARY}`}>
+                  PROJECTED
+                </div>
               </div>
             )}
             {points && (
-              <div className="bg-slate-900/50 rounded-lg p-3 text-center">
-                <div className="text-xl font-bold text-white mb-1">
+              <div
+                className={`${themeClasses.BG_SECONDARY} rounded-lg p-3 text-center`}
+              >
+                <div
+                  className={`text-xl font-bold ${themeClasses.TEXT_PRIMARY} mb-1`}
+                >
                   {points}
                 </div>
-                <div className="text-xs text-slate-400">LAST WEEK</div>
+                <div className={`text-xs ${themeClasses.TEXT_TERTIARY}`}>
+                  LAST WEEK
+                </div>
               </div>
             )}
           </div>
@@ -377,7 +416,7 @@ const PlayerCard: React.FC<UnifiedPlayerCardProps> = React.memo((props) => {
                   "text-sm font-medium flex items-center px-3 py-1 rounded-lg",
                   trend === "up" && "text-emerald-400 bg-emerald-500/20",
                   trend === "down" && "text-red-400 bg-red-500/20",
-                  trend === "neutral" && "text-slate-400 bg-slate-500/20"
+                  trend === "neutral" && "text-slate-400 bg-slate-500/20",
                 )}
               >
                 {trendValue} vs Avg

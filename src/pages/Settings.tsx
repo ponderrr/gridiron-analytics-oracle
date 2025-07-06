@@ -12,13 +12,24 @@ import {
 } from "lucide-react";
 import Layout from "../components/Layout";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTheme } from "@/contexts/ThemeContext";
 import { Card } from "../components/ui/card";
-import { THEME_CONSTANTS } from "@/lib/constants";
+import { THEME_CONSTANTS, getThemeClasses } from "@/lib/constants";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+
 const Settings: React.FC = () => {
   const { user } = useAuth();
+  const { theme, setTheme, effectiveTheme } = useTheme();
+  const themeClasses = getThemeClasses(effectiveTheme);
   const [isEditing, setIsEditing] = useState(false);
   const [displayName, setDisplayName] = useState(
-    user?.email?.split("@")[0] || ""
+    user?.email?.split("@")[0] || "",
   );
 
   const containerVariants = {
@@ -53,14 +64,14 @@ const Settings: React.FC = () => {
         {/* Header */}
         <motion.div variants={itemVariants}>
           <h1
-            className={`${THEME_CONSTANTS.TEXT_SIZES.FOUR_XL} font-bold text-white flex items-center`}
+            className={`${THEME_CONSTANTS.TEXT_SIZES.FOUR_XL} font-bold ${themeClasses.TEXT_PRIMARY} flex items-center`}
           >
             <SettingsIcon
               className={`${THEME_CONSTANTS.ICON_SIZES.XL} mr-3 text-emerald-400`}
             />
             Settings
           </h1>
-          <p className="text-slate-400 mt-1">
+          <p className={`${themeClasses.TEXT_TERTIARY} mt-1`}>
             Manage your account and preferences
           </p>
         </motion.div>
@@ -72,35 +83,41 @@ const Settings: React.FC = () => {
         >
           {/* Profile Settings */}
           <motion.div variants={itemVariants}>
-            <Card className={THEME_CONSTANTS.PADDING.XL}>
+            <Card
+              className={`${THEME_CONSTANTS.PADDING.XL} ${themeClasses.BG_CARD} border ${themeClasses.BORDER}`}
+            >
               <div className="flex items-center space-x-3 mb-6">
                 <User
                   className={`${THEME_CONSTANTS.ICON_SIZES.LG} text-emerald-400`}
                 />
-                <h3 className="text-lg font-semibold text-white">Profile</h3>
+                <h3
+                  className={`text-lg font-semibold ${themeClasses.TEXT_PRIMARY}`}
+                >
+                  Profile
+                </h3>
               </div>
               <div className="space-y-4">
                 <div className="relative">
                   <Mail
-                    className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${THEME_CONSTANTS.ICON_SIZES.MD} text-slate-400`}
+                    className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${THEME_CONSTANTS.ICON_SIZES.MD} ${themeClasses.TEXT_TERTIARY}`}
                   />
                   <input
                     type="email"
                     value={user?.email || ""}
                     disabled
-                    className="w-full pl-10 pr-4 py-3 bg-slate-800 border border-slate-600 rounded-lg text-slate-400"
+                    className={`w-full pl-10 pr-4 py-3 ${themeClasses.BG_SECONDARY} border ${themeClasses.BORDER} rounded-lg ${themeClasses.TEXT_TERTIARY}`}
                   />
                 </div>
                 <div className="relative">
                   <User
-                    className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${THEME_CONSTANTS.ICON_SIZES.MD} text-slate-400`}
+                    className={`absolute left-3 top-1/2 transform -translate-y-1/2 ${THEME_CONSTANTS.ICON_SIZES.MD} ${themeClasses.TEXT_TERTIARY}`}
                   />
                   <input
                     type="text"
                     value={displayName}
                     onChange={(e) => setDisplayName(e.target.value)}
                     placeholder="Enter your display name"
-                    className="w-full pl-10 pr-4 py-3 bg-slate-800 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    className={`w-full pl-10 pr-4 py-3 ${themeClasses.BG_SECONDARY} border ${themeClasses.BORDER} rounded-lg ${themeClasses.TEXT_PRIMARY} placeholder-${themeClasses.TEXT_TERTIARY} focus:outline-none focus:ring-2 focus:ring-emerald-500`}
                   />
                 </div>
                 <button
@@ -116,15 +133,23 @@ const Settings: React.FC = () => {
 
           {/* Security Settings */}
           <motion.div variants={itemVariants}>
-            <Card className={THEME_CONSTANTS.PADDING.XL}>
+            <Card
+              className={`${THEME_CONSTANTS.PADDING.XL} ${themeClasses.BG_CARD} border ${themeClasses.BORDER}`}
+            >
               <div className="flex items-center space-x-3 mb-6">
                 <Shield
                   className={`${THEME_CONSTANTS.ICON_SIZES.LG} text-blue-400`}
                 />
-                <h3 className="text-lg font-semibold text-white">Security</h3>
+                <h3
+                  className={`text-lg font-semibold ${themeClasses.TEXT_PRIMARY}`}
+                >
+                  Security
+                </h3>
               </div>
               <div className="space-y-4">
-                <button className="w-full bg-slate-700/50 hover:bg-slate-600 rounded-lg p-4 text-left text-white transition-colors flex items-center">
+                <button
+                  className={`w-full ${themeClasses.BG_TERTIARY} ${themeClasses.BG_HOVER} rounded-lg p-4 text-left ${themeClasses.TEXT_PRIMARY} transition-colors flex items-center`}
+                >
                   <Lock
                     className={`${THEME_CONSTANTS.ICON_SIZES.MD} text-emerald-400 mr-3`}
                   />
@@ -136,49 +161,30 @@ const Settings: React.FC = () => {
 
           {/* League Connection */}
           <motion.div variants={itemVariants}>
-            <Card className={THEME_CONSTANTS.PADDING.XL}>
+            <Card
+              className={`${THEME_CONSTANTS.PADDING.XL} ${themeClasses.BG_CARD} border ${themeClasses.BORDER}`}
+            >
               <div className="flex items-center space-x-3 mb-6">
                 <LinkIcon
                   className={`${THEME_CONSTANTS.ICON_SIZES.LG} text-purple-400`}
                 />
-                <h3 className="text-lg font-semibold text-white">
+                <h3
+                  className={`text-lg font-semibold ${themeClasses.TEXT_PRIMARY}`}
+                >
                   League Connection
                 </h3>
               </div>
               <div className="space-y-4">
                 <div
-                  className={`bg-slate-800/50 ${THEME_CONSTANTS.PADDING.LG} rounded-lg`}
+                  className={`${themeClasses.BG_SECONDARY} ${THEME_CONSTANTS.PADDING.LG} rounded-lg`}
                 >
-                  <p className="text-slate-300 mb-4">
+                  <p className={`${themeClasses.TEXT_SECONDARY} mb-4`}>
                     Connect your fantasy leagues to enable advanced features and
                     tracking.
                   </p>
                   <button className="w-full bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2 rounded-lg font-medium transition-colors">
                     Connect League
                   </button>
-                </div>
-              </div>
-            </Card>
-          </motion.div>
-
-          {/* Theme Settings */}
-          <motion.div variants={itemVariants}>
-            <Card className={THEME_CONSTANTS.PADDING.XL}>
-              <div className="flex items-center space-x-3 mb-6">
-                <Palette
-                  className={`${THEME_CONSTANTS.ICON_SIZES.LG} text-emerald-400`}
-                />
-                <h3 className="text-lg font-semibold text-white">Theme</h3>
-              </div>
-              <div className="space-y-4">
-                <div
-                  className={`bg-slate-800/50 ${THEME_CONSTANTS.PADDING.LG} rounded-lg`}
-                >
-                  <select className="w-full bg-slate-700 border border-slate-600 rounded-lg px-4 py-3 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500">
-                    <option value="dark">Dark (Default)</option>
-                    <option value="light">Light</option>
-                    <option value="system">System</option>
-                  </select>
                 </div>
               </div>
             </Card>

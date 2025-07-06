@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Fantasy Football Guru Dark Theme */
+/* Fantasy Football Guru Theme System */
 
 @layer base {
   :root {
@@ -36,6 +36,108 @@
 
     --radius: 0.75rem;
     --text-color: #555;
+
+    /* Theme Variables - Default to Dark */
+    --theme-bg-primary: #0f172a;
+    --theme-bg-secondary: #1e293b;
+    --theme-bg-tertiary: #334155;
+    --theme-bg-card: #1e293b;
+    --theme-bg-sidebar: #0f172a;
+    --theme-text-primary: #f8fafc;
+    --theme-text-secondary: #cbd5e1;
+    --theme-text-tertiary: #94a3b8;
+    --theme-border: #334155;
+    --theme-border-hover: #475569;
+    --theme-shadow:
+      0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  }
+
+  /* Light Theme */
+  .light {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222.2 84% 4.9%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222.2 84% 4.9%;
+
+    --primary: 160 84% 39%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 222.2 84% 4.9%;
+
+    --muted: 210 40% 96%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+
+    --accent: 160 84% 39%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 160 84% 39%;
+
+    --theme-bg-primary: #ffffff;
+    --theme-bg-secondary: #f8fafc;
+    --theme-bg-tertiary: #f1f5f9;
+    --theme-bg-card: #ffffff;
+    --theme-bg-sidebar: #f8fafc;
+    --theme-text-primary: #0f172a;
+    --theme-text-secondary: #475569;
+    --theme-text-tertiary: #64748b;
+    --theme-border: #e2e8f0;
+    --theme-border-hover: #cbd5e1;
+    --theme-shadow:
+      0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+  }
+
+  /* Dark Theme */
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+
+    --card: 225 25% 8%;
+    --card-foreground: 210 40% 98%;
+
+    --popover: 225 25% 8%;
+    --popover-foreground: 210 40% 98%;
+
+    --primary: 160 84% 39%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+
+    --accent: 160 84% 39%;
+    --accent-foreground: 0 0% 100%;
+
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 160 84% 39%;
+
+    --theme-bg-primary: #0f172a;
+    --theme-bg-secondary: #1e293b;
+    --theme-bg-tertiary: #334155;
+    --theme-bg-card: #1e293b;
+    --theme-bg-sidebar: #0f172a;
+    --theme-text-primary: #f8fafc;
+    --theme-text-secondary: #cbd5e1;
+    --theme-text-tertiary: #94a3b8;
+    --theme-border: #334155;
+    --theme-border-hover: #475569;
+    --theme-shadow:
+      0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
   }
 }
 
@@ -45,9 +147,21 @@
   }
 
   body {
-    @apply bg-slate-900 text-foreground font-sans antialiased;
-    background: linear-gradient(135deg, #0f1419 0%, #1e293b 100%);
+    @apply font-sans antialiased;
+    background: var(--theme-bg-primary);
+    color: var(--theme-text-primary);
     min-height: 100vh;
+    transition:
+      background-color 0.3s ease,
+      color 0.3s ease;
+  }
+
+  .light body {
+    background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  }
+
+  .dark body {
+    background: linear-gradient(135deg, #0f1419 0%, #1e293b 100%);
   }
 
   h1,
@@ -57,12 +171,24 @@
   h5,
   h6 {
     @apply font-semibold tracking-tight;
+    color: var(--theme-text-primary);
   }
 }
 
 @layer components {
   .card-gradient {
-    @apply bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-sm border border-slate-700/50;
+    background: var(--theme-bg-card);
+    border: 1px solid var(--theme-border);
+    box-shadow: var(--theme-shadow);
+    @apply backdrop-blur-sm;
+  }
+
+  .light .card-gradient {
+    @apply bg-gradient-to-br from-white to-slate-50/50;
+  }
+
+  .dark .card-gradient {
+    @apply bg-gradient-to-br from-slate-800/50 to-slate-900/50;
   }
 
   .btn-primary {
@@ -70,7 +196,46 @@
   }
 
   .btn-secondary {
-    @apply bg-slate-700 hover:bg-slate-600 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200;
+    background: var(--theme-bg-tertiary);
+    color: var(--theme-text-primary);
+    @apply font-medium py-2 px-4 rounded-lg transition-colors duration-200;
+  }
+
+  .btn-secondary:hover {
+    background: var(--theme-bg-secondary);
+  }
+
+  .light .btn-secondary {
+    @apply bg-slate-200 hover:bg-slate-300 text-slate-900;
+  }
+
+  .dark .btn-secondary {
+    @apply bg-slate-700 hover:bg-slate-600 text-white;
+  }
+
+  /* Theme-aware component styles */
+  .theme-bg-primary {
+    background: var(--theme-bg-primary);
+  }
+
+  .theme-bg-secondary {
+    background: var(--theme-bg-secondary);
+  }
+
+  .theme-bg-card {
+    background: var(--theme-bg-card);
+  }
+
+  .theme-text-primary {
+    color: var(--theme-text-primary);
+  }
+
+  .theme-text-secondary {
+    color: var(--theme-text-secondary);
+  }
+
+  .theme-border {
+    border-color: var(--theme-border);
   }
 
   /* Sidebar list styles */
@@ -92,13 +257,38 @@
 }
 
 ::-webkit-scrollbar-track {
-  @apply bg-slate-800;
+  background: var(--theme-bg-secondary);
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-slate-600 rounded-full;
+  background: var(--theme-bg-tertiary);
+  border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
+  background: var(--theme-border-hover);
+}
+
+.light ::-webkit-scrollbar-track {
+  @apply bg-slate-100;
+}
+
+.light ::-webkit-scrollbar-thumb {
+  @apply bg-slate-300;
+}
+
+.light ::-webkit-scrollbar-thumb:hover {
+  @apply bg-slate-400;
+}
+
+.dark ::-webkit-scrollbar-track {
+  @apply bg-slate-800;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  @apply bg-slate-600;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
   @apply bg-slate-500;
 }
