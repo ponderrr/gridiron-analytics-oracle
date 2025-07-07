@@ -7,24 +7,20 @@ const corsHeaders = {
     "authorization, x-client-info, apikey, content-type",
 };
 
-interface ESPNTeam {
-  id: string;
-  name: string;
-  abbreviation: string;
-  byeWeek?: number;
-}
-
-interface ESPNPlayer {
-  id: string;
-  displayName: string;
-  position: {
-    abbreviation: string;
-  };
-  team?: {
-    id: string;
-    abbreviation: string;
-  };
-  active: boolean;
+interface SleeperPlayer {
+  player_id: string;
+  first_name?: string;
+  last_name?: string;
+  full_name?: string;
+  position?: string;
+  team?: string;
+  status?: string;
+  active?: boolean;
+  years_exp?: number;
+  depth_chart_order?: number;
+  birth_date?: string;
+  height?: string;
+  weight?: string;
 }
 
 interface SyncResult {
@@ -92,121 +88,80 @@ serve(async (req) => {
     let totalProcessed = 0;
     const errors: string[] = [];
 
-    // Fetch teams data first to get bye weeks
-    console.log("Fetching NFL teams data...");
-    const teamsResponse = await fetch(
-      "https://site.web.api.espn.com/apis/site/v2/sports/football/nfl/teams"
-    );
+    // Map team abbreviations to bye weeks (hardcoded for 2024 season)
+    const teamByeWeeks = new Map<string, number>([
+      ["ARI", 11], ["ATL", 12], ["BAL", 14], ["BUF", 12], ["CAR", 11], ["CHI", 7],
+      ["CIN", 12], ["CLE", 10], ["DAL", 7], ["DEN", 14], ["DET", 5], ["GB", 10],
+      ["HOU", 14], ["IND", 14], ["JAX", 12], ["KC", 10], ["LV", 10], ["LAC", 5],
+      ["LAR", 6], ["MIA", 6], ["MIN", 6], ["NE", 14], ["NO", 12], ["NYG", 11],
+      ["NYJ", 12], ["PHI", 5], ["PIT", 9], ["SF", 9], ["SEA", 10], ["TB", 11],
+      ["TEN", 5], ["WAS", 14]
+    ]);
 
-    if (!teamsResponse.ok) {
-      throw new Error(
-        `Teams API error: ${teamsResponse.status} ${teamsResponse.statusText}`
-      );
-    }
-
-    const teamsData = await teamsResponse.json();
-    const teamsMap = new Map<
-      string,
-      { abbreviation: string; byeWeek?: number }
-    >();
-
-    // Process teams to create mapping
-    if (teamsData.sports?.[0]?.leagues?.[0]?.teams) {
-      for (const teamWrapper of teamsData.sports[0].leagues[0].teams) {
-        const team = teamWrapper.team;
-        if (team) {
-          teamsMap.set(team.id, {
-            abbreviation:
-              team.abbreviation ||
-              (typeof team.name === "string" && team.name.trim().length > 0
-                ? team.name.trim().substring(0, 3).toUpperCase()
-                : "UNK"),
-            byeWeek: team.byeWeek,
-          });
-        }
-      }
-    }
-
-    console.log(`Found ${teamsMap.size} teams`);
-
-    // Fetch current season players data
-    console.log("Fetching players data from ESPN...");
+    // Fetch players data from Sleeper API
+    console.log("Fetching players data from Sleeper API...");
     const playersResponse = await fetch(
-      "https://site.web.api.espn.com/apis/site/v2/sports/football/nfl/athletes"
+      "https://api.sleeper.app/v1/players/nfl"
     );
 
     if (!playersResponse.ok) {
       throw new Error(
-        `Players API error: ${playersResponse.status} ${playersResponse.statusText}`
+        `Sleeper API error: ${playersResponse.status} ${playersResponse.statusText}`
       );
     }
 
     const playersData = await playersResponse.json();
-    console.log(
-      "Raw players data structure:",
-      JSON.stringify(playersData, null, 2).substring(0, 500)
-    );
+    console.log(`Received data for ${Object.keys(playersData).length} players from Sleeper API`);
 
     // Process players data
     const players: any[] = [];
 
-    // Try different possible data structures
-    let athletesArray: any[] = [];
-
-    if (playersData.athletes) {
-      athletesArray = playersData.athletes;
-    } else if (playersData.items) {
-      athletesArray = playersData.items;
-    } else if (Array.isArray(playersData)) {
-      athletesArray = playersData;
-    }
-
-    console.log(`Processing ${athletesArray.length} athletes...`);
-
-    for (const athlete of athletesArray) {
+    for (const [sleeperId, sleeperPlayer] of Object.entries(playersData)) {
       try {
         totalProcessed++;
-
+        
+        const player = sleeperPlayer as SleeperPlayer;
+        
         // Extract player data
-        const playerId = athlete.id?.toString();
-        const name = athlete.displayName || athlete.name || athlete.fullName;
-        const position =
-          athlete.position?.abbreviation || athlete.position?.name;
-        const teamId = athlete.team?.id?.toString();
-        const active = athlete.active !== false; // Default to true if not specified
+        const name = player.full_name || 
+                    (player.first_name && player.last_name ? 
+                     `${player.first_name} ${player.last_name}` : 
+                     player.first_name || player.last_name);
+        const position = player.position;
+        const team = player.team;
+        const active = player.status !== "Inactive" && player.active !== false;
 
-        if (!playerId || !name || !position) {
+        if (!name || !position || !sleeperId) {
           errors.push(
-            `Missing required data for player: ${JSON.stringify(athlete)}`
+            `Missing required data for player: ${JSON.stringify(player)}`
           );
           continue;
         }
 
-        // Get team info
-        const teamInfo = teamsMap.get(teamId);
-        const teamAbbr =
-          teamInfo?.abbreviation || athlete.team?.abbreviation || "UNK";
-
-        // Validate position
-        const validPositions = ["QB", "RB", "WR", "TE", "D/ST", "K"];
+        // Validate position - only include fantasy-relevant positions
+        const validPositions = ["QB", "RB", "WR", "TE", "DEF", "K"];
         const normalizedPosition = position.toUpperCase();
+        
+        // Map DEF to D/ST for consistency
+        const finalPosition = normalizedPosition === "DEF" ? "D/ST" : normalizedPosition;
+        
         if (!validPositions.includes(normalizedPosition)) {
           // Skip non-fantasy positions
           continue;
         }
 
         const playerData = {
-          player_id: `espn_${playerId}`,
+          player_id: `sleeper_${sleeperId}`,
           name: name,
-          position: normalizedPosition,
-          team: teamAbbr,
+          position: finalPosition,
+          team: team || "FA", // Free agent if no team
           active: active,
-          bye_week: teamInfo?.byeWeek || null,
+          bye_week: team ? teamByeWeeks.get(team) || null : null,
         };
 
         players.push(playerData);
       } catch (error) {
-        errors.push(`Error processing player ${athlete.id}: ${error.message}`);
+        errors.push(`Error processing player ${sleeperId}: ${error.message}`);
         console.error("Player processing error:", error);
       }
     }
