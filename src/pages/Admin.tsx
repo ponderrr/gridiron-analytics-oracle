@@ -353,7 +353,7 @@ const Admin: React.FC = () => {
           {activeTab === ADMIN_TABS.PLAYERS && (
             <div className="overflow-x-auto">
               <Suspense fallback={<LoadingSpinner />}>
-                <AdminTable<Player>
+                <AdminTable
                   columns={playerColumns}
                   data={players}
                   rowKey={(row) => row.id as string}
