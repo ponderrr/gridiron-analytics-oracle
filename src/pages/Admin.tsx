@@ -368,10 +368,10 @@ const Admin: React.FC = () => {
           {activeTab === ADMIN_TABS.STATS && (
             <div className="overflow-x-auto">
               <Suspense fallback={<LoadingSpinner />}>
-                <AdminTable<WeeklyStat>
+                <AdminTable
                   columns={statsColumns}
                   data={weeklyStats}
-                  rowKey={(row) => row.id as string}
+                  rowKey={(row: any) => row.id as string}
                   pageSize={20}
                 />
               </Suspense>
