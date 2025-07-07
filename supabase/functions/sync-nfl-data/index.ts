@@ -28,6 +28,9 @@ interface SyncResult {
   players_added: number;
   players_updated: number;
   total_processed: number;
+  team_changes: number;
+  retired_players: number;
+  last_sync_at: string;
   errors: string[];
 }
 
@@ -86,6 +89,8 @@ serve(async (req) => {
     let playersAdded = 0;
     let playersUpdated = 0;
     let totalProcessed = 0;
+    let teamChanges = 0;
+    let retiredPlayers = 0;
     const errors: string[] = [];
 
     // Map team abbreviations to bye weeks (hardcoded for 2024 season)
@@ -187,20 +192,41 @@ serve(async (req) => {
         const batch = players.slice(i, i + batchSize);
 
         try {
-          // Fetch existing player_ids for this batch
+          // Fetch existing players for this batch to detect changes
           const playerIds = batch.map((p) => p.player_id);
           const { data: existing, error: fetchError } = await supabase
             .from("players")
-            .select("player_id")
+            .select("player_id, team, active")
             .in("player_id", playerIds);
 
           if (fetchError) {
             throw fetchError;
           }
 
-          const existingIds = new Set(
-            (existing || []).map((row) => row.player_id)
+          const existingMap = new Map(
+            (existing || []).map((row) => [row.player_id, { team: row.team, active: row.active }])
           );
+
+          // Track changes for reporting
+          let batchTeamChanges = 0;
+          let batchRetiredPlayers = 0;
+
+          for (const player of batch) {
+            const existingPlayer = existingMap.get(player.player_id);
+            if (existingPlayer) {
+              // Detect team changes
+              if (existingPlayer.team !== player.team && player.team !== "FA") {
+                batchTeamChanges++;
+                console.log(`Team change detected: ${player.name} from ${existingPlayer.team} to ${player.team}`);
+              }
+              
+              // Detect retirement/inactive status changes
+              if (existingPlayer.active === true && player.active === false) {
+                batchRetiredPlayers++;
+                console.log(`Player retired/inactive: ${player.name}`);
+              }
+            }
+          }
 
           const { data, error } = await supabase.from("players").upsert(batch, {
             onConflict: "player_id",
@@ -215,7 +241,7 @@ serve(async (req) => {
           let added = 0;
           let updated = 0;
           for (const p of batch) {
-            if (existingIds.has(p.player_id)) {
+            if (existingMap.has(p.player_id)) {
               updated++;
             } else {
               added++;
@@ -223,6 +249,8 @@ serve(async (req) => {
           }
           playersAdded += added;
           playersUpdated += updated;
+          teamChanges += batchTeamChanges;
+          retiredPlayers += batchRetiredPlayers;
 
           console.log(
             `Successfully upserted batch of ${batch.length} players: ${added} added, ${updated} updated`
@@ -234,11 +262,32 @@ serve(async (req) => {
       }
     }
 
+    // Update sync status tracking
+    try {
+      await supabase.rpc('log_sync_status', {
+        sync_type: 'nfl_data',
+        success: errors.length < totalProcessed / 2,
+        players_processed: totalProcessed,
+        team_changes: teamChanges,
+        retired_players: retiredPlayers,
+        error_count: errors.length
+      }).then(() => {
+        console.log('Sync status logged successfully');
+      }).catch((rpcError) => {
+        console.warn('Failed to log sync status:', rpcError);
+      });
+    } catch (statusError) {
+      console.warn('Sync status tracking failed:', statusError);
+    }
+
     const result: SyncResult = {
       success: errors.length < totalProcessed / 2, // Consider success if less than 50% errors
       players_added: playersAdded,
       players_updated: playersUpdated,
       total_processed: totalProcessed,
+      team_changes: teamChanges,
+      retired_players: retiredPlayers,
+      last_sync_at: new Date().toISOString(),
       errors: errors.slice(0, 10), // Limit error details
     };
 
@@ -255,6 +304,9 @@ serve(async (req) => {
       players_added: 0,
       players_updated: 0,
       total_processed: 0,
+      team_changes: 0,
+      retired_players: 0,
+      last_sync_at: new Date().toISOString(),
       errors: [error.message],
     };
 
