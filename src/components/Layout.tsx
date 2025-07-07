@@ -20,7 +20,7 @@ interface LayoutProps {
   children: React.ReactNode;
 }
 
-// Sidebar skeleton loader - moved outside to prevent recreation on every render
+// Sidebar skeleton loader - moved outside to prevent recreation on evry render
 const SidebarSkeleton = React.memo(() => {
   const { effectiveTheme } = useTheme();
   const themeClasses = getThemeClasses(effectiveTheme);

@@ -2,12 +2,17 @@
 
 export type AppErrorType = "network" | "auth" | "data" | "timeout" | "unknown";
 
+export type UnknownError =
+  | Error
+  | { message?: string; [key: string]: unknown }
+  | string;
+
 export interface AppError extends Error {
   type?: AppErrorType;
   status?: number;
   stack?: string;
   context?: string;
-  originalError?: unknown;
+  originalError?: UnknownError;
 }
 
 export function createAppError(
@@ -15,7 +20,7 @@ export function createAppError(
   type: AppErrorType = "unknown",
   status?: number,
   context?: string,
-  originalError?: unknown
+  originalError?: UnknownError
 ): AppError {
   const error = new Error(message) as AppError;
   error.type = type;
@@ -25,15 +30,17 @@ export function createAppError(
   return error;
 }
 
-export function formatErrorMessage(error: AppError | unknown): string {
+export function formatErrorMessage(error: AppError | UnknownError): string {
   if (typeof error === "string") return error;
   if (error && typeof error === "object" && "message" in error) {
-    return (error as AppError).message || "An unknown error occurred.";
+    return (
+      (error as { message?: string }).message || "An unknown error occurred."
+    );
   }
   return "An unknown error occurred.";
 }
 
-export function getErrorType(error: AppError | unknown): AppErrorType {
+export function getErrorType(error: AppError | UnknownError): AppErrorType {
   // Check for explicit type property first
   if (
     typeof error === "object" &&
@@ -48,10 +55,38 @@ export function getErrorType(error: AppError | unknown): AppErrorType {
   if (typeof error === "object" && error) {
     // Common error code properties
     const code =
-      (error as any).code ||
-      (error as any).status ||
-      (error as any).errno ||
-      (error as any).statusCode;
+      (
+        error as {
+          code?: unknown;
+          status?: unknown;
+          errno?: unknown;
+          statusCode?: unknown;
+        }
+      ).code ||
+      (
+        error as {
+          code?: unknown;
+          status?: unknown;
+          errno?: unknown;
+          statusCode?: unknown;
+        }
+      ).status ||
+      (
+        error as {
+          code?: unknown;
+          status?: unknown;
+          errno?: unknown;
+          statusCode?: unknown;
+        }
+      ).errno ||
+      (
+        error as {
+          code?: unknown;
+          status?: unknown;
+          errno?: unknown;
+          statusCode?: unknown;
+        }
+      ).statusCode;
     if (code) {
       // Normalize code to string for easier matching
       const codeStr = String(code).toLowerCase();
@@ -101,7 +136,7 @@ export function getErrorType(error: AppError | unknown): AppErrorType {
 
   // Check for message patterns
   if (typeof error === "object" && error && "message" in error) {
-    const msg = ((error as AppError).message || "").toLowerCase();
+    const msg = ((error as { message?: string }).message || "").toLowerCase();
     // Network
     if (
       /network|connection|fetch failed|502|503|504|econnrefused|enotfound|econnreset/.test(
@@ -122,7 +157,7 @@ export function getErrorType(error: AppError | unknown): AppErrorType {
 }
 
 // Wraps an async function (returns Promise<T>) with standardized error handling
-export function withErrorHandling<T, A extends any[]>(
+export function withErrorHandling<T, A extends unknown[]>(
   fn: (...args: A) => Promise<T>,
   context?: string
 ): (...args: A) => Promise<T> {
@@ -131,14 +166,25 @@ export function withErrorHandling<T, A extends any[]>(
       return await fn(...args);
     } catch (err) {
       throw createAppError(
-        formatErrorMessage(err),
-        getErrorType(err),
+        formatErrorMessage(err as UnknownError),
+        getErrorType(err as UnknownError),
         undefined,
         context,
-        err
+        err as UnknownError
       );
     }
   };
+}
+
+function isAppError(obj: unknown): obj is AppError {
+  return (
+    typeof obj === "object" &&
+    obj !== null &&
+    "name" in obj &&
+    "message" in obj &&
+    typeof (obj as any).name === "string" &&
+    typeof (obj as any).message === "string"
+  );
 }
 
 /**
@@ -146,23 +192,20 @@ export function withErrorHandling<T, A extends any[]>(
  * This is useful for converting generic errors (like from React Query) into typed AppErrors
  */
 export function inferAndCreateAppError(
-  error: unknown,
+  error: UnknownError,
   context?: string
 ): AppError {
   // If it's already an AppError with a type, return it as is
-  if (
-    error &&
-    typeof error === "object" &&
-    "type" in error &&
-    (error as AppError).type
-  ) {
-    return error as AppError;
+  if (isAppError(error) && error.type) {
+    return error;
   }
 
   // Infer the error type and create a new AppError
   const errorType = getErrorType(error);
   const message = formatErrorMessage(error);
-  const status = (error as any)?.status || (error as any)?.statusCode;
+  const status =
+    (error as { status?: number; statusCode?: number })?.status ||
+    (error as { status?: number; statusCode?: number })?.statusCode;
 
   return createAppError(message, errorType, status, context, error);
 }

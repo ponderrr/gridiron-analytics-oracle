@@ -1,5 +1,4 @@
 import React from "react";
-import styles from "./LoadingSpinner.module.css";
 import { cn } from "@/lib/utils";
 
 interface LoadingSpinnerProps {
@@ -8,22 +7,33 @@ interface LoadingSpinnerProps {
   message?: string;
 }
 
+const sizeClasses = {
+  sm: "w-4 h-4 border-2",
+  md: "w-8 h-8 border-2",
+  lg: "w-12 h-12 border-2",
+};
+
 const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
   size = "md",
   className,
   message,
 }) => {
   return (
-    <div className={cn(styles.wrapper, className)}>
+    <div className={cn("flex flex-col items-center justify-center", className)}>
       <div
-        className={`${styles.spinner} ${
-          size === "sm" ? styles.sm : size === "lg" ? styles.lg : styles.md
-        }`}
+        className={cn(
+          "rounded-full border-slate-600 border-t-emerald-500 animate-spin bg-transparent",
+          sizeClasses[size]
+        )}
         role="status"
         aria-live="polite"
         aria-label="Loading"
       />
-      {message && <div className={styles.message}>{message}</div>}
+      {message && (
+        <div className="mt-3 text-center text-base text-slate-500">
+          {message}
+        </div>
+      )}
     </div>
   );
 };

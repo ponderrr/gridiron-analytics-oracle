@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import {
   Home,
@@ -41,26 +41,6 @@ interface NavSectionProps {
   sectionId: string;
 }
 
-// Icon constants
-const ICONS = {
-  home: Home,
-  users: Users,
-  trendingUp: TrendingUp,
-  arrowLeftRight: ArrowLeftRight,
-  trophy: Trophy,
-  settings: Settings,
-  chevronLeft: ChevronLeft,
-  chevronRight: ChevronRight,
-  shield: Shield,
-  calculator: Calculator,
-  barChart3: BarChart3,
-  chevronDown: ChevronDown,
-  chevronUp: ChevronUp,
-  zap: Zap,
-  target: Target,
-  wrench: Wrench,
-};
-
 const NavItem: React.FC<NavItemProps> = React.memo(
   ({ href, icon: Icon, label, comingSoon, isCollapsed }) => {
     const { pathname } = useLocation();
@@ -76,7 +56,7 @@ const NavItem: React.FC<NavItemProps> = React.memo(
             "flex items-center justify-center p-3 rounded-xl transition-all duration-200 group relative",
             isActive
               ? "bg-gradient-to-r from-emerald-500 to-blue-500 text-white shadow-lg shadow-emerald-500/25"
-              : `${themeClasses.TEXT_TERTIARY} ${themeClasses.BG_HOVER} hover:${themeClasses.TEXT_PRIMARY}`,
+              : `${themeClasses.TEXT_TERTIARY} ${themeClasses.BG_HOVER} hover:${themeClasses.TEXT_PRIMARY}`
           )}
           title={label}
           aria-label={label}
@@ -98,7 +78,7 @@ const NavItem: React.FC<NavItemProps> = React.memo(
           "flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 group relative overflow-hidden",
           isActive
             ? "bg-gradient-to-r from-emerald-500 to-blue-500 text-white shadow-lg shadow-emerald-500/25"
-            : `${themeClasses.TEXT_TERTIARY} ${themeClasses.BG_HOVER} hover:${themeClasses.TEXT_PRIMARY}`,
+            : `${themeClasses.TEXT_TERTIARY} ${themeClasses.BG_HOVER} hover:${themeClasses.TEXT_PRIMARY}`
         )}
         aria-label={label}
         aria-current={isActive ? "page" : undefined}
@@ -116,7 +96,7 @@ const NavItem: React.FC<NavItemProps> = React.memo(
         )}
       </Link>
     );
-  },
+  }
 );
 NavItem.displayName = "NavItem";
 
@@ -132,7 +112,7 @@ const NavSection: React.FC<NavSectionProps> = React.memo(
     const [isOpen, setIsOpen] = useState(defaultOpen);
     const { effectiveTheme } = useTheme();
     const themeClasses = getThemeClasses(effectiveTheme);
-    const handleToggle = useCallback(() => setIsOpen((open) => !open), []);
+    const handleToggle = () => setIsOpen((open) => !open);
 
     if (isCollapsed) {
       return (
@@ -162,81 +142,81 @@ const NavSection: React.FC<NavSectionProps> = React.memo(
             {title}
           </div>
           {isOpen ? (
-            <ICONS.chevronUp className="h-3 w-3" />
+            <ChevronUp className="h-3 w-3" />
           ) : (
-            <ICONS.chevronDown className="h-3 w-3" />
+            <ChevronDown className="h-3 w-3" />
           )}
         </button>
         <div
           className={cn(
             "space-y-1 transition-all duration-200 overflow-hidden",
-            isOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0",
+            isOpen ? "max-h-96 opacity-100" : "max-h-0 opacity-0"
           )}
         >
           {children}
         </div>
       </div>
     );
-  },
+  }
 );
 NavSection.displayName = "NavSection";
 
 const NAV_SECTIONS_CONFIG = [
   {
     title: MESSAGE_CONSTANTS.NAV_SECTIONS.MAIN,
-    icon: ICONS.home,
+    icon: Home,
     items: [
       {
         href: MESSAGE_CONSTANTS.NAV_PATHS.DASHBOARD,
-        icon: ICONS.home,
+        icon: Home,
         label: MESSAGE_CONSTANTS.NAV_ITEMS.DASHBOARD,
       },
     ],
   },
   {
     title: MESSAGE_CONSTANTS.NAV_SECTIONS.ANALYSIS,
-    icon: ICONS.barChart3,
+    icon: BarChart3,
     items: [
       {
         href: MESSAGE_CONSTANTS.NAV_PATHS.PLAYERS,
-        icon: ICONS.users,
+        icon: Users,
         label: MESSAGE_CONSTANTS.NAV_ITEMS.PLAYERS,
       },
       {
         href: MESSAGE_CONSTANTS.NAV_PATHS.ANALYTICS,
-        icon: ICONS.trendingUp,
+        icon: TrendingUp,
         label: MESSAGE_CONSTANTS.NAV_ITEMS.ANALYTICS,
       },
       {
         href: MESSAGE_CONSTANTS.NAV_PATHS.TRADE_ANALYZER,
-        icon: ICONS.arrowLeftRight,
+        icon: ArrowLeftRight,
         label: MESSAGE_CONSTANTS.NAV_ITEMS.TRADE_ANALYZER,
       },
     ],
   },
   {
     title: MESSAGE_CONSTANTS.NAV_SECTIONS.MANAGEMENT,
-    icon: ICONS.target,
+    icon: Target,
     items: [
       {
         href: MESSAGE_CONSTANTS.NAV_PATHS.ADMIN,
-        icon: ICONS.shield,
+        icon: Shield,
         label: MESSAGE_CONSTANTS.NAV_ITEMS.ADMIN_PANEL,
       },
     ],
   },
   {
     title: MESSAGE_CONSTANTS.NAV_SECTIONS.TOOLS,
-    icon: ICONS.wrench,
+    icon: Wrench,
     items: [
       {
         href: MESSAGE_CONSTANTS.NAV_PATHS.FANTASY_POINTS_TEST,
-        icon: ICONS.calculator,
+        icon: Calculator,
         label: MESSAGE_CONSTANTS.NAV_ITEMS.POINTS_CALCULATOR,
       },
       {
         href: MESSAGE_CONSTANTS.NAV_PATHS.SETTINGS,
-        icon: ICONS.settings,
+        icon: Settings,
         label: MESSAGE_CONSTANTS.NAV_ITEMS.SETTINGS,
       },
     ],
@@ -248,21 +228,17 @@ const AppSidebar: React.FC = () => {
   const themeClasses = getThemeClasses(effectiveTheme);
   const [isCollapsed, setIsCollapsed] = useLocalStorage(
     "sidebar-collapsed",
-    false,
+    false
   );
-  // Inline sidebar width effect
-  React.useEffect(() => {
+  useEffect(() => {
     document.documentElement.style.setProperty(
       "--sidebar-width",
       isCollapsed
         ? THEME_CONSTANTS.SIDEBAR_COLLAPSED_WIDTH_CSS_PX
-        : THEME_CONSTANTS.SIDEBAR_EXPANDED_WIDTH_PX,
+        : THEME_CONSTANTS.SIDEBAR_EXPANDED_WIDTH_PX
     );
   }, [isCollapsed]);
-  const toggleSidebar = React.useCallback(
-    () => setIsCollapsed((v: boolean) => !v),
-    [setIsCollapsed],
-  );
+  const toggleSidebar = () => setIsCollapsed((v: boolean) => !v);
   const navSections = NAV_SECTIONS_CONFIG;
 
   return (
@@ -272,7 +248,7 @@ const AppSidebar: React.FC = () => {
         isCollapsed ? "w-20" : "w-72",
         effectiveTheme === "dark"
           ? "bg-gradient-to-b from-slate-800 to-slate-900"
-          : "bg-gradient-to-b from-slate-50 to-slate-100",
+          : "bg-gradient-to-b from-slate-50 to-slate-100"
       )}
       role="navigation"
       aria-label="Main sidebar navigation"
@@ -311,9 +287,9 @@ const AppSidebar: React.FC = () => {
           tabIndex={0}
         >
           {isCollapsed ? (
-            <ICONS.chevronRight className="h-5 w-5" />
+            <ChevronRight className="h-5 w-5" />
           ) : (
-            <ICONS.chevronLeft className="h-5 w-5" />
+            <ChevronLeft className="h-5 w-5" />
           )}
         </button>
       </div>

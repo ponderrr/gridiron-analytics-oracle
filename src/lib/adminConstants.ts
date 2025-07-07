@@ -25,3 +25,4 @@ export const SYNC_DESCRIPTIONS = {
   STATS_SYNC:
     "Sync weekly player statistics including passing, rushing, receiving, and defensive stats.",
 } as const;
+

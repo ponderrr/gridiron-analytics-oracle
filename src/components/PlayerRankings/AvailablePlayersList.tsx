@@ -31,25 +31,25 @@ export function AvailablePlayersList() {
   const handleAddToRankings = (item: Player | DraftPick) => {
     dispatch({ type: "PUSH_UNDO", payload: [...state.rankedItems] });
     const newRank = state.rankedItems.length + 1;
-    const itemType = 'name' in item ? "player" : "pick";
-    dispatch({ 
-      type: "ADD_RANKED_ITEM", 
-      payload: { item, type: itemType, rank: newRank } 
+    const itemType = "name" in item ? "player" : "pick";
+    dispatch({
+      type: "ADD_RANKED_ITEM",
+      payload: { item, type: itemType, rank: newRank },
     });
   };
 
   // Check if item is a player
   const isPlayer = (item: Player | DraftPick): item is Player => {
-    return 'name' in item;
+    return "name" in item;
   };
 
   // Virtualized row renderer with Draggable
   const Row = ({ index, style }: ListChildComponentProps) => {
     const item = filteredItems[index];
     if (!item) return null;
-    
+
     const itemType = isPlayer(item) ? "player" : "pick";
-    
+
     return (
       <Draggable
         key={item.id}
@@ -90,26 +90,33 @@ export function AvailablePlayersList() {
           Available Items
         </h2>
         <PlayerSearch />
-        
+
         {/* Filter toggles */}
         <div className="flex gap-2 mt-3">
           <Button
             variant={state.showPlayers ? "default" : "outline"}
             size="sm"
-            onClick={() => dispatch({ type: "SET_SHOW_PLAYERS", payload: !state.showPlayers })}
+            onClick={() =>
+              dispatch({
+                type: "SET_SHOW_PLAYERS",
+                payload: !state.showPlayers,
+              })
+            }
           >
             Players ({state.availablePlayers.length})
           </Button>
           <Button
             variant={state.showPicks ? "default" : "outline"}
             size="sm"
-            onClick={() => dispatch({ type: "SET_SHOW_PICKS", payload: !state.showPicks })}
+            onClick={() =>
+              dispatch({ type: "SET_SHOW_PICKS", payload: !state.showPicks })
+            }
           >
             Draft Picks ({state.availablePicks.length})
           </Button>
         </div>
       </div>
-      
+
       <div className="flex-1 overflow-hidden">
         <div className="flex items-center justify-between mb-4">
           <div className="text-sm text-slate-400">

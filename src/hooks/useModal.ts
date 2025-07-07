@@ -1,28 +1,42 @@
 import { useState, useCallback } from "react";
 
-interface UseModalOptions {
+interface UseModalOptions<T = undefined> {
   initialOpen?: boolean;
+  initialForm?: T;
 }
 
-interface UseModalReturn {
+interface UseModalReturn<T = undefined> {
   isOpen: boolean;
   openModal: () => void;
   closeModal: () => void;
   toggleModal: () => void;
   loading: boolean;
   setLoading: (loading: boolean) => void;
+  error: string | null;
+  setError: (err: string | null) => void;
+  form: T;
+  setForm: (form: T) => void;
+  resetForm: () => void;
 }
 
 /**
- * Reusable hook for modal open/close and loading state.
+ * Reusable hook for modal open/close, loading, error, and form state.
  */
-export function useModal(options: UseModalOptions = {}): UseModalReturn {
+export function useModal<T = undefined>(
+  options: UseModalOptions<T> = {}
+): UseModalReturn<T> {
   const [isOpen, setIsOpen] = useState<boolean>(!!options.initialOpen);
   const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
+  const [form, setForm] = useState<T>(options.initialForm as T);
 
   const openModal = useCallback(() => setIsOpen(true), []);
   const closeModal = useCallback(() => setIsOpen(false), []);
   const toggleModal = useCallback(() => setIsOpen((v) => !v), []);
+  const resetForm = useCallback(() => {
+    setForm(options.initialForm as T);
+    setError(null);
+  }, [options.initialForm]);
 
   return {
     isOpen,
@@ -31,5 +45,10 @@ export function useModal(options: UseModalOptions = {}): UseModalReturn {
     toggleModal,
     loading,
     setLoading,
+    error,
+    setError,
+    form,
+    setForm,
+    resetForm,
   };
 }

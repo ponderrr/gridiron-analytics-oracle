@@ -5,7 +5,7 @@ import Layout from "../components/Layout";
 import LoadingSpinner from "../components/LoadingSpinner";
 import { useAuth } from "../contexts/AuthContext";
 import { validateEmail, formatErrorMessage } from "../lib/validation";
-import { VALIDATION_MESSAGES } from "../lib/validationConstants";
+import { VALIDATION_MESSAGES } from "../lib/validation";
 import { useFormError } from "../hooks/useFormError";
 
 const Login: React.FC = () => {

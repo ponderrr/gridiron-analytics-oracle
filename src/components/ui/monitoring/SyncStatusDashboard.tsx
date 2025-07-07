@@ -1,10 +1,10 @@
-import React from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { CheckCircle, XCircle, Clock, AlertTriangle } from 'lucide-react';
-import { formatDistanceToNow } from 'date-fns';
+import React from "react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { Card } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { CheckCircle, XCircle, Clock, AlertTriangle } from "lucide-react";
+import { formatDistanceToNow } from "date-fns";
 
 interface SyncLog {
   id: string;
@@ -25,9 +25,9 @@ interface SyncLog {
 
 const fetchSyncLogs = async (): Promise<SyncLog[]> => {
   const { data, error } = await supabase
-    .from('sync_logs')
-    .select('*')
-    .order('started_at', { ascending: false })
+    .from("sync_logs")
+    .select("*")
+    .order("started_at", { ascending: false })
     .limit(10);
 
   if (error) throw error;
@@ -35,8 +35,12 @@ const fetchSyncLogs = async (): Promise<SyncLog[]> => {
 };
 
 const SyncStatusDashboard: React.FC = () => {
-  const { data: syncLogs = [], isLoading, error } = useQuery({
-    queryKey: ['syncLogs'],
+  const {
+    data: syncLogs = [],
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ["syncLogs"],
     queryFn: fetchSyncLogs,
     refetchInterval: 30000, // Refresh every 30 seconds
   });
@@ -48,19 +52,35 @@ const SyncStatusDashboard: React.FC = () => {
   };
 
   const getStatusBadge = (success: boolean, hasErrors: boolean) => {
-    if (success) return <Badge variant="default" className="bg-green-500/20 text-green-400">Success</Badge>;
+    if (success)
+      return (
+        <Badge variant="default" className="bg-green-500/20 text-green-400">
+          Success
+        </Badge>
+      );
     if (hasErrors) return <Badge variant="destructive">Failed</Badge>;
-    return <Badge variant="secondary" className="bg-yellow-500/20 text-yellow-400">Warning</Badge>;
+    return (
+      <Badge variant="secondary" className="bg-yellow-500/20 text-yellow-400">
+        Warning
+      </Badge>
+    );
   };
 
-  const totalErrors = (log: SyncLog) => 
-    (log.validation_errors || 0) + (log.database_errors || 0) + (log.api_errors || 0);
+  const totalErrors = (log: SyncLog) =>
+    (log.validation_errors || 0) +
+    (log.database_errors || 0) +
+    (log.api_errors || 0);
 
-  const successRate = syncLogs.length > 0 ? 
-    (syncLogs.filter(log => log.success).length / syncLogs.length) * 100 : 0;
+  const successRate =
+    syncLogs.length > 0
+      ? (syncLogs.filter((log) => log.success).length / syncLogs.length) * 100
+      : 0;
 
-  const avgDuration = syncLogs.length > 0 ? 
-    syncLogs.reduce((sum, log) => sum + (log.duration_ms || 0), 0) / syncLogs.length : 0;
+  const avgDuration =
+    syncLogs.length > 0
+      ? syncLogs.reduce((sum, log) => sum + (log.duration_ms || 0), 0) /
+        syncLogs.length
+      : 0;
 
   if (isLoading) {
     return (
@@ -94,7 +114,9 @@ const SyncStatusDashboard: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-slate-400">Success Rate</p>
-              <p className="text-2xl font-bold text-green-400">{successRate.toFixed(1)}%</p>
+              <p className="text-2xl font-bold text-green-400">
+                {successRate.toFixed(1)}%
+              </p>
             </div>
             <CheckCircle className="h-8 w-8 text-green-400" />
           </div>
@@ -104,7 +126,9 @@ const SyncStatusDashboard: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-slate-400">Avg Duration</p>
-              <p className="text-2xl font-bold text-blue-400">{(avgDuration / 1000).toFixed(1)}s</p>
+              <p className="text-2xl font-bold text-blue-400">
+                {(avgDuration / 1000).toFixed(1)}s
+              </p>
             </div>
             <Clock className="h-8 w-8 text-blue-400" />
           </div>
@@ -114,7 +138,9 @@ const SyncStatusDashboard: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-slate-400">Recent Syncs</p>
-              <p className="text-2xl font-bold text-slate-300">{syncLogs.length}</p>
+              <p className="text-2xl font-bold text-slate-300">
+                {syncLogs.length}
+              </p>
             </div>
             <AlertTriangle className="h-8 w-8 text-slate-400" />
           </div>
@@ -123,23 +149,32 @@ const SyncStatusDashboard: React.FC = () => {
 
       {/* Recent Sync Operations */}
       <Card className="p-6 bg-slate-800/50 border-slate-700/50">
-        <h3 className="text-lg font-semibold text-white mb-4">Recent Sync Operations</h3>
+        <h3 className="text-lg font-semibold text-white mb-4">
+          Recent Sync Operations
+        </h3>
         <div className="space-y-3">
           {syncLogs.map((log) => (
-            <div key={log.id} className="flex items-center justify-between p-3 bg-slate-900/50 rounded-lg border border-slate-700/30">
+            <div
+              key={log.id}
+              className="flex items-center justify-between p-3 bg-slate-900/50 rounded-lg border border-slate-700/30"
+            >
               <div className="flex items-center space-x-3">
                 {getStatusIcon(log.success, totalErrors(log) > 0)}
                 <div>
                   <div className="flex items-center space-x-2">
-                    <span className="text-white font-medium">{log.sync_type.replace('_', ' ').toUpperCase()}</span>
+                    <span className="text-white font-medium">
+                      {log.sync_type.replace("_", " ").toUpperCase()}
+                    </span>
                     {getStatusBadge(log.success, totalErrors(log) > 0)}
                   </div>
                   <p className="text-sm text-slate-400">
-                    {formatDistanceToNow(new Date(log.started_at), { addSuffix: true })}
+                    {formatDistanceToNow(new Date(log.started_at), {
+                      addSuffix: true,
+                    })}
                   </p>
                 </div>
               </div>
-              
+
               <div className="text-right">
                 <div className="text-sm text-slate-300">
                   {log.processed_records}/{log.total_records} processed
@@ -157,7 +192,7 @@ const SyncStatusDashboard: React.FC = () => {
               </div>
             </div>
           ))}
-          
+
           {syncLogs.length === 0 && (
             <div className="text-center py-8 text-slate-400">
               No sync operations recorded yet

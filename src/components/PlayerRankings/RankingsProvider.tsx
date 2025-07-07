@@ -77,10 +77,20 @@ type RankingsAction =
   | { type: "SET_AVAILABLE_PLAYERS"; payload: DatabasePlayer[] }
   | { type: "SET_AVAILABLE_PICKS"; payload: DraftPick[] }
   | { type: "SET_RANKED_ITEMS"; payload: RankedItem[] }
-  | { type: "ADD_RANKED_ITEM"; payload: { item: DatabasePlayer | DraftPick; type: "player" | "pick"; rank: number } }
+  | {
+      type: "ADD_RANKED_ITEM";
+      payload: {
+        item: DatabasePlayer | DraftPick;
+        type: "player" | "pick";
+        rank: number;
+      };
+    }
   | { type: "REMOVE_RANKED_ITEM"; payload: string }
   // Legacy actions for backward compatibility
-  | { type: "ADD_RANKED_PLAYER"; payload: { player: DatabasePlayer; rank: number } }
+  | {
+      type: "ADD_RANKED_PLAYER";
+      payload: { player: DatabasePlayer; rank: number };
+    }
   | { type: "REMOVE_RANKED_PLAYER"; payload: string }
   | { type: "SET_RANKED_PLAYERS"; payload: RankedPlayer[] }
   | { type: "REORDER_RANKINGS"; payload: RankedItem[] }
@@ -196,26 +206,26 @@ function rankingsCoreReducer(
     case "SET_RANKED_ITEMS": {
       // Also update legacy rankedPlayers for backward compatibility
       const rankedPlayers = action.payload
-        .filter(item => item.type === "player" && item.player)
-        .map(item => ({
+        .filter((item) => item.type === "player" && item.player)
+        .map((item) => ({
           player_id: item.player_id!,
           overall_rank: item.overall_rank,
           tier: item.tier,
           notes: item.notes,
-          player: item.player!
+          player: item.player!,
         }));
       return { ...state, rankedItems: action.payload, rankedPlayers };
     }
     case "SET_RANKED_PLAYERS": {
       // Legacy compatibility - convert to new format
-      const rankedItems = action.payload.map(p => ({
+      const rankedItems = action.payload.map((p) => ({
         id: p.player_id,
         type: "player" as const,
         player_id: p.player_id,
         overall_rank: p.overall_rank,
         tier: p.tier,
         notes: p.notes,
-        player: p.player
+        player: p.player,
       }));
       return { ...state, rankedPlayers: action.payload, rankedItems };
     }
@@ -227,76 +237,89 @@ function rankingsCoreReducer(
           item.overall_rank += 1;
         }
       });
-      
+
       const newItem: RankedItem = {
         id: action.payload.item.id,
         type: action.payload.type,
         overall_rank: action.payload.rank,
-        ...(action.payload.type === "player" 
-          ? { player_id: action.payload.item.id, player: action.payload.item as DatabasePlayer }
-          : { pick_id: action.payload.item.id, pick: action.payload.item as DraftPick }
-        )
+        ...(action.payload.type === "player"
+          ? {
+              player_id: action.payload.item.id,
+              player: action.payload.item as DatabasePlayer,
+            }
+          : {
+              pick_id: action.payload.item.id,
+              pick: action.payload.item as DraftPick,
+            }),
       };
-      
+
       newRanked.splice(insertIndex, 0, newItem);
-      const sortedItems = newRanked.sort((a, b) => a.overall_rank - b.overall_rank);
-      
+      const sortedItems = newRanked.sort(
+        (a, b) => a.overall_rank - b.overall_rank
+      );
+
       // Update legacy rankedPlayers
       const rankedPlayers = sortedItems
-        .filter(item => item.type === "player" && item.player)
-        .map(item => ({
+        .filter((item) => item.type === "player" && item.player)
+        .map((item) => ({
           player_id: item.player_id!,
           overall_rank: item.overall_rank,
           tier: item.tier,
           notes: item.notes,
-          player: item.player!
+          player: item.player!,
         }));
-        
+
       return { ...state, rankedItems: sortedItems, rankedPlayers };
     }
     case "ADD_RANKED_PLAYER": {
       // Legacy compatibility
       return rankingsCoreReducer(state, {
         type: "ADD_RANKED_ITEM",
-        payload: { item: action.payload.player, type: "player", rank: action.payload.rank }
+        payload: {
+          item: action.payload.player,
+          type: "player",
+          rank: action.payload.rank,
+        },
       });
     }
     case "REMOVE_RANKED_ITEM": {
-      const filtered = state.rankedItems.filter((item) => item.id !== action.payload);
+      const filtered = state.rankedItems.filter(
+        (item) => item.id !== action.payload
+      );
       filtered.forEach((item, index) => {
         item.overall_rank = index + 1;
       });
-      
+
       // Update legacy rankedPlayers
       const rankedPlayers = filtered
-        .filter(item => item.type === "player" && item.player)
-        .map(item => ({
+        .filter((item) => item.type === "player" && item.player)
+        .map((item) => ({
           player_id: item.player_id!,
           overall_rank: item.overall_rank,
           tier: item.tier,
           notes: item.notes,
-          player: item.player!
+          player: item.player!,
         }));
-        
+
       return { ...state, rankedItems: filtered, rankedPlayers };
     }
     case "REMOVE_RANKED_PLAYER": {
       // Legacy compatibility
       return rankingsCoreReducer(state, {
         type: "REMOVE_RANKED_ITEM",
-        payload: action.payload
+        payload: action.payload,
       });
     }
     case "REORDER_RANKINGS": {
       // Update legacy rankedPlayers
       const rankedPlayers = action.payload
-        .filter(item => item.type === "player" && item.player)
-        .map(item => ({
+        .filter((item) => item.type === "player" && item.player)
+        .map((item) => ({
           player_id: item.player_id!,
           overall_rank: item.overall_rank,
           tier: item.tier,
           notes: item.notes,
-          player: item.player!
+          player: item.player!,
         }));
       return { ...state, rankedItems: action.payload, rankedPlayers };
     }
@@ -537,34 +560,55 @@ export function RankingsProvider({ children }: { children: React.ReactNode }) {
   const filteredAvailableItems = useMemo(() => {
     const rankedItemIds = new Set(state.rankedItems.map((item) => item.id));
     const items: (DatabasePlayer | DraftPick)[] = [];
-    
+
     // Add players if enabled
     if (state.showPlayers) {
       const filteredPlayers = state.availablePlayers.filter((player) => {
-        if (state.showOnlyUnranked && rankedItemIds.has(player.id)) return false;
-        if (state.positionFilter !== "all" && player.position !== state.positionFilter) return false;
-        if (state.teamFilter !== "all" && player.team !== state.teamFilter) return false;
-        if (state.searchTerm && !player.name.toLowerCase().includes(state.searchTerm.toLowerCase())) return false;
+        if (state.showOnlyUnranked && rankedItemIds.has(player.id))
+          return false;
+        if (
+          state.positionFilter !== "all" &&
+          player.position !== state.positionFilter
+        )
+          return false;
+        if (state.teamFilter !== "all" && player.team !== state.teamFilter)
+          return false;
+        if (
+          state.searchTerm &&
+          !player.name.toLowerCase().includes(state.searchTerm.toLowerCase())
+        )
+          return false;
         return true;
       });
       items.push(...filteredPlayers);
     }
-    
+
     // Add picks if enabled
     if (state.showPicks) {
       const filteredPicks = state.availablePicks.filter((pick) => {
         if (state.showOnlyUnranked && rankedItemIds.has(pick.id)) return false;
-        if (state.yearFilter !== "all" && pick.year.toString() !== state.yearFilter) return false;
-        if (state.roundFilter !== "all" && pick.round.toString() !== state.roundFilter) return false;
+        if (
+          state.yearFilter !== "all" &&
+          pick.year.toString() !== state.yearFilter
+        )
+          return false;
+        if (
+          state.roundFilter !== "all" &&
+          pick.round.toString() !== state.roundFilter
+        )
+          return false;
         if (state.searchTerm) {
-          const pickDisplay = `${pick.year} ${pick.round}.${pick.pick.toString().padStart(2, '0')}`;
-          if (!pickDisplay.toLowerCase().includes(state.searchTerm.toLowerCase())) return false;
+          const pickDisplay = `${pick.year} ${pick.round}.${pick.pick.toString().padStart(2, "0")}`;
+          if (
+            !pickDisplay.toLowerCase().includes(state.searchTerm.toLowerCase())
+          )
+            return false;
         }
         return true;
       });
       items.push(...filteredPicks);
     }
-    
+
     return items;
   }, [
     state.availablePlayers,
@@ -587,12 +631,24 @@ export function RankingsProvider({ children }: { children: React.ReactNode }) {
 
   // Legacy compatibility - filtered players only
   const filteredAvailablePlayers = useMemo(() => {
-    const rankedPlayerIds = new Set(state.rankedPlayers.map((p) => p.player_id));
+    const rankedPlayerIds = new Set(
+      state.rankedPlayers.map((p) => p.player_id)
+    );
     return state.availablePlayers.filter((player) => {
-      if (state.showOnlyUnranked && rankedPlayerIds.has(player.id)) return false;
-      if (state.positionFilter !== "all" && player.position !== state.positionFilter) return false;
-      if (state.teamFilter !== "all" && player.team !== state.teamFilter) return false;
-      if (state.searchTerm && !player.name.toLowerCase().includes(state.searchTerm.toLowerCase())) return false;
+      if (state.showOnlyUnranked && rankedPlayerIds.has(player.id))
+        return false;
+      if (
+        state.positionFilter !== "all" &&
+        player.position !== state.positionFilter
+      )
+        return false;
+      if (state.teamFilter !== "all" && player.team !== state.teamFilter)
+        return false;
+      if (
+        state.searchTerm &&
+        !player.name.toLowerCase().includes(state.searchTerm.toLowerCase())
+      )
+        return false;
       return true;
     });
   }, [

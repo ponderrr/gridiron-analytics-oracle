@@ -24,7 +24,7 @@ const cardVariants = {
     "bg-gradient-to-br from-yellow-900/30 to-slate-800/50 border-yellow-500/30",
 };
 
-// Extracted icon background styles for each variant
+// extracted icon background styles for each variant
 const iconBgVariants = {
   default: "bg-gradient-to-r from-emerald-500 to-green-500",
   premium: "bg-gradient-to-r from-blue-500 to-cyan-500",

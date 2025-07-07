@@ -10,7 +10,7 @@ import {
   getPasswordStrength,
   formatErrorMessage,
 } from "../lib/validation";
-import { VALIDATION_MESSAGES } from "../lib/validationConstants";
+import { VALIDATION_MESSAGES } from "../lib/validation";
 import { useFormError } from "../hooks/useFormError";
 
 const Signup: React.FC = () => {

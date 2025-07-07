@@ -48,3 +48,4 @@ export async function fetchTradeValues(): Promise<TradeValue[]> {
     throw err;
   }
 }
+

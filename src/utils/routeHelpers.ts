@@ -1,27 +1,21 @@
 import React from "react";
-import { RouteConfig } from "@/config/routes";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import ErrorBoundary, { withErrorBoundary } from "@/components/ErrorBoundary";
+import ErrorBoundary from "@/components/ErrorBoundary";
 import * as Sentry from "@sentry/react";
 
 /**
- * Route Helpers with Error Boundary Integration
- *
- * All route creation functions now include error boundaries by default.
+ * Route Helpers for App Routing
  *
  * Usage examples:
  *
  * 1. Protected route with error boundary (default):
- * createProtectedRoute("/admin", AdminPage)
+ *    createProtectedRoute("/admin", AdminPage)
  *
  * 2. Public route with error boundary (default):
- * createPublicRoute("/", HomePage)
+ *    createPublicRoute("/", HomePage)
  *
  * 3. Route without error boundary:
- * createProtectedRoute("/admin", AdminPage, false)
- *
- * 4. Using HOC-based route creation:
- * createRouteWithHOC("/dashboard", DashboardPage, true, "Dashboard")
+ *    createProtectedRoute("/admin", AdminPage, false)
  */
 
 // Standard error handlers for routes
@@ -30,7 +24,6 @@ const handleRouteError = (error: Error, errorInfo: React.ErrorInfo) => {
   console.error(`[Route Error] ${errorInfo.componentStack}`, error);
 
   // Send to Sentry in production
-  // NOTE: Sentry.init should be called ONCE at app startup (e.g., in main.tsx or a sentry.ts). Do not call it here.
   if (process.env.NODE_ENV === "production") {
     Sentry.captureException(error, {
       extra: {
@@ -56,12 +49,9 @@ function getCurrentPath() {
 }
 
 const handleRouteRetry = () => {
-  // Gracefully retry the current route using the router if possible
   if (navigateRef) {
-    // Reload the current route (replace: true to avoid pushing a new entry)
     navigateRef(getCurrentPath(), { replace: true });
   } else {
-    // Fallback: hard reload if navigation is not available
     window.location.reload();
   }
 };
@@ -100,45 +90,6 @@ export function createPublicRoute(
       onRetry: handleRouteRetry,
       children: element,
     });
-  }
-
-  return { path, element };
-}
-
-export function createRouteWithErrorBoundary(
-  path: string,
-  element: React.ReactNode,
-  context?: string
-) {
-  return {
-    path,
-    element: React.createElement(ErrorBoundary, {
-      context: context || `Route: ${path}`,
-      onError: handleRouteError,
-      onRetry: handleRouteRetry,
-      children: element,
-    }),
-  };
-}
-
-// HOC-based route creation for better error boundary integration
-export function createRouteWithHOC(
-  path: string,
-  Component: React.ComponentType,
-  isProtected: boolean = false,
-  context?: string
-) {
-  const WrappedComponent = withErrorBoundary(
-    Component,
-    context || `Route: ${path}`,
-    handleRouteError,
-    handleRouteRetry
-  );
-
-  let element: React.ReactElement = React.createElement(WrappedComponent);
-
-  if (isProtected) {
-    element = React.createElement(ProtectedRoute, { children: element });
   }
 
   return { path, element };

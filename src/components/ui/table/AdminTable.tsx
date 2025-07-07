@@ -223,3 +223,6 @@ export function AdminTable<T>({
     </div>
   );
 }
+
+const MemoizedAdminTable = React.memo(AdminTable) as typeof AdminTable;
+export { MemoizedAdminTable as AdminTable };

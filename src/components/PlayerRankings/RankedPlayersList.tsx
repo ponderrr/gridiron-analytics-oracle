@@ -12,10 +12,10 @@ export function RankedPlayersList() {
 
   const handleRemoveFromRankings = useCallback(
     (playerId: string) => {
-      dispatch({ type: "PUSH_UNDO", payload: [...state.rankedPlayers] });
+      dispatch({ type: "PUSH_UNDO", payload: [...state.rankedItems] });
       dispatch({ type: "REMOVE_RANKED_PLAYER", payload: playerId });
     },
-    [dispatch, state.rankedPlayers]
+    [dispatch, state.rankedItems]
   );
 
   const groupedByTiers = React.useMemo(() => {

@@ -1,6 +1,6 @@
 // Utility functions for player rankings logic shared across Supabase Edge Functions
 
-// Position order mapping for consistent sorting
+// position order mapping for consistent sorting
 export const positionOrder: Record<string, number> = {
   QB: 1,
   RB: 2,

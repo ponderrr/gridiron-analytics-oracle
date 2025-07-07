@@ -1,7 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 // Required secrets: DEBUG, NODE_ENV
-// TypeScript types for environment variables
+// Typescript types for environment variables
 interface Env {
   DEBUG?: string;
   NODE_ENV?: string;

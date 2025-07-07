@@ -364,3 +364,4 @@ async function fetchPlayerStatsAlternative(
     errorDetails.push(`Alternative stats fetch error: ${error.message}`);
   }
 }
+

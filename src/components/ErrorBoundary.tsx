@@ -62,7 +62,7 @@ function reportError(
   }
 
   // TODO: Send to error reporting service in production
-  // Example: Sentry.captureException(error, { extra: appError });
+  // Ex: Sentry.captureException(error, { extra: appError });
 }
 
 class ErrorBoundary extends React.Component<

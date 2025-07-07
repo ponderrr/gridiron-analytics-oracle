@@ -33,52 +33,67 @@ export interface CreateSetModalRef {
 
 export const CreateSetModal = forwardRef<CreateSetModalRef>((_, ref) => {
   const { state, createSet } = useRankings();
-  const { isOpen, openModal, closeModal, loading, setLoading } = useModal();
-  const [name, setName] = useState("");
-  const [format, setFormat] = useState<"dynasty" | "redraft">("redraft");
-  const [copyFromSetId, setCopyFromSetId] = useState("");
-  const [copyFromExisting, setCopyFromExisting] = useState(false);
+  const initialForm = {
+    name: "",
+    format: "redraft" as "dynasty" | "redraft",
+    copyFromSetId: "",
+    copyFromExisting: false,
+  };
+  const {
+    isOpen,
+    openModal,
+    closeModal,
+    loading,
+    setLoading,
+    error,
+    setError,
+    form,
+    setForm,
+    resetForm,
+  } = useModal<typeof initialForm>({ initialForm });
 
   useImperativeHandle(ref, () => ({
     openModal,
   }));
 
   useEffect(() => {
-    setCopyFromSetId("");
-  }, [format]);
+    setForm({ ...form, copyFromSetId: "" });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [form.format]);
+
+  useEffect(() => {
+    if (!isOpen) resetForm();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!name.trim()) return;
-
+    if (!form.name.trim()) return;
     setLoading(true);
+    setError(null);
     try {
       await createSet(
-        name.trim(),
-        format,
-        copyFromExisting && copyFromSetId ? copyFromSetId : undefined
+        form.name.trim(),
+        form.format,
+        form.copyFromExisting && form.copyFromSetId
+          ? form.copyFromSetId
+          : undefined
       );
-
-      // Reset form
-      setName("");
-      setFormat("redraft");
-      setCopyFromSetId("");
-      setCopyFromExisting(false);
       closeModal();
     } catch (error) {
+      setError("Failed to create ranking set. Please try again.");
       toast.error("Failed to create ranking set. Please try again.");
     } finally {
       setLoading(false);
     }
   };
 
-  // Memoize the filtered sets to avoid unnecessary recomputation
   const availableSetsForCopy = useMemo(
     () =>
       state.sets.filter(
-        (set) => set.format === format && set.id !== state.currentSet?.id
+        (set) => set.format === form.format && set.id !== state.currentSet?.id
       ),
-    [state.sets, format, state.currentSet?.id]
+    [state.sets, form.format, state.currentSet?.id]
   );
 
   return (
@@ -90,24 +105,24 @@ export const CreateSetModal = forwardRef<CreateSetModalRef>((_, ref) => {
             Create a new set of player rankings for your fantasy league.
           </DialogDescription>
         </DialogHeader>
-
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="name">Set Name</Label>
             <Input
               id="name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
+              value={form.name}
+              onChange={(e) => setForm({ ...form, name: e.target.value })}
               placeholder="My 2024 Rankings"
               required
             />
           </div>
-
           <div className="space-y-2">
             <Label htmlFor="format">Format</Label>
             <Select
-              value={format}
-              onValueChange={(value: "dynasty" | "redraft") => setFormat(value)}
+              value={form.format}
+              onValueChange={(value: "dynasty" | "redraft") =>
+                setForm({ ...form, format: value })
+              }
             >
               <SelectTrigger>
                 <SelectValue />
@@ -118,26 +133,28 @@ export const CreateSetModal = forwardRef<CreateSetModalRef>((_, ref) => {
               </SelectContent>
             </Select>
           </div>
-
           {availableSetsForCopy.length > 0 && (
             <>
               <div className="flex items-center space-x-2">
                 <Checkbox
                   id="copyFromExisting"
-                  checked={copyFromExisting}
-                  onCheckedChange={(checked) => setCopyFromExisting(!!checked)}
+                  checked={form.copyFromExisting}
+                  onCheckedChange={(checked) =>
+                    setForm({ ...form, copyFromExisting: !!checked })
+                  }
                 />
                 <Label htmlFor="copyFromExisting" className="text-sm">
                   Copy rankings from existing set
                 </Label>
               </div>
-
-              {copyFromExisting && (
+              {form.copyFromExisting && (
                 <div className="space-y-2">
                   <Label htmlFor="copyFromSet">Copy From</Label>
                   <Select
-                    value={copyFromSetId}
-                    onValueChange={setCopyFromSetId}
+                    value={form.copyFromSetId}
+                    onValueChange={(value) =>
+                      setForm({ ...form, copyFromSetId: value })
+                    }
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Select a set to copy..." />
@@ -154,7 +171,9 @@ export const CreateSetModal = forwardRef<CreateSetModalRef>((_, ref) => {
               )}
             </>
           )}
-
+          {error && (
+            <div className="text-red-500 text-sm text-center">{error}</div>
+          )}
           <div className="flex gap-2 pt-4">
             <Button
               type="button"
@@ -166,7 +185,7 @@ export const CreateSetModal = forwardRef<CreateSetModalRef>((_, ref) => {
             </Button>
             <Button
               type="submit"
-              disabled={!name.trim() || loading}
+              disabled={!form.name.trim() || loading}
               className="flex-1"
             >
               {loading ? "Creating..." : "Create Set"}

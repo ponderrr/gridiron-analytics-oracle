@@ -27,6 +27,15 @@ export interface FantasyPointsResult {
   scoring_format: string;
 }
 
+// Memoized/cached scoring settings (module-level cache)
+const scoringSettingsCache: Record<string, ScoringSettings> = {};
+function getCachedScoringSettings(format: string): ScoringSettings {
+  if (!scoringSettingsCache[format]) {
+    scoringSettingsCache[format] = DEFAULT_SCORING_SETTINGS[format];
+  }
+  return scoringSettingsCache[format];
+}
+
 /**
  * Validates that all stats are non-negative numbers.
  * @param stats WeeklyStatsInput
@@ -72,73 +81,95 @@ export function validateScoringSettings(settings: ScoringSettings): void {
 
 /**
  * Calculates fantasy points for a single player's weekly stats.
- * @param stats WeeklyStatsInput
- * @param scoringSettings Optional custom scoring settings
- * @returns FantasyPointsResult
+ * Memoizes scoring settings and validates input before API call.
+ * Error boundary included for robust error handling.
  */
 export async function calculateFantasyPoints(
   stats: WeeklyStatsInput,
   scoringSettings?: ScoringSettings
 ): Promise<FantasyPointsResult> {
-  validateStatsInput(stats);
-  const settings = scoringSettings || DEFAULT_SCORING_SETTINGS.standard;
-  validateScoringSettings(settings);
+  try {
+    validateStatsInput(stats);
+    const settings = scoringSettings || getCachedScoringSettings("standard");
+    validateScoringSettings(settings);
 
-  const { data, error } = await supabase.functions.invoke(
-    "calculate-fantasy-points",
-    {
-      body: { stats, scoring_settings: settings },
+    const { data, error } = await supabase.functions.invoke(
+      "calculate-fantasy-points",
+      {
+        body: { stats, scoring_settings: settings },
+      }
+    );
+
+    if (error) {
+      if (process.env.NODE_ENV === "development") {
+        console.error("Error calculating fantasy points:", error);
+      }
+      throw new Error(`Failed to calculate fantasy points: ${error.message}`);
     }
-  );
 
-  if (error) {
+    return data;
+  } catch (err) {
+    // Error boundary for calculation
     if (process.env.NODE_ENV === "development") {
-      console.error("Error calculating fantasy points:", error);
+      console.error("Fantasy points calculation error:", err);
     }
-    throw new Error(`Failed to calculate fantasy points: ${error.message}`);
+    throw err;
   }
-
-  return data;
 }
 
 /**
  * Calculates fantasy points for a batch of players.
- * @param players Array of player_id and stats
- * @param scoringSettings ScoringSettings
- * @returns Array of results with player_id
+ * Optimized: validates and filters only valid players before API call.
+ * Error boundary included for robust error handling.
  */
 export async function calculateBatchFantasyPoints(
   players: Array<{ player_id: string; stats: WeeklyStatsInput }>,
   scoringSettings: ScoringSettings
 ): Promise<Array<{ player_id: string } & FantasyPointsResult>> {
-  players.forEach((p) => validateStatsInput(p.stats));
-  validateScoringSettings(scoringSettings);
-
-  const { data, error } = await supabase.functions.invoke(
-    "calculate-fantasy-points",
-    {
-      body: { players, scoring_settings: scoringSettings },
+  try {
+    // Validate and filter only valid players
+    const validPlayers = players.filter((p) => {
+      try {
+        validateStatsInput(p.stats);
+        return true;
+      } catch {
+        return false;
+      }
+    });
+    if (validPlayers.length === 0) {
+      throw new Error("No valid player stats provided for batch calculation.");
     }
-  );
+    validateScoringSettings(scoringSettings);
 
-  if (error) {
-    if (process.env.NODE_ENV === "development") {
-      console.error("Error calculating batch fantasy points:", error);
-    }
-    throw new Error(
-      `Failed to calculate batch fantasy points: ${error.message}`
+    const { data, error } = await supabase.functions.invoke(
+      "calculate-fantasy-points",
+      {
+        body: { players: validPlayers, scoring_settings: scoringSettings },
+      }
     );
-  }
 
-  return data.results;
+    if (error) {
+      if (process.env.NODE_ENV === "development") {
+        console.error("Error calculating batch fantasy points:", error);
+      }
+      throw new Error(
+        `Failed to calculate batch fantasy points: ${error.message}`
+      );
+    }
+
+    return data.results;
+  } catch (err) {
+    // Error boundary for batch calculation
+    if (process.env.NODE_ENV === "development") {
+      console.error("Batch fantasy points calculation error:", err);
+    }
+    throw err;
+  }
 }
 
 /**
  * Updates a player's weekly stats row with calculated fantasy points.
- * @param playerId string
- * @param season number
- * @param week number
- * @param scoringFormat 'standard' | 'ppr' | 'half_ppr'
+ * Error boundary included for robust error handling.
  */
 export async function updateWeeklyStatsWithFantasyPoints(
   playerId: string,
@@ -146,53 +177,63 @@ export async function updateWeeklyStatsWithFantasyPoints(
   week: number,
   scoringFormat: "standard" | "ppr" | "half_ppr" = "standard"
 ): Promise<void> {
-  // Fetch the weekly stats
-  const { data: weeklyStats, error: fetchError } = await supabase
-    .from("weekly_stats")
-    .select("*")
-    .eq("player_id", playerId)
-    .eq("season", season)
-    .eq("week", week)
-    .single();
+  try {
+    // Fetch the weekly stats
+    const { data: weeklyStats, error: fetchError } = await supabase
+      .from("weekly_stats")
+      .select("*")
+      .eq("player_id", playerId)
+      .eq("season", season)
+      .eq("week", week)
+      .single();
 
-  if (fetchError || !weeklyStats) {
-    throw new Error(`Failed to fetch weekly stats: ${fetchError?.message}`);
-  }
+    if (fetchError || !weeklyStats) {
+      throw new Error(`Failed to fetch weekly stats: ${fetchError?.message}`);
+    }
 
-  const stats: WeeklyStatsInput = {
-    passing_yards: weeklyStats.passing_yards || 0,
-    passing_tds: weeklyStats.passing_tds || 0,
-    passing_interceptions: weeklyStats.passing_interceptions || 0,
-    rushing_yards: weeklyStats.rushing_yards || 0,
-    rushing_tds: weeklyStats.rushing_tds || 0,
-    receiving_yards: weeklyStats.receiving_yards || 0,
-    receiving_tds: weeklyStats.receiving_tds || 0,
-    receptions: weeklyStats.receptions || 0,
-    fumbles_lost: weeklyStats.fumbles_lost || 0,
-  };
-  validateStatsInput(stats);
+    const stats: WeeklyStatsInput = {
+      passing_yards: weeklyStats.passing_yards || 0,
+      passing_tds: weeklyStats.passing_tds || 0,
+      passing_interceptions: weeklyStats.passing_interceptions || 0,
+      rushing_yards: weeklyStats.rushing_yards || 0,
+      rushing_tds: weeklyStats.rushing_tds || 0,
+      receiving_yards: weeklyStats.receiving_yards || 0,
+      receiving_tds: weeklyStats.receiving_tds || 0,
+      receptions: weeklyStats.receptions || 0,
+      fumbles_lost: weeklyStats.fumbles_lost || 0,
+    };
+    validateStatsInput(stats);
 
-  const result = await calculateFantasyPoints(
-    stats,
-    DEFAULT_SCORING_SETTINGS[scoringFormat]
-  );
+    const result = await calculateFantasyPoints(
+      stats,
+      getCachedScoringSettings(scoringFormat)
+    );
 
-  // Update the database with calculated points
-  const { error: updateError } = await supabase
-    .from("weekly_stats")
-    .update({ fantasy_points: result.total_points })
-    .eq("player_id", playerId)
-    .eq("season", season)
-    .eq("week", week);
+    // Update the database with calculated points
+    const { error: updateError } = await supabase
+      .from("weekly_stats")
+      .update({ fantasy_points: result.total_points })
+      .eq("player_id", playerId)
+      .eq("season", season)
+      .eq("week", week);
 
-  if (updateError) {
-    if (process.env.NODE_ENV === "development") {
-      console.error(
-        `Failed to update fantasy points for ${playerId}:`,
-        updateError
+    if (updateError) {
+      if (process.env.NODE_ENV === "development") {
+        console.error(
+          `Failed to update fantasy points for ${playerId}:`,
+          updateError
+        );
+      }
+      throw new Error(
+        `Failed to update fantasy points: ${updateError.message}`
       );
     }
-    throw new Error(`Failed to update fantasy points: ${updateError.message}`);
+  } catch (err) {
+    // Error boundary for update
+    if (process.env.NODE_ENV === "development") {
+      console.error("Update weekly stats with fantasy points error:", err);
+    }
+    throw err;
   }
 }
 

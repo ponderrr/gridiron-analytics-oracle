@@ -1,9 +1,9 @@
-import React from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { Card } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
-import { AlertCircle, CheckCircle, Database, Users } from 'lucide-react';
+import React from "react";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { Card } from "@/components/ui/card";
+import { Progress } from "@/components/ui/progress";
+import { AlertCircle, CheckCircle, Database, Users } from "lucide-react";
 
 interface DataQualityStats {
   total_players: number;
@@ -16,12 +16,30 @@ interface DataQualityStats {
 
 const fetchDataQualityStats = async (): Promise<DataQualityStats> => {
   // Use individual queries since the RPC function doesn't exist yet
-  const [playersResult, activeResult, teamsResult, positionsResult, metadataResult] = await Promise.all([
-    supabase.from('players').select('id', { count: 'exact' }),
-    supabase.from('players').select('id', { count: 'exact' }).eq('active', true),
-    supabase.from('players').select('id', { count: 'exact' }).not('team', 'is', null),
-    supabase.from('players').select('id', { count: 'exact' }).not('position', 'is', null),
-    supabase.from('players').select('id', { count: 'exact' }).not('metadata', 'is', null),
+  const [
+    playersResult,
+    activeResult,
+    teamsResult,
+    positionsResult,
+    metadataResult,
+  ] = await Promise.all([
+    supabase.from("players").select("id", { count: "exact" }),
+    supabase
+      .from("players")
+      .select("id", { count: "exact" })
+      .eq("active", true),
+    supabase
+      .from("players")
+      .select("id", { count: "exact" })
+      .not("team", "is", null),
+    supabase
+      .from("players")
+      .select("id", { count: "exact" })
+      .not("position", "is", null),
+    supabase
+      .from("players")
+      .select("id", { count: "exact" })
+      .not("metadata", "is", null),
   ]);
 
   return {
@@ -35,8 +53,12 @@ const fetchDataQualityStats = async (): Promise<DataQualityStats> => {
 };
 
 const DataQualityMetrics: React.FC = () => {
-  const { data: stats, isLoading, error } = useQuery({
-    queryKey: ['dataQualityStats'],
+  const {
+    data: stats,
+    isLoading,
+    error,
+  } = useQuery({
+    queryKey: ["dataQualityStats"],
     queryFn: fetchDataQualityStats,
     refetchInterval: 60000, // Refresh every minute
   });
@@ -72,26 +94,26 @@ const DataQualityMetrics: React.FC = () => {
 
   const getQualityScore = () => {
     if (stats.total_players === 0) return 0;
-    const completenessScore = (
-      (stats.active_players / stats.total_players) * 0.3 +
-      (stats.players_with_teams / stats.total_players) * 0.3 +
-      (stats.players_with_positions / stats.total_players) * 0.3 +
-      (stats.players_with_metadata / stats.total_players) * 0.1
-    ) * 100;
+    const completenessScore =
+      ((stats.active_players / stats.total_players) * 0.3 +
+        (stats.players_with_teams / stats.total_players) * 0.3 +
+        (stats.players_with_positions / stats.total_players) * 0.3 +
+        (stats.players_with_metadata / stats.total_players) * 0.1) *
+      100;
     return Math.round(completenessScore);
   };
 
   const qualityScore = getQualityScore();
   const getScoreColor = (score: number) => {
-    if (score >= 90) return 'text-green-400';
-    if (score >= 70) return 'text-yellow-400';
-    return 'text-red-400';
+    if (score >= 90) return "text-green-400";
+    if (score >= 70) return "text-yellow-400";
+    return "text-red-400";
   };
 
   const getProgressColor = (percentage: number) => {
-    if (percentage >= 90) return 'bg-green-500';
-    if (percentage >= 70) return 'bg-yellow-500';
-    return 'bg-red-500';
+    if (percentage >= 90) return "bg-green-500";
+    if (percentage >= 70) return "bg-yellow-500";
+    return "bg-red-500";
   };
 
   return (
@@ -117,7 +139,9 @@ const DataQualityMetrics: React.FC = () => {
         <div>
           <div className="flex justify-between text-sm mb-2">
             <span className="text-slate-300">Total Players</span>
-            <span className="text-white font-medium">{stats.total_players}</span>
+            <span className="text-white font-medium">
+              {stats.total_players}
+            </span>
           </div>
           <div className="flex items-center space-x-2">
             <Users className="h-4 w-4 text-slate-400" />
@@ -129,11 +153,13 @@ const DataQualityMetrics: React.FC = () => {
           <div className="flex justify-between text-sm mb-2">
             <span className="text-slate-300">Active Players</span>
             <span className="text-white font-medium">
-              {stats.active_players} ({((stats.active_players / stats.total_players) * 100).toFixed(1)}%)
+              {stats.active_players} (
+              {((stats.active_players / stats.total_players) * 100).toFixed(1)}
+              %)
             </span>
           </div>
-          <Progress 
-            value={(stats.active_players / stats.total_players) * 100} 
+          <Progress
+            value={(stats.active_players / stats.total_players) * 100}
             className="h-2"
           />
         </div>
@@ -142,11 +168,15 @@ const DataQualityMetrics: React.FC = () => {
           <div className="flex justify-between text-sm mb-2">
             <span className="text-slate-300">Players with Teams</span>
             <span className="text-white font-medium">
-              {stats.players_with_teams} ({((stats.players_with_teams / stats.total_players) * 100).toFixed(1)}%)
+              {stats.players_with_teams} (
+              {((stats.players_with_teams / stats.total_players) * 100).toFixed(
+                1
+              )}
+              %)
             </span>
           </div>
-          <Progress 
-            value={(stats.players_with_teams / stats.total_players) * 100} 
+          <Progress
+            value={(stats.players_with_teams / stats.total_players) * 100}
             className="h-2"
           />
         </div>
@@ -155,11 +185,16 @@ const DataQualityMetrics: React.FC = () => {
           <div className="flex justify-between text-sm mb-2">
             <span className="text-slate-300">Players with Positions</span>
             <span className="text-white font-medium">
-              {stats.players_with_positions} ({((stats.players_with_positions / stats.total_players) * 100).toFixed(1)}%)
+              {stats.players_with_positions} (
+              {(
+                (stats.players_with_positions / stats.total_players) *
+                100
+              ).toFixed(1)}
+              %)
             </span>
           </div>
-          <Progress 
-            value={(stats.players_with_positions / stats.total_players) * 100} 
+          <Progress
+            value={(stats.players_with_positions / stats.total_players) * 100}
             className="h-2"
           />
         </div>
@@ -168,11 +203,16 @@ const DataQualityMetrics: React.FC = () => {
           <div className="flex justify-between text-sm mb-2">
             <span className="text-slate-300">Players with Metadata</span>
             <span className="text-white font-medium">
-              {stats.players_with_metadata} ({((stats.players_with_metadata / stats.total_players) * 100).toFixed(1)}%)
+              {stats.players_with_metadata} (
+              {(
+                (stats.players_with_metadata / stats.total_players) *
+                100
+              ).toFixed(1)}
+              %)
             </span>
           </div>
-          <Progress 
-            value={(stats.players_with_metadata / stats.total_players) * 100} 
+          <Progress
+            value={(stats.players_with_metadata / stats.total_players) * 100}
             className="h-2"
           />
         </div>
@@ -182,7 +222,11 @@ const DataQualityMetrics: React.FC = () => {
         <div className="flex items-center justify-between text-sm">
           <span className="text-slate-400">Overall Data Quality</span>
           <span className={`font-semibold ${getScoreColor(qualityScore)}`}>
-            {qualityScore >= 90 ? 'Excellent' : qualityScore >= 70 ? 'Good' : 'Needs Improvement'}
+            {qualityScore >= 90
+              ? "Excellent"
+              : qualityScore >= 70
+                ? "Good"
+                : "Needs Improvement"}
           </span>
         </div>
       </div>

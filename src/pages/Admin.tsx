@@ -48,7 +48,15 @@ import DataQualityMetrics from "@/components/ui/monitoring/DataQualityMetrics";
 const { ICON_SIZES } = THEME_CONSTANTS;
 const { HEIGHT } = UI_CONSTANTS;
 
-// Lazy-load AdminTable for performance. TypeScript types are preserved with the cast below.
+// Query key factory for better cache management
+const adminQueryKeys = {
+  players: () => ["players"],
+  weeklyStats: (week?: number) => ["weeklyStats", week],
+  projections: () => ["projections"],
+  tradeValues: () => ["tradeValues"],
+};
+
+// Memoized AdminTable import
 const AdminTable = React.lazy(() =>
   import("../components/ui/table/AdminTable").then((mod) => ({
     default: mod.AdminTable,
@@ -78,8 +86,9 @@ const Admin: React.FC = () => {
     error: playersError,
     refetch: refetchPlayers,
   } = useQuery<Player[], Error>({
-    queryKey: ["players"],
+    queryKey: adminQueryKeys.players(),
     queryFn: fetchPlayers,
+    refetchOnWindowFocus: false,
   });
 
   const {
@@ -88,8 +97,9 @@ const Admin: React.FC = () => {
     error: statsError,
     refetch: refetchWeeklyStats,
   } = useQuery<WeeklyStat[], Error>({
-    queryKey: ["weeklyStats"],
+    queryKey: adminQueryKeys.weeklyStats(10),
     queryFn: () => fetchWeeklyStats(10),
+    refetchOnWindowFocus: false,
   });
 
   const {
@@ -98,8 +108,9 @@ const Admin: React.FC = () => {
     error: projectionsError,
     refetch: refetchProjections,
   } = useQuery<Projection[], Error>({
-    queryKey: ["projections"],
+    queryKey: adminQueryKeys.projections(),
     queryFn: fetchProjections,
+    refetchOnWindowFocus: false,
   });
 
   const {
@@ -108,8 +119,9 @@ const Admin: React.FC = () => {
     error: tradeValuesError,
     refetch: refetchTradeValues,
   } = useQuery<TradeValue[], Error>({
-    queryKey: ["tradeValues"],
+    queryKey: adminQueryKeys.tradeValues(),
     queryFn: fetchTradeValues,
+    refetchOnWindowFocus: false,
   });
 
   const loading =

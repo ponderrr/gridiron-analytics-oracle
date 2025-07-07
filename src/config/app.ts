@@ -59,3 +59,4 @@ export const appConfig: AppConfig = {
     pageSizeOptions: [10, 20, 50, 100],
   },
 };
+

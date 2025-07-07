@@ -36,7 +36,7 @@ function App() {
         <Router>
           <NavigatorSetter />
           <AuthProvider>
-            {/* ✅ Toaster must be within ThemeProvider */}
+            {/* Toaster must be within ThemeProvider */}
             <Toaster />
             <Suspense
               fallback={<LoadingSpinner size="lg" message="Loading..." />}
@@ -59,7 +59,7 @@ function App() {
                         element={routeConfig.element}
                       />
                     );
-                  },
+                  }
                 )}
               </Routes>
             </Suspense>

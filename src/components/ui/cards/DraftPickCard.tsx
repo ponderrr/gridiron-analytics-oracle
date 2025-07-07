@@ -33,7 +33,7 @@ export const DraftPickCard: React.FC<DraftPickCardProps> = ({
   className,
   onClick,
 }) => {
-  const pickDisplay = `${pick.year} ${pick.round}.${pick.pick.toString().padStart(2, '0')}`;
+  const pickDisplay = `${pick.year} ${pick.round}.${pick.pick.toString().padStart(2, "0")}`;
   const valueColor = getPickValueColor(pick.round, pick.pick);
   const valueIndicator = getPickValueIndicator(pick.round, pick.pick);
 
@@ -66,33 +66,34 @@ export const DraftPickCard: React.FC<DraftPickCardProps> = ({
             </span>
           </div>
         </div>
-        
+
         <div className="text-right">
           <div className={cn("text-sm font-medium", valueColor)}>
             Round {pick.round}
           </div>
-          <div className="text-xs text-muted-foreground">
-            Pick {pick.pick}
-          </div>
+          <div className="text-xs text-muted-foreground">Pick {pick.pick}</div>
         </div>
       </div>
-      
+
       {/* Pick value indicator bar */}
       <div className="mt-3 flex items-center space-x-2">
         <div className="flex-1 bg-secondary rounded-full h-1.5">
-          <div 
+          <div
             className={cn(
               "h-full rounded-full transition-all duration-300",
-              valueColor.replace('text-', 'bg-')
+              valueColor.replace("text-", "bg-")
             )}
-            style={{ 
-              width: `${Math.max(10, 100 - (pick.round - 1) * 25 - (pick.pick - 1) * 2)}%` 
+            style={{
+              width: `${Math.max(10, 100 - (pick.round - 1) * 25 - (pick.pick - 1) * 2)}%`,
             }}
           />
         </div>
         <span className={cn("text-xs font-medium", valueColor)}>
-          {pick.round === 1 && pick.pick <= 6 ? "High" : 
-           pick.round <= 2 ? "Mid" : "Late"}
+          {pick.round === 1 && pick.pick <= 6
+            ? "High"
+            : pick.round <= 2
+              ? "Mid"
+              : "Late"}
         </span>
       </div>
     </div>
