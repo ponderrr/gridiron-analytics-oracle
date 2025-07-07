@@ -101,9 +101,6 @@ export async function calculateFantasyPoints(
     );
 
     if (error) {
-      if (process.env.NODE_ENV === "development") {
-        console.error("Error calculating fantasy points:", error);
-      }
       throw new Error(`Failed to calculate fantasy points: ${error.message}`);
     }
 

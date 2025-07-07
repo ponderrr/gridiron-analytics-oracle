@@ -26,18 +26,6 @@ interface Env {
   SUPABASE_ANON_KEY: string;
 }
 
-// Validate environment variables
-const requiredEnvVars: Env = {
-  SUPABASE_URL: Deno.env.get("SUPABASE_URL")!,
-  SUPABASE_ANON_KEY: Deno.env.get("SUPABASE_ANON_KEY")!,
-};
-const missingVars = Object.entries(requiredEnvVars)
-  .filter(([_, value]) => !value)
-  .map(([key]) => key);
-if (missingVars.length > 0) {
-  throw new Error(`Missing environment variables: ${missingVars.join(", ")}`);
-}
-
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
@@ -56,9 +44,22 @@ serve(async (req) => {
       console.error(errorMsg);
       return new Response(JSON.stringify({ error: errorMsg }), { status: 500 });
     }
+
+    // Check for Authorization header
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ error: "Unauthorized: Missing Authorization header" }),
+        {
+          status: 401,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        }
+      );
+    }
+
     const supabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
       global: {
-        headers: { Authorization: req.headers.get("Authorization")! },
+        headers: { Authorization: authHeader },
       },
     });
 
@@ -238,7 +239,20 @@ serve(async (req) => {
               .select("player_id, overall_rank, tier, notes")
               .eq("ranking_set_id", createBody.copyFromSetId);
 
-          if (!copyError && sourceRankings) {
+          if (copyError) {
+            console.error("Error copying rankings from set:", copyError);
+            return new Response(
+              JSON.stringify({
+                error: "Failed to copy rankings from source set",
+              }),
+              {
+                status: 500,
+                headers: { ...corsHeaders, "Content-Type": "application/json" },
+              }
+            );
+          }
+
+          if (sourceRankings) {
             const rankingsToInsert = sourceRankings.map((ranking) => ({
               ranking_set_id: newSet.id,
               player_id: ranking.player_id,
@@ -382,4 +396,3 @@ serve(async (req) => {
     });
   }
 });
-

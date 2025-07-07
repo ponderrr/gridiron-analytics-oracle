@@ -35,4 +35,3 @@ export const teams = [
   "TEN",
   "WAS",
 ];
-// test

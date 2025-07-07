@@ -185,4 +185,3 @@ export function RankingsHeader() {
     </div>
   );
 }
-// test

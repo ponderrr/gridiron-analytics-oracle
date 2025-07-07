@@ -30,16 +30,14 @@ const allowedOrigins = [
 ];
 
 function getCorsHeaders(origin: string | null): Record<string, string> {
-  let allowOrigin = "";
-  if (origin && allowedOrigins.includes(origin)) {
-    allowOrigin = origin;
-  }
-  // If not allowed, do not set the header (or set to empty string)
-  return {
-    "Access-Control-Allow-Origin": allowOrigin,
+  const headers: Record<string, string> = {
     "Access-Control-Allow-Headers":
       "authorization, x-client-info, apikey, content-type",
   };
+  if (origin && allowedOrigins.includes(origin)) {
+    headers["Access-Control-Allow-Origin"] = origin;
+  }
+  return headers;
 }
 
 interface WeeklyStatsInput {

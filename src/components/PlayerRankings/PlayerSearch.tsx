@@ -13,7 +13,6 @@ import { Search } from "lucide-react";
 import { usePlayerFilters } from "@/hooks/usePlayerFilters";
 import { positions, teams } from "@/constants/playerData";
 
-// test
 export function PlayerSearch() {
   const {
     filters: { searchTerm, positionFilter, teamFilter, showOnlyUnranked },

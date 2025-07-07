@@ -27,7 +27,9 @@ export interface UseTradeAnalysisResult {
   removePlayerFromTrade: (playerId: string, side: "your" | "target") => void;
   clearTrade: () => void;
   availablePlayers: Player[];
-  currentSet: any; // Use correct type if available
+  currentSet:
+    | import("@/components/PlayerRankings/RankingsProvider").RankingSet
+    | null;
   maxRank: number;
 }
 
@@ -41,10 +43,29 @@ const POSITION_MULTIPLIERS = {
   "D/ST": 0.9,
 };
 
-export function useTradeAnalysis(): UseTradeAnalysisResult {
+export const FAIRNESS_THRESHOLDS = {
+  VERY_FAIR: 10, // percent
+  FAIR: 25, // percent
+};
+
+export type PlayerValueScaling =
+  | "quadratic"
+  | "linear"
+  | "logarithmic"
+  | { type: "custom"; factor: number };
+
+export interface UseTradeAnalysisOptions {
+  scaling?: PlayerValueScaling;
+}
+
+export function useTradeAnalysis(
+  options: UseTradeAnalysisOptions = {}
+): UseTradeAnalysisResult {
   const { state } = useRankings();
   const [yourPlayers, setYourPlayers] = useState<TradePlayer[]>([]);
   const [targetPlayers, setTargetPlayers] = useState<TradePlayer[]>([]);
+
+  const scaling = options.scaling || "quadratic";
 
   const maxRank = useMemo(() => {
     return Math.max(state.rankedPlayers.length, 200); // Default to 200 if no rankings
@@ -57,26 +78,33 @@ export function useTradeAnalysis(): UseTradeAnalysisResult {
       );
       const rank = rankedPlayer?.overall_rank;
 
-      if (rank) {
-        // Value = (MaxRank - PlayerRank)²
-        const baseValue = Math.pow(maxRank - rank, 2);
-        const multiplier =
-          POSITION_MULTIPLIERS[
-            player.position as keyof typeof POSITION_MULTIPLIERS
-          ] || 1.0;
-        return baseValue * multiplier;
-      } else {
-        // Unranked players get default low value based on position
-        const defaultRank = maxRank + 50;
-        const baseValue = Math.pow(maxRank - defaultRank, 2);
-        const multiplier =
-          POSITION_MULTIPLIERS[
-            player.position as keyof typeof POSITION_MULTIPLIERS
-          ] || 1.0;
-        return Math.max(baseValue * multiplier, 1); // Minimum value of 1
+      let baseValue: number;
+      let effectiveRank = rank ?? maxRank + 50;
+      switch (typeof scaling === "string" ? scaling : scaling.type) {
+        case "linear":
+          baseValue = maxRank - effectiveRank;
+          break;
+        case "logarithmic":
+          baseValue = Math.log2(Math.max(1, maxRank - effectiveRank + 1));
+          break;
+        case "custom":
+          baseValue = Math.pow(
+            maxRank - effectiveRank,
+            (scaling as any).factor
+          );
+          break;
+        case "quadratic":
+        default:
+          baseValue = Math.pow(maxRank - effectiveRank, 2);
+          break;
       }
+      const multiplier =
+        POSITION_MULTIPLIERS[
+          player.position as keyof typeof POSITION_MULTIPLIERS
+        ] || 1.0;
+      return Math.max(baseValue * multiplier, 1); // Minimum value of 1
     },
-    [state.rankedPlayers, maxRank]
+    [state.rankedPlayers, maxRank, scaling]
   );
 
   const getTradePlayer = useCallback(
@@ -144,11 +172,11 @@ export function useTradeAnalysis(): UseTradeAnalysisResult {
     let recommendation: string;
     let winnerSide: "your" | "target" | "neutral";
 
-    if (percentageDiff < 10) {
+    if (percentageDiff < FAIRNESS_THRESHOLDS.VERY_FAIR) {
       fairness = "Very Fair";
       recommendation = "Good Trade";
       winnerSide = "neutral";
-    } else if (percentageDiff < 25) {
+    } else if (percentageDiff < FAIRNESS_THRESHOLDS.FAIR) {
       fairness = "Fair";
       if (valueDifference > 0) {
         recommendation = "Accept Trade";
