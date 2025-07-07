@@ -15,6 +15,7 @@ export type Database = {
           bye_week: number | null
           created_at: string
           id: string
+          metadata: Json | null
           name: string
           player_id: string
           position: string
@@ -26,6 +27,7 @@ export type Database = {
           bye_week?: number | null
           created_at?: string
           id?: string
+          metadata?: Json | null
           name: string
           player_id: string
           position: string
@@ -37,6 +39,7 @@ export type Database = {
           bye_week?: number | null
           created_at?: string
           id?: string
+          metadata?: Json | null
           name?: string
           player_id?: string
           position?: string

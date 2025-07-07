@@ -120,6 +120,47 @@ export const useSyncData = () => {
     "syncWeeklyStats"
   );
 
+  const syncPlayerStats = withErrorHandling(
+    async (week: number, season: number = 2024) => {
+      setStatsSyncState({ isLoading: true, result: null, error: null });
+      try {
+        const { data, error } = await supabase.functions.invoke(
+          "sync-player-stats",
+          {
+            body: { week, season },
+          }
+        );
+        if (error) {
+          throw createAppError(
+            error.message || "Failed to sync player stats",
+            "data",
+            error.status
+          );
+        }
+        setStatsSyncState({
+          isLoading: false,
+          result: data,
+          error: null,
+        });
+        return data;
+      } catch (error) {
+        setStatsSyncState({
+          isLoading: false,
+          result: null,
+          error: createAppError(
+            extractErrorMessage(error),
+            "data",
+            undefined,
+            "syncPlayerStats",
+            error
+          ),
+        });
+        throw error;
+      }
+    },
+    "syncPlayerStats"  
+  );
+
   const clearPlayerSync = useCallback(() => {
     setPlayerSyncState({ isLoading: false, result: null, error: null });
   }, []);
@@ -134,6 +175,7 @@ export const useSyncData = () => {
       statsSync: statsSyncState,
       syncPlayers,
       syncWeeklyStats,
+      syncPlayerStats,
       clearPlayerSync,
       clearStatsSync,
     }),
@@ -142,6 +184,7 @@ export const useSyncData = () => {
       statsSyncState,
       syncPlayers,
       syncWeeklyStats,
+      syncPlayerStats,
       clearPlayerSync,
       clearStatsSync,
     ]

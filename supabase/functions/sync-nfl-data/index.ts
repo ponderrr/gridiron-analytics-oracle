@@ -157,6 +157,17 @@ serve(async (req) => {
           team: team || "FA", // Free agent if no team
           active: active,
           bye_week: team ? teamByeWeeks.get(team) || null : null,
+          metadata: {
+            sleeper_id: sleeperId,
+            height: player.height || null,
+            weight: player.weight || null,
+            years_exp: player.years_exp || null,
+            birth_date: player.birth_date || null,
+            depth_chart_order: player.depth_chart_order || null,
+            status: player.status || null,
+            first_name: player.first_name || null,
+            last_name: player.last_name || null
+          }
         };
 
         players.push(playerData);

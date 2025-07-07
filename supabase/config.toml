@@ -57,6 +57,9 @@ verify_jwt = false
 [functions.sync-weekly-stats]
 verify_jwt = false
 
+[functions.sync-player-stats]
+verify_jwt = false
+
 [functions.rankings-management]
 verify_jwt = true
 
