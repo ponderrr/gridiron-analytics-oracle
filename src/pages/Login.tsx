@@ -1,12 +1,16 @@
 import React, { useState } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { Eye, EyeOff, Mail, Lock } from "lucide-react";
-import Layout from "../components/Layout";
+import Layout from "@/components/Layout";
 import LoadingSpinner from "../components/LoadingSpinner";
-import { useAuth } from "../contexts/AuthContext";
-import { validateEmail, formatErrorMessage } from "../lib/validation";
+import { useAuth } from "@/contexts/AuthContext";
+import {
+  validateEmail,
+  validateEmailDetailed,
+} from "@/lib/validation";
 import { VALIDATION_MESSAGES } from "../lib/validation";
-import { useFormError } from "../hooks/useFormError";
+import { useFormError } from "@/hooks/useFormError";
+import DOMPurify from "dompurify";
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState("");
@@ -14,6 +18,7 @@ const Login: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [emailFeedback, setEmailFeedback] = useState<string[]>([]);
 
   const { login } = useAuth();
   const navigate = useNavigate();
@@ -26,24 +31,35 @@ const Login: React.FC = () => {
     e.preventDefault();
     clearError();
 
-    const emailError = validateEmail(email);
+    // Sanitize inputs before validation and use
+    const sanitizedEmail = DOMPurify.sanitize(email);
+    const sanitizedPassword = DOMPurify.sanitize(password);
+
+    const emailError = validateEmail(sanitizedEmail);
     if (emailError) {
       setError(emailError);
       return;
     }
-    if (!password) {
+    if (!sanitizedPassword) {
       setError(VALIDATION_MESSAGES.PASSWORD_REQUIRED);
       return;
     }
     setIsLoading(true);
     try {
-      await login(email, password);
+      await login(sanitizedEmail, sanitizedPassword);
       navigate(from, { replace: true });
     } catch (err) {
       formatAndSetError(err);
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleEmailChange = (value: string) => {
+    const sanitized = DOMPurify.sanitize(value);
+    setEmail(sanitized);
+    const result = validateEmailDetailed(sanitized);
+    setEmailFeedback(result.errors);
   };
 
   return (
@@ -77,12 +93,19 @@ const Login: React.FC = () => {
                   <input
                     type="email"
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    onChange={(e) => handleEmailChange(e.target.value)}
                     className="w-full pl-10 pr-4 py-3 bg-slate-800 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
                     placeholder="Enter your email"
                     required
                   />
                 </div>
+                {email && emailFeedback.length > 0 && (
+                  <ul className="mt-1 text-xs text-red-400 space-y-0.5">
+                    {emailFeedback.map((msg, i) => (
+                      <li key={i}>{msg}</li>
+                    ))}
+                  </ul>
+                )}
               </div>
 
               {/* Password */}
@@ -95,7 +118,9 @@ const Login: React.FC = () => {
                   <input
                     type={showPassword ? "text" : "password"}
                     value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    onChange={(e) =>
+                      setPassword(DOMPurify.sanitize(e.target.value))
+                    }
                     className="w-full pl-10 pr-12 py-3 bg-slate-800 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
                     placeholder="Enter your password"
                     required

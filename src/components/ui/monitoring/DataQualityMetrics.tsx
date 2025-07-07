@@ -60,6 +60,7 @@ const DataQualityMetrics: React.FC = () => {
   } = useQuery({
     queryKey: ["dataQualityStats"],
     queryFn: fetchDataQualityStats,
+    staleTime: 60_000, // 1 minute: data quality metrics update frequently
     refetchInterval: 60000, // Refresh every minute
   });
 
@@ -108,12 +109,6 @@ const DataQualityMetrics: React.FC = () => {
     if (score >= 90) return "text-green-400";
     if (score >= 70) return "text-yellow-400";
     return "text-red-400";
-  };
-
-  const getProgressColor = (percentage: number) => {
-    if (percentage >= 90) return "bg-green-500";
-    if (percentage >= 70) return "bg-yellow-500";
-    return "bg-red-500";
   };
 
   return (

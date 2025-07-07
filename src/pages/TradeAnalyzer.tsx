@@ -1,6 +1,6 @@
 import React from "react";
 import { motion } from "framer-motion";
-import Layout from "../components/Layout";
+import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -22,11 +22,12 @@ import { THEME_CONSTANTS, getThemeClasses } from "@/lib/constants";
 import { RankingsProvider, useRankings } from "@/components/PlayerRankings";
 import { useTradeAnalysis } from "@/hooks/useTradeAnalysis";
 import { useTheme } from "@/contexts/ThemeContext";
+import { toast } from "sonner";
 
 const { ICON_SIZES, TEXT_SIZES, PADDING, GAP, SPACING } = THEME_CONSTANTS;
 
 function TradeAnalyzerContent() {
-  const { state, fetchSets, selectSet } = useRankings();
+  const { state, selectSet } = useRankings();
   const { effectiveTheme } = useTheme();
   const themeClasses = getThemeClasses(effectiveTheme);
   const {
@@ -59,6 +60,24 @@ function TradeAnalyzerContent() {
         duration: 0.5,
       },
     },
+  };
+
+  // Wrap add/remove/clear actions with toasts
+  const handleAddPlayer = (player: any, side: "your" | "target") => {
+    addPlayerToTrade(player, side);
+    toast.success(
+      `${player.name} added to ${side === "your" ? "your" : "target"} side.`
+    );
+  };
+  const handleRemovePlayer = (playerId: string, side: "your" | "target") => {
+    removePlayerFromTrade(playerId, side);
+    toast.success(
+      `Player removed from ${side === "your" ? "your" : "target"} side.`
+    );
+  };
+  const handleClearTrade = () => {
+    clearTrade();
+    toast.info("Trade cleared.");
   };
 
   return (
@@ -121,7 +140,7 @@ function TradeAnalyzerContent() {
                 <span className="text-emerald-400">{currentSet.format}</span>
                 <span className={themeClasses.TEXT_TERTIARY}>•</span>
                 <span className={themeClasses.TEXT_TERTIARY}>
-                  {state.rankedPlayers.length} ranked players
+                  {state.rankedItems.length} ranked players
                 </span>
               </div>
             </div>
@@ -193,7 +212,7 @@ function TradeAnalyzerContent() {
                         </div>
                       </div>
                       <button
-                        onClick={() => removePlayerFromTrade(player.id, "your")}
+                        onClick={() => handleRemovePlayer(player.id, "your")}
                         className={`${themeClasses.TEXT_TERTIARY} hover:text-red-400 transition-colors`}
                       >
                         <X className={ICON_SIZES.SM} />
@@ -211,13 +230,13 @@ function TradeAnalyzerContent() {
                 </h4>
                 <div className="grid grid-cols-1 gap-2 max-h-40 overflow-y-auto">
                   {availablePlayers.slice(0, 20).map((player) => {
-                    const rankedPlayer = state.rankedPlayers.find(
-                      (rp) => rp.player_id === player.id,
+                    const rankedPlayer = state.rankedItems.find(
+                      (rp: any) => rp.player_id === player.id
                     );
                     return (
                       <button
                         key={player.id}
-                        onClick={() => addPlayerToTrade(player, "your")}
+                        onClick={() => handleAddPlayer(player, "your")}
                         className={`flex items-center justify-between ${themeClasses.BG_TERTIARY} ${themeClasses.BG_HOVER} rounded p-2 text-left transition-colors`}
                       >
                         <div className="flex-1">
@@ -308,9 +327,7 @@ function TradeAnalyzerContent() {
                         </div>
                       </div>
                       <button
-                        onClick={() =>
-                          removePlayerFromTrade(player.id, "target")
-                        }
+                        onClick={() => handleRemovePlayer(player.id, "target")}
                         className={`${themeClasses.TEXT_TERTIARY} hover:text-red-400 transition-colors`}
                       >
                         <X className={ICON_SIZES.SM} />
@@ -328,13 +345,13 @@ function TradeAnalyzerContent() {
                 </h4>
                 <div className="grid grid-cols-1 gap-2 max-h-40 overflow-y-auto">
                   {availablePlayers.slice(0, 20).map((player) => {
-                    const rankedPlayer = state.rankedPlayers.find(
-                      (rp) => rp.player_id === player.id,
+                    const rankedPlayer = state.rankedItems.find(
+                      (rp: any) => rp.player_id === player.id
                     );
                     return (
                       <button
                         key={player.id}
-                        onClick={() => addPlayerToTrade(player, "target")}
+                        onClick={() => handleAddPlayer(player, "target")}
                         className={`flex items-center justify-between ${themeClasses.BG_TERTIARY} ${themeClasses.BG_HOVER} rounded p-2 text-left transition-colors`}
                       >
                         <div className="flex-1">
@@ -368,7 +385,7 @@ function TradeAnalyzerContent() {
           {(yourPlayers.length > 0 || targetPlayers.length > 0) && (
             <div className="flex justify-center">
               <Button
-                onClick={clearTrade}
+                onClick={handleClearTrade}
                 variant="outline"
                 className={`border ${themeClasses.BORDER} ${themeClasses.TEXT_TERTIARY} hover:${themeClasses.TEXT_PRIMARY}`}
               >
@@ -391,10 +408,10 @@ function TradeAnalyzerContent() {
                   <div
                     className={`text-3xl font-bold mb-2 ${
                       tradeAnalysis.winnerSide === "your"
-                        ? "text-emerald-400"
+                        ? THEME_CONSTANTS.THEME.COMMON.ACCENT_PRIMARY
                         : tradeAnalysis.winnerSide === "target"
-                          ? "text-red-400"
-                          : "text-yellow-400"
+                          ? THEME_CONSTANTS.THEME.COMMON.ACCENT_DANGER
+                          : THEME_CONSTANTS.THEME.COMMON.ACCENT_WARNING
                     }`}
                   >
                     {tradeAnalysis.fairness}
@@ -416,7 +433,9 @@ function TradeAnalyzerContent() {
                       <span className={themeClasses.TEXT_TERTIARY}>
                         Your Side Value
                       </span>
-                      <span className="text-emerald-400 font-medium">
+                      <span
+                        className={`${THEME_CONSTANTS.THEME.COMMON.ACCENT_PRIMARY} font-medium`}
+                      >
                         {tradeAnalysis.yourSideValue.toFixed(0)}
                       </span>
                     </div>
@@ -428,7 +447,9 @@ function TradeAnalyzerContent() {
                       <span className={themeClasses.TEXT_TERTIARY}>
                         Their Side Value
                       </span>
-                      <span className="text-blue-400 font-medium">
+                      <span
+                        className={`${THEME_CONSTANTS.THEME.COMMON.ACCENT_SECONDARY} font-medium`}
+                      >
                         {tradeAnalysis.targetSideValue.toFixed(0)}
                       </span>
                     </div>
@@ -439,21 +460,29 @@ function TradeAnalyzerContent() {
                   <div
                     className={`${PADDING.LG} rounded-lg border-2 ${
                       tradeAnalysis.winnerSide === "your"
-                        ? "bg-emerald-500/10 border-emerald-500/30"
-                        : "bg-red-500/10 border-red-500/30"
+                        ? `${THEME_CONSTANTS.THEME.COMMON.BG_ACCENT_PRIMARY} border-emerald-400/30`
+                        : `${THEME_CONSTANTS.THEME.COMMON.BG_ACCENT_DANGER} border-red-400/30`
                     }`}
                   >
                     <div className="flex items-center space-x-2">
                       {tradeAnalysis.winnerSide === "your" ? (
-                        <Crown className="text-emerald-400" size={20} />
+                        <Crown
+                          className={
+                            THEME_CONSTANTS.THEME.COMMON.ACCENT_PRIMARY
+                          }
+                          size={20}
+                        />
                       ) : (
-                        <Target className="text-red-400" size={20} />
+                        <Target
+                          className={THEME_CONSTANTS.THEME.COMMON.ACCENT_DANGER}
+                          size={20}
+                        />
                       )}
                       <span
                         className={`font-medium ${
                           tradeAnalysis.winnerSide === "your"
-                            ? "text-emerald-400"
-                            : "text-red-400"
+                            ? THEME_CONSTANTS.THEME.COMMON.ACCENT_PRIMARY
+                            : THEME_CONSTANTS.THEME.COMMON.ACCENT_DANGER
                         }`}
                       >
                         {tradeAnalysis.winnerSide === "your"

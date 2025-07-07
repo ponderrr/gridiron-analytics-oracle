@@ -12,11 +12,11 @@ interface SyncLog {
   started_at: string;
   completed_at: string | null;
   success: boolean;
-  total_records: number;
-  processed_records: number;
-  validation_errors: number;
-  database_errors: number;
-  api_errors: number;
+  total_records: number | null;
+  processed_records: number | null;
+  validation_errors: number | null;
+  database_errors: number | null;
+  api_errors: number | null;
   duration_ms: number | null;
   error_details: any;
   validation_stats: any;
@@ -42,6 +42,7 @@ const SyncStatusDashboard: React.FC = () => {
   } = useQuery({
     queryKey: ["syncLogs"],
     queryFn: fetchSyncLogs,
+    staleTime: 60_000, // 1 minute: sync logs update frequently
     refetchInterval: 30000, // Refresh every 30 seconds
   });
 

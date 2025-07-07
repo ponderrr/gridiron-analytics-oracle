@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from "react";
+import { LoadingState } from "@/components/ui/common/LoadingState";
 
 // Generic AdminTable component
 export interface ColumnConfig<T> {
@@ -19,15 +20,17 @@ export interface AdminTableProps<T> {
   pageSize?: number;
   filterText?: string;
   onFilterTextChange?: (text: string) => void;
+  loading?: boolean;
 }
 
-export function AdminTable<T>({
+function AdminTable<T>({
   columns,
   data,
   rowKey,
   pageSize: rawPageSize = 20,
   filterText = "",
   onFilterTextChange,
+  loading = false,
 }: AdminTableProps<T>) {
   // Sorting state
   const [sortCol, setSortCol] = useState<number | null>(null);
@@ -142,6 +145,32 @@ export function AdminTable<T>({
     onFilterTextChange?.(e.target.value);
     setPage(0);
   };
+
+  if (loading) {
+    return (
+      <div>
+        {onFilterTextChange && (
+          <div className="mb-2">
+            <input
+              type="text"
+              value={filterText}
+              onChange={(e) => onFilterTextChange?.(e.target.value)}
+              placeholder="Filter..."
+              className="px-3 py-2 rounded border border-slate-600 bg-slate-900 text-slate-200"
+              disabled
+            />
+          </div>
+        )}
+        <LoadingState
+          type="skeleton"
+          skeletonCount={columns.length * 5}
+          skeletonHeight={32}
+          skeletonWidth="100%"
+          className="w-full"
+        />
+      </div>
+    );
+  }
 
   return (
     <div>

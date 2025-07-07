@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import {
   createAppError,
   AppError,
+  AnyAppError,
   withErrorHandling,
 } from "@/lib/errorHandling";
 
@@ -100,7 +101,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             `Auth session fetch error (attempt ${retryCount}):`,
             error
           );
-          setAuthError(createAppError(error));
+          setAuthError(createAppError(extractErrorMessage(error)));
           if (retryCount < maxRetries) {
             await new Promise((res) => setTimeout(res, retryDelay));
           } else {
@@ -113,7 +114,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     // Listen for auth state changes from Supabase and update local state accordingly.
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event, session) => {
+    } = supabase.auth.onAuthStateChange(async (_event, session) => {
       try {
         setSession(session);
         setUser(session?.user ?? null);
@@ -121,7 +122,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setAuthError(null);
       } catch (error) {
         console.error("Auth state change error:", error);
-        setAuthError(createAppError(error));
+        setAuthError(createAppError(extractErrorMessage(error)));
       }
     });
 
@@ -144,16 +145,19 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       );
       if (error) {
         if (error.message?.includes("Invalid login credentials")) {
-          throw createAppError("Invalid email or password.", "auth");
+          throw createAppError(
+            "We couldn't sign you in. Please check your email and password, then try again.",
+            "auth"
+          );
         }
         if (error.message?.includes("Email not confirmed")) {
           throw createAppError(
-            "Please check your email and confirm your account before signing in.",
+            "Please confirm your email address by clicking the link we sent you. Then try signing in again.",
             "auth"
           );
         }
         throw createAppError(
-          error.message || "Failed to sign in. Please try again.",
+          "We couldn't sign you in right now. Please try again in a few minutes. If the problem continues, contact support.",
           "auth"
         );
       }
@@ -180,16 +184,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         if (error) {
           if (error.message?.includes("User already registered")) {
             throw createAppError(
-              "An account with this email already exists. Please sign in instead.",
+              "An account with this email already exists. Please sign in instead, or reset your password if you've forgotten it.",
               "auth"
             );
           }
           throw createAppError(
-            extractErrorMessage(error),
+            "We couldn't create your account right now. Please try again in a few minutes. If the problem continues, contact support.",
             "auth",
             undefined,
-            "signup",
-            error
+            "signup"
           );
         }
         setAuthError(null);
@@ -200,8 +203,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             extractErrorMessage(error),
             "auth",
             undefined,
-            "signup",
-            error
+            "signup"
           )
         );
         throw error;
@@ -239,7 +241,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           "auth",
           undefined,
           "logout",
-          error
+          error as AnyAppError
         )
       );
       throw error;
@@ -271,7 +273,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             "auth",
             undefined,
             "resetPassword",
-            error
+            error as AnyAppError
           )
         );
         throw error;

@@ -1,17 +1,21 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { Mail, ArrowLeft } from "lucide-react";
-import Layout from "../components/Layout";
+import Layout from "@/components/Layout";
 import LoadingSpinner from "../components/LoadingSpinner";
-import { useAuth } from "../contexts/AuthContext";
-import { validateEmail, formatErrorMessage } from "../lib/validation";
-import { useFormError } from "../hooks/useFormError";
+import { useAuth } from "@/contexts/AuthContext";
+import {
+  validateEmail,
+  validateEmailDetailed,
+} from "@/lib/validation";
+import { useFormError } from "@/hooks/useFormError";
 
 const ForgotPassword: React.FC = () => {
   const [email, setEmail] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState("");
   const { error, setError, clearError, formatAndSetError } = useFormError();
+  const [emailFeedback, setEmailFeedback] = useState<string[]>([]);
 
   const { resetPassword } = useAuth();
 
@@ -34,6 +38,12 @@ const ForgotPassword: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleEmailChange = (value: string) => {
+    setEmail(value);
+    const result = validateEmailDetailed(value);
+    setEmailFeedback(result.errors);
   };
 
   return (
@@ -75,12 +85,19 @@ const ForgotPassword: React.FC = () => {
                   <input
                     type="email"
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    onChange={(e) => handleEmailChange(e.target.value)}
                     className="w-full pl-10 pr-4 py-3 bg-slate-800 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
                     placeholder="Enter your email"
                     required
                   />
                 </div>
+                {email && emailFeedback.length > 0 && (
+                  <ul className="mt-1 text-xs text-red-400 space-y-0.5">
+                    {emailFeedback.map((msg, i) => (
+                      <li key={i}>{msg}</li>
+                    ))}
+                  </ul>
+                )}
               </div>
 
               {/* Submit Button */}

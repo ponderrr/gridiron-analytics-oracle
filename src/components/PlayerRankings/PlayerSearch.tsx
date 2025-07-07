@@ -1,4 +1,3 @@
-import React from "react";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -15,7 +14,7 @@ import { positions, teams } from "@/constants/playerData";
 
 export function PlayerSearch() {
   const {
-    filters: { searchTerm, positionFilter, teamFilter, showOnlyUnranked },
+    filters: { positionFilter, teamFilter, showOnlyUnranked },
     setSearchTerm,
     setPositionFilter,
     setTeamFilter,

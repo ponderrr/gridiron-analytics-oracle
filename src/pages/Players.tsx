@@ -1,6 +1,6 @@
 import React from "react";
 import { DragDropContext, DropResult } from "react-beautiful-dnd";
-import Layout from "../components/Layout";
+import Layout from "@/components/Layout";
 import {
   RankingsProvider,
   useRankings,
@@ -8,8 +8,7 @@ import {
   AvailablePlayersList,
   RankedPlayersList,
 } from "../components/PlayerRankings";
-import { toast } from "sonner";
-import { useTheme } from "../contexts/ThemeContext";
+import { useTheme } from "@/contexts/ThemeContext";
 import { getThemeClasses } from "@/lib/constants";
 
 function PlayersContent() {
@@ -36,8 +35,8 @@ function PlayersContent() {
       if (player) {
         const newRank = destination.index + 1;
         dispatch({
-          type: "ADD_RANKED_PLAYER",
-          payload: { player, rank: newRank },
+          type: "ADD_RANKED_ITEM",
+          payload: { item: player, type: "player", rank: newRank },
         });
 
         // Auto-save after a short delay
@@ -55,16 +54,16 @@ function PlayersContent() {
     ) {
       if (source.index === destination.index) return;
 
-      const reorderedPlayers = [...state.rankedPlayers];
-      const [removed] = reorderedPlayers.splice(source.index, 1);
-      reorderedPlayers.splice(destination.index, 0, removed);
+      const reorderedItems = [...state.rankedItems];
+      const [removed] = reorderedItems.splice(source.index, 1);
+      reorderedItems.splice(destination.index, 0, removed);
 
       // Update ranks
-      reorderedPlayers.forEach((player, index) => {
-        player.overall_rank = index + 1;
+      reorderedItems.forEach((item, index) => {
+        item.overall_rank = index + 1;
       });
 
-      dispatch({ type: "REORDER_RANKINGS", payload: reorderedPlayers });
+      dispatch({ type: "SET_RANKED_ITEMS", payload: reorderedItems });
 
       // Auto-save after a short delay
       setTimeout(() => {

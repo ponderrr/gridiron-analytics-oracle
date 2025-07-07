@@ -1,17 +1,21 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Eye, EyeOff, Mail, Lock } from "lucide-react";
-import Layout from "../components/Layout";
+import Layout from "@/components/Layout";
 import LoadingSpinner from "../components/LoadingSpinner";
-import { useAuth } from "../contexts/AuthContext";
+import { useAuth } from "@/contexts/AuthContext";
 import {
   validateEmail,
   validatePassword,
   getPasswordStrength,
-  formatErrorMessage,
+  validateEmailDetailed,
+  getPasswordFeedback,
+  passwordStrengthScore,
+  passwordStrengthLabel,
 } from "../lib/validation";
 import { VALIDATION_MESSAGES } from "../lib/validation";
-import { useFormError } from "../hooks/useFormError";
+import { useFormError } from "@/hooks/useFormError";
+import DOMPurify from "dompurify";
 
 const Signup: React.FC = () => {
   const [email, setEmail] = useState("");
@@ -21,6 +25,10 @@ const Signup: React.FC = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [success, setSuccess] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [emailFeedback, setEmailFeedback] = useState<string[]>([]);
+  const [passwordFeedback, setPasswordFeedback] = useState<string[]>([]);
+  const [passwordScore, setPasswordScore] = useState<number>(0);
+  const [passwordLabel, setPasswordLabel] = useState<string>("Weak");
 
   const { signup } = useAuth();
   const navigate = useNavigate();
@@ -31,31 +39,36 @@ const Signup: React.FC = () => {
     clearError();
     setSuccess("");
 
-    const emailError = validateEmail(email);
+    // Sanitize inputs before validation and use
+    const sanitizedEmail = DOMPurify.sanitize(email);
+    const sanitizedPassword = DOMPurify.sanitize(password);
+    const sanitizedConfirmPassword = DOMPurify.sanitize(confirmPassword);
+
+    const emailError = validateEmail(sanitizedEmail);
     if (emailError) {
       setError(emailError);
       return;
     }
 
-    const passwordErrors = validatePassword(password);
+    const passwordErrors = validatePassword(sanitizedPassword);
     if (passwordErrors.length > 0) {
       setError(passwordErrors.join(" "));
       return;
     }
 
-    if (!confirmPassword) {
+    if (!sanitizedConfirmPassword) {
       setError(VALIDATION_MESSAGES.CONFIRM_PASSWORD_REQUIRED);
       return;
     }
 
-    if (password !== confirmPassword) {
+    if (sanitizedPassword !== sanitizedConfirmPassword) {
       setError(VALIDATION_MESSAGES.PASSWORDS_DONT_MATCH);
       return;
     }
 
     setIsLoading(true);
     try {
-      await signup(email, password);
+      await signup(sanitizedEmail, sanitizedPassword);
       setSuccess(VALIDATION_MESSAGES.ACCOUNT_CREATED_SUCCESS);
       setTimeout(() => {
         navigate("/login");
@@ -68,6 +81,24 @@ const Signup: React.FC = () => {
   };
 
   const passwordStrength = getPasswordStrength(password);
+
+  // Real-time email validation
+  const handleEmailChange = (value: string) => {
+    const sanitized = DOMPurify.sanitize(value);
+    setEmail(sanitized);
+    const result = validateEmailDetailed(sanitized);
+    setEmailFeedback(result.errors);
+  };
+
+  // Real-time password validation
+  const handlePasswordChange = (value: string) => {
+    const sanitized = DOMPurify.sanitize(value);
+    setPassword(sanitized);
+    setPasswordFeedback(getPasswordFeedback(sanitized));
+    const score = passwordStrengthScore(sanitized);
+    setPasswordScore(score);
+    setPasswordLabel(passwordStrengthLabel(score));
+  };
 
   return (
     <Layout>
@@ -108,12 +139,19 @@ const Signup: React.FC = () => {
                   <input
                     type="email"
                     value={email}
-                    onChange={(e) => setEmail(e.target.value)}
+                    onChange={(e) => handleEmailChange(e.target.value)}
                     className="w-full pl-10 pr-4 py-3 bg-slate-800 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
                     placeholder="Enter your email"
                     required
                   />
                 </div>
+                {email && emailFeedback.length > 0 && (
+                  <ul className="mt-1 text-xs text-red-400 space-y-0.5">
+                    {emailFeedback.map((msg, i) => (
+                      <li key={i}>{msg}</li>
+                    ))}
+                  </ul>
+                )}
               </div>
 
               {/* Password */}
@@ -126,7 +164,7 @@ const Signup: React.FC = () => {
                   <input
                     type={showPassword ? "text" : "password"}
                     value={password}
-                    onChange={(e) => setPassword(e.target.value)}
+                    onChange={(e) => handlePasswordChange(e.target.value)}
                     className="w-full pl-10 pr-12 py-3 bg-slate-800 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
                     placeholder="Create a password"
                     required
@@ -213,6 +251,48 @@ const Signup: React.FC = () => {
                     </div>
                   </div>
                 )}
+
+                {/* Password strength bar and label */}
+                {password && (
+                  <div className="mt-2 flex items-center space-x-2">
+                    <div className="w-32 h-2 bg-slate-700 rounded-full overflow-hidden">
+                      <div
+                        className={`h-2 rounded-full transition-all duration-300 ${
+                          passwordScore >= 90
+                            ? "bg-emerald-400 w-full"
+                            : passwordScore >= 70
+                              ? "bg-yellow-400 w-3/4"
+                              : passwordScore >= 50
+                                ? "bg-orange-400 w-1/2"
+                                : "bg-red-400 w-1/4"
+                        }`}
+                        style={{ width: `${passwordScore}%` }}
+                      />
+                    </div>
+                    <span
+                      className={`text-xs font-semibold ${
+                        passwordScore >= 90
+                          ? "text-emerald-400"
+                          : passwordScore >= 70
+                            ? "text-yellow-400"
+                            : passwordScore >= 50
+                              ? "text-orange-400"
+                              : "text-red-400"
+                      }`}
+                    >
+                      {passwordLabel}
+                    </span>
+                  </div>
+                )}
+
+                {/* Password feedback */}
+                {password && passwordFeedback.length > 0 && (
+                  <ul className="mt-1 text-xs text-red-400 space-y-0.5">
+                    {passwordFeedback.map((msg, i) => (
+                      <li key={i}>{msg}</li>
+                    ))}
+                  </ul>
+                )}
               </div>
 
               {/* Confirm Password */}
@@ -225,7 +305,9 @@ const Signup: React.FC = () => {
                   <input
                     type={showConfirmPassword ? "text" : "password"}
                     value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    onChange={(e) =>
+                      setConfirmPassword(DOMPurify.sanitize(e.target.value))
+                    }
                     className="w-full pl-10 pr-12 py-3 bg-slate-800 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
                     placeholder="Confirm your password"
                     required

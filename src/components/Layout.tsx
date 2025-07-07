@@ -15,6 +15,7 @@ import {
 import ErrorBoundary from "./ErrorBoundary";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import { MESSAGE_CONSTANTS, getThemeClasses } from "@/lib/constants";
+import { THEME_CONSTANTS } from "@/lib/constants";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -203,7 +204,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                         />
                         <DropdownMenuItem
                           onClick={handleLogout}
-                          className={`${themeClasses.TEXT_SECONDARY} hover:text-red-400 cursor-pointer`}
+                          className={`${themeClasses.TEXT_SECONDARY} hover:${THEME_CONSTANTS.THEME.COMMON.ACCENT_DANGER} cursor-pointer`}
                         >
                           <LogOut className="h-4 w-4 mr-2" />
                           Logout

@@ -2,8 +2,7 @@ import React, { useMemo } from "react";
 import { Droppable, Draggable } from "react-beautiful-dnd";
 import { FixedSizeList as List, ListChildComponentProps } from "react-window";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { ChevronLeft, ChevronRight, Calendar } from "lucide-react";
+import { Calendar } from "lucide-react";
 import PlayerCard from "@/components/ui/cards/PlayerCard";
 import DraftPickCard from "@/components/ui/cards/DraftPickCard";
 import { PlayerSearch } from "./PlayerSearch";
@@ -65,7 +64,7 @@ export function AvailablePlayersList() {
           >
             {isPlayer(item) ? (
               <PlayerCard
-                player={item}
+                player={{ ...item, bye_week: item.bye_week ?? undefined }}
                 isDragging={snapshot.isDragging}
                 onAddToRankings={() => handleAddToRankings(item)}
               />
@@ -138,7 +137,7 @@ export function AvailablePlayersList() {
           )
         ) : (
           <Droppable droppableId="available-items" isDropDisabled={true}>
-            {(provided, snapshot) => (
+            {(provided) => (
               <div
                 ref={provided.innerRef}
                 {...provided.droppableProps}

@@ -1,7 +1,6 @@
 import React from "react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import ErrorBoundary from "@/components/ErrorBoundary";
-import * as Sentry from "@sentry/react";
 
 /**
  * Route Helpers for App Routing
@@ -22,17 +21,6 @@ import * as Sentry from "@sentry/react";
 const handleRouteError = (error: Error, errorInfo: React.ErrorInfo) => {
   // Log route-specific errors
   console.error(`[Route Error] ${errorInfo.componentStack}`, error);
-
-  // Send to Sentry in production
-  if (process.env.NODE_ENV === "production") {
-    Sentry.captureException(error, {
-      extra: {
-        componentStack: errorInfo.componentStack,
-        context: "Route Error",
-        url: window.location.href,
-      },
-    });
-  }
 };
 
 // Navigation singleton for programmatic navigation outside components
@@ -93,4 +81,45 @@ export function createPublicRoute(
   }
 
   return { path, element };
+}
+
+// Specialized error boundary route creators for major routes
+export function createDashboardRoute(Component: React.ComponentType) {
+  return createProtectedRoute(
+    "/dashboard",
+    Component,
+    true // always error boundary
+  );
+}
+
+export function createPlayersRoute(Component: React.ComponentType) {
+  return createProtectedRoute(
+    "/players",
+    Component,
+    true // always error boundary
+  );
+}
+
+export function createAnalyticsRoute(Component: React.ComponentType) {
+  return createProtectedRoute(
+    "/analytics",
+    Component,
+    true // always error boundary
+  );
+}
+
+export function createAdminRoute(Component: React.ComponentType) {
+  return createProtectedRoute(
+    "/admin",
+    Component,
+    true // always error boundary
+  );
+}
+
+export function createTradeAnalyzerRoute(Component: React.ComponentType) {
+  return createProtectedRoute(
+    "/trade-analyzer",
+    Component,
+    true // always error boundary
+  );
 }

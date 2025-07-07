@@ -33,8 +33,11 @@ function useLocalStorage<T>(
 
   useEffect(() => {
     if (!isAvailable) return;
-    // Debounce localStorage update
-    if (debounceRef.current) clearTimeout(debounceRef.current);
+    // Cleanup previous timer before setting a new one
+    if (debounceRef.current) {
+      clearTimeout(debounceRef.current);
+      debounceRef.current = null;
+    }
     debounceRef.current = setTimeout(() => {
       try {
         window.localStorage.setItem(key, JSON.stringify(storedValue));
@@ -45,6 +48,7 @@ function useLocalStorage<T>(
     return () => {
       if (debounceRef.current) {
         clearTimeout(debounceRef.current);
+        debounceRef.current = null;
       }
     };
   }, [key, storedValue, isAvailable]);

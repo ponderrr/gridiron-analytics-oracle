@@ -7,6 +7,9 @@ import {
   LucideArrowDownRight,
   LucideArrowRight,
 } from "lucide-react";
+import { LoadingState } from "@/components/ui/common/LoadingState";
+import { useTheme } from "@/contexts/ThemeContext";
+import { getThemeClasses, THEME_CONSTANTS } from "@/lib/constants";
 
 export interface StatCardProps {
   title: string;
@@ -17,32 +20,29 @@ export interface StatCardProps {
   trendValue?: string;
   variant?: "default" | "premium" | "elite" | "champion";
   className?: string;
+  loading?: boolean;
 }
 
-const cardVariants = {
-  default: "bg-slate-800/50 border-slate-700/50",
-  premium:
-    "bg-gradient-to-br from-blue-900/30 to-slate-800/50 border-blue-500/30",
-  elite:
-    "bg-gradient-to-br from-purple-900/30 to-slate-800/50 border-purple-500/30",
-  champion:
-    "bg-gradient-to-br from-yellow-900/30 to-slate-800/50 border-yellow-500/30",
-};
+const cardVariants = (themeClasses: any) => ({
+  default: `${themeClasses.BG_CARD} ${themeClasses.BORDER}`,
+  premium: `${themeClasses.BG_ACCENT_SECONDARY} border-blue-400`,
+  elite: `${themeClasses.BG_ACCENT_TERTIARY} border-purple-400`,
+  champion: `${themeClasses.BG_ACCENT_WARNING} border-yellow-400`,
+});
 
-// Extracted icon style mappings
-const iconBgVariants = {
-  default: "bg-emerald-500/20",
-  premium: "bg-blue-500/20",
-  elite: "bg-purple-500/20",
-  champion: "bg-yellow-500/20",
-};
+const iconBgVariants = (themeClasses: any) => ({
+  default: `${themeClasses.BG_ACCENT_PRIMARY}`,
+  premium: `${themeClasses.BG_ACCENT_SECONDARY}`,
+  elite: `${themeClasses.BG_ACCENT_TERTIARY}`,
+  champion: `${themeClasses.BG_ACCENT_WARNING}`,
+});
 
-const iconColorVariants = {
-  default: "text-emerald-400",
-  premium: "text-blue-400",
-  elite: "text-purple-400",
-  champion: "text-yellow-400",
-};
+const iconColorVariants = (themeClasses: any) => ({
+  default: `${themeClasses.TEXT_ACCENT_PRIMARY}`,
+  premium: `${themeClasses.TEXT_ACCENT_SECONDARY}`,
+  elite: `${themeClasses.TEXT_ACCENT_TERTIARY}`,
+  champion: `${themeClasses.TEXT_ACCENT_WARNING}`,
+});
 
 const StatCard: React.FC<StatCardProps> = React.memo(
   ({
@@ -54,15 +54,36 @@ const StatCard: React.FC<StatCardProps> = React.memo(
     trendValue,
     variant = "default",
     className,
+    loading = false,
   }) => {
+    const { effectiveTheme } = useTheme();
+    const themeClasses = getThemeClasses(effectiveTheme);
+    if (loading) {
+      return (
+        <div
+          className={cn(
+            "rounded-2xl border p-6",
+            cardVariants(themeClasses)[variant],
+            className
+          )}
+        >
+          <LoadingState
+            type="skeleton"
+            skeletonCount={2}
+            skeletonHeight={28}
+            skeletonWidth="80%"
+          />
+        </div>
+      );
+    }
     const getTrendColor = (trend?: "up" | "down" | "neutral") => {
       switch (trend) {
         case "up":
-          return "text-emerald-400";
+          return THEME_CONSTANTS.THEME.COMMON.ACCENT_PRIMARY;
         case "down":
-          return "text-red-400";
+          return THEME_CONSTANTS.THEME.COMMON.ACCENT_DANGER;
         default:
-          return "text-slate-400";
+          return themeClasses.TEXT_MUTED;
       }
     };
     const getTrendIcon = (trend?: "up" | "down" | "neutral") => {
@@ -80,7 +101,7 @@ const StatCard: React.FC<StatCardProps> = React.memo(
         whileHover={{ scale: 1.02 }}
         className={cn(
           "rounded-2xl border backdrop-blur-sm transition-all duration-300",
-          cardVariants[variant],
+          cardVariants(themeClasses)[variant],
           className
         )}
         role="region"
@@ -89,9 +110,15 @@ const StatCard: React.FC<StatCardProps> = React.memo(
       >
         <div className="p-6 flex items-start justify-between">
           <div className="flex-1">
-            <p className="text-sm font-medium text-slate-400 mb-1">{title}</p>
+            <p
+              className={`text-sm font-medium ${themeClasses.TEXT_MUTED} mb-1`}
+            >
+              {title}
+            </p>
             <div className="flex items-baseline space-x-2">
-              <p className="text-3xl font-black text-white">{value}</p>
+              <p className={`text-3xl font-black ${themeClasses.TEXT_PRIMARY}`}>
+                {value}
+              </p>
               {trendValue && (
                 <span
                   className={cn(
@@ -104,12 +131,24 @@ const StatCard: React.FC<StatCardProps> = React.memo(
               )}
             </div>
             {subtitle && (
-              <p className="text-xs text-slate-500 mt-1">{subtitle}</p>
+              <p className={`text-xs ${themeClasses.TEXT_TERTIARY} mt-1`}>
+                {subtitle}
+              </p>
             )}
           </div>
           {Icon && (
-            <div className={cn("p-3 rounded-xl", iconBgVariants[variant])}>
-              <Icon className={cn("h-6 w-6", iconColorVariants[variant])} />
+            <div
+              className={cn(
+                "p-3 rounded-xl",
+                iconBgVariants(themeClasses)[variant]
+              )}
+            >
+              <Icon
+                className={cn(
+                  "h-6 w-6",
+                  iconColorVariants(themeClasses)[variant]
+                )}
+              />
             </div>
           )}
         </div>

@@ -14,7 +14,21 @@ const extractErrorMessage = (error: unknown): string => {
   return String(error);
 };
 
-interface SyncResult {
+/**
+ * Represents the result of a sync operation (players or stats).
+ * @interface SyncResult
+ * @property {boolean} success - Whether the sync was successful.
+ * @property {number} [players_added] - Number of players added (if applicable).
+ * @property {number} [players_updated] - Number of players updated (if applicable).
+ * @property {number} [total_processed] - Total number of items processed.
+ * @property {number} [week] - The week number for the sync (if applicable).
+ * @property {number} [season] - The season year for the sync (if applicable).
+ * @property {number} [players_processed] - Number of players processed (if applicable).
+ * @property {number} [stats_updated] - Number of stats updated (if applicable).
+ * @property {number} [errors] - Number of errors encountered.
+ * @property {string[]} [error_details] - Details of any errors encountered.
+ */
+export interface SyncResult {
   success: boolean;
   players_added?: number;
   players_updated?: number;
@@ -27,7 +41,14 @@ interface SyncResult {
   error_details?: string[];
 }
 
-interface SyncState {
+/**
+ * Represents the state of a sync operation, including loading, result, and error.
+ * @interface SyncState
+ * @property {boolean} isLoading - Whether the sync is currently loading.
+ * @property {SyncResult | null} result - The result of the sync operation, or null if not run.
+ * @property {AppError | null} error - Any error encountered during the sync.
+ */
+export interface SyncState {
   isLoading: boolean;
   result: SyncResult | null;
   error: AppError | null;
@@ -72,7 +93,7 @@ export const useSyncData = () => {
           "data",
           undefined,
           "syncPlayers",
-          error
+          error as import("@/lib/errorHandling").AnyAppError
         ),
       });
       throw error;
@@ -111,7 +132,7 @@ export const useSyncData = () => {
             "data",
             undefined,
             "syncWeeklyStats",
-            error
+            error as import("@/lib/errorHandling").AnyAppError
           ),
         });
         throw error;
@@ -152,13 +173,13 @@ export const useSyncData = () => {
             "data",
             undefined,
             "syncPlayerStats",
-            error
+            error as import("@/lib/errorHandling").AnyAppError
           ),
         });
         throw error;
       }
     },
-    "syncPlayerStats"  
+    "syncPlayerStats"
   );
 
   const clearPlayerSync = useCallback(() => {
@@ -169,6 +190,35 @@ export const useSyncData = () => {
     setStatsSyncState({ isLoading: false, result: null, error: null });
   }, []);
 
+  /**
+   * React hook for syncing player and stats data with the backend via Supabase edge functions.
+   *
+   * @returns {object} Object containing sync state, sync methods, and clear methods for both players and stats.
+   * @property {SyncState} playerSync - State for player sync operations.
+   * @property {SyncState} statsSync - State for stats sync operations.
+   * @property {() => Promise<SyncResult>} syncPlayers - Trigger a sync of all NFL player data.
+   * @property {(week: number, season?: number) => Promise<SyncResult>} syncWeeklyStats - Trigger a sync of weekly stats for a given week and season.
+   * @property {(week: number, season?: number) => Promise<SyncResult>} syncPlayerStats - Trigger a sync of player stats for a given week and season.
+   * @property {() => void} clearPlayerSync - Clear the player sync state.
+   * @property {() => void} clearStatsSync - Clear the stats sync state.
+   *
+   * @example
+   * const {
+   *   playerSync,
+   *   statsSync,
+   *   syncPlayers,
+   *   syncWeeklyStats,
+   *   syncPlayerStats,
+   *   clearPlayerSync,
+   *   clearStatsSync
+   * } = useSyncData();
+   *
+   * // To sync players:
+   * syncPlayers().then(result => console.log(result));
+   *
+   * // To sync weekly stats:
+   * syncWeeklyStats(1, 2024).then(result => console.log(result));
+   */
   return useMemo(
     () => ({
       playerSync: playerSyncState,

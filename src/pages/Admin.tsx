@@ -1,15 +1,13 @@
-import React, { useState, useMemo, useCallback, lazy, Suspense } from "react";
+import React, { useState, useMemo, useCallback, Suspense } from "react";
 import { Users } from "lucide-react";
 import { BarChart3 } from "lucide-react";
 import { TrendingUp } from "lucide-react";
 import { ArrowLeftRight } from "lucide-react";
 import { RefreshCw } from "lucide-react";
-import Layout from "../components/Layout";
+import Layout from "@/components/Layout";
 import { useQuery } from "@tanstack/react-query";
 import { Player, WeeklyStat, Projection, TradeValue } from "../lib/database";
-import { supabase } from "../integrations/supabase/client";
 import { MESSAGE_CONSTANTS } from "@/lib/constants";
-import { appConfig } from "@/config/app";
 import {
   fetchPlayers,
   fetchWeeklyStats,
@@ -35,15 +33,11 @@ import {
   SYNC_DESCRIPTIONS,
 } from "../lib/adminConstants";
 import type { ColumnConfig } from "../components/ui/table/AdminTable";
-import {
-  createAppError,
-  AppError,
-  inferAndCreateAppError,
-} from "@/lib/errorHandling";
+import { AppError, inferAndCreateAppError } from "@/lib/errorHandling";
 import { LoadingState } from "@/components/ui/common";
-import LoadingSpinner from "@/components/LoadingSpinner";
 import SyncStatusDashboard from "@/components/ui/monitoring/SyncStatusDashboard";
 import DataQualityMetrics from "@/components/ui/monitoring/DataQualityMetrics";
+import { toast } from "sonner";
 
 const { ICON_SIZES } = THEME_CONSTANTS;
 const { HEIGHT } = UI_CONSTANTS;
@@ -71,14 +65,7 @@ const Admin: React.FC = () => {
   const [selectedSeason, setSelectedSeason] = useState<string>("2024");
 
   // Sync data hook
-  const {
-    playerSync,
-    statsSync,
-    syncPlayers,
-    syncWeeklyStats,
-    clearPlayerSync,
-    clearStatsSync,
-  } = useSyncData();
+  const { playerSync, statsSync, syncPlayers, syncWeeklyStats } = useSyncData();
 
   const {
     data: players = [],
@@ -88,7 +75,8 @@ const Admin: React.FC = () => {
   } = useQuery<Player[], Error>({
     queryKey: adminQueryKeys.players(),
     queryFn: fetchPlayers,
-    refetchOnWindowFocus: false,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    refetchOnWindowFocus: true,
   });
 
   const {
@@ -99,7 +87,8 @@ const Admin: React.FC = () => {
   } = useQuery<WeeklyStat[], Error>({
     queryKey: adminQueryKeys.weeklyStats(10),
     queryFn: () => fetchWeeklyStats(10),
-    refetchOnWindowFocus: false,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    refetchOnWindowFocus: true,
   });
 
   const {
@@ -110,7 +99,8 @@ const Admin: React.FC = () => {
   } = useQuery<Projection[], Error>({
     queryKey: adminQueryKeys.projections(),
     queryFn: fetchProjections,
-    refetchOnWindowFocus: false,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    refetchOnWindowFocus: true,
   });
 
   const {
@@ -121,7 +111,8 @@ const Admin: React.FC = () => {
   } = useQuery<TradeValue[], Error>({
     queryKey: adminQueryKeys.tradeValues(),
     queryFn: fetchTradeValues,
-    refetchOnWindowFocus: false,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    refetchOnWindowFocus: true,
   });
 
   const loading =
@@ -157,9 +148,10 @@ const Admin: React.FC = () => {
   const handlePlayerSync = async () => {
     try {
       await syncPlayers();
-      // Auto-refresh data after successful sync
       refetchPlayers();
+      toast.success("Player sync completed successfully!");
     } catch (error) {
+      toast.error("Player sync failed. Please try again.");
       console.error(MESSAGE_CONSTANTS.ERROR_PLAYER_SYNC, error);
     }
   };
@@ -167,9 +159,10 @@ const Admin: React.FC = () => {
   const handleStatsSync = async () => {
     try {
       await syncWeeklyStats(parseInt(selectedWeek), parseInt(selectedSeason));
-      // Auto-refresh data after successful sync
       refetchWeeklyStats();
+      toast.success("Stats sync completed successfully!");
     } catch (error) {
+      toast.error("Stats sync failed. Please try again.");
       console.error(MESSAGE_CONSTANTS.ERROR_STATS_SYNC, error);
     }
   };
@@ -302,6 +295,7 @@ const Admin: React.FC = () => {
   }
 
   if (error) {
+    toast.error("An error occurred loading admin data. Please try again.");
     return (
       <Layout>
         <div
@@ -366,12 +360,13 @@ const Admin: React.FC = () => {
         <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl overflow-hidden">
           {activeTab === ADMIN_TABS.PLAYERS && (
             <div className="overflow-x-auto">
-              <Suspense fallback={<LoadingSpinner />}>
+              <Suspense fallback={<LoadingState type="spinner" />}>
                 <AdminTable
                   columns={playerColumns}
                   data={players}
                   rowKey={(row) => row.id as string}
                   pageSize={20}
+                  loading={playersLoading}
                 />
               </Suspense>
             </div>
@@ -379,12 +374,13 @@ const Admin: React.FC = () => {
 
           {activeTab === ADMIN_TABS.STATS && (
             <div className="overflow-x-auto">
-              <Suspense fallback={<LoadingSpinner />}>
+              <Suspense fallback={<LoadingState type="spinner" />}>
                 <AdminTable
                   columns={statsColumns}
                   data={weeklyStats}
                   rowKey={(row: any) => row.id as string}
                   pageSize={20}
+                  loading={statsLoading}
                 />
               </Suspense>
             </div>
@@ -392,12 +388,13 @@ const Admin: React.FC = () => {
 
           {activeTab === ADMIN_TABS.PROJECTIONS && (
             <div className="overflow-x-auto">
-              <Suspense fallback={<LoadingSpinner />}>
+              <Suspense fallback={<LoadingState type="spinner" />}>
                 <AdminTable
                   columns={projectionsColumns}
                   data={projections}
                   rowKey={(row: any) => row.id as string}
                   pageSize={20}
+                  loading={projectionsLoading}
                 />
               </Suspense>
             </div>
@@ -405,12 +402,13 @@ const Admin: React.FC = () => {
 
           {activeTab === ADMIN_TABS.TRADE_VALUES && (
             <div className="overflow-x-auto">
-              <Suspense fallback={<LoadingSpinner />}>
+              <Suspense fallback={<LoadingState type="spinner" />}>
                 <AdminTable
                   columns={tradeValuesColumns}
                   data={tradeValues}
                   rowKey={(row: any) => row.id as string}
                   pageSize={20}
+                  loading={tradeValuesLoading}
                 />
               </Suspense>
             </div>
@@ -443,7 +441,7 @@ const Admin: React.FC = () => {
                     {playerSync.isLoading ? (
                       <>
                         <span className="mr-2">
-                          <LoadingSpinner size="sm" />
+                          <LoadingState size="sm" type="spinner" />
                         </span>
                         {MESSAGE_CONSTANTS.SYNCING_PLAYERS_LABEL}
                       </>
@@ -552,7 +550,7 @@ const Admin: React.FC = () => {
                     {statsSync.isLoading ? (
                       <>
                         <span className="mr-2">
-                          <LoadingSpinner size="sm" />
+                          <LoadingState size="sm" type="spinner" />
                         </span>
                         {MESSAGE_CONSTANTS.SYNCING_STATS_LABEL}
                       </>

@@ -2,14 +2,30 @@ import { useState, useCallback, useMemo } from "react";
 import { useRankings } from "@/components/PlayerRankings";
 import {
   Player,
-  RankedPlayer,
 } from "@/components/PlayerRankings/RankingsProvider";
 
+/**
+ * Represents a player involved in a trade, including their rank and calculated trade value.
+ * @typedef {object} TradePlayer
+ * @property {number} [rank] - The player's overall rank (if available).
+ * @property {number} tradeValue - The calculated trade value for the player.
+ * @augments Player
+ */
 export interface TradePlayer extends Player {
   rank?: number;
   tradeValue: number;
 }
 
+/**
+ * Represents the result of a trade analysis between two sides.
+ * @typedef {object} TradeAnalysis
+ * @property {number} yourSideValue - Total trade value of your side.
+ * @property {number} targetSideValue - Total trade value of the target side.
+ * @property {number} valueDifference - Difference in trade value (target - your).
+ * @property {string} fairness - Qualitative fairness assessment (e.g., 'Very Fair').
+ * @property {string} recommendation - Suggested action based on fairness.
+ * @property {('your'|'target'|'neutral')} winnerSide - Which side is favored by the trade.
+ */
 export interface TradeAnalysis {
   yourSideValue: number;
   targetSideValue: number;
@@ -19,6 +35,19 @@ export interface TradeAnalysis {
   winnerSide: "your" | "target" | "neutral";
 }
 
+/**
+ * The result object returned by useTradeAnalysis, containing state and trade manipulation methods.
+ * @typedef {object} UseTradeAnalysisResult
+ * @property {TradePlayer[]} yourPlayers - Players on your side of the trade.
+ * @property {TradePlayer[]} targetPlayers - Players on the target side of the trade.
+ * @property {TradeAnalysis | null} tradeAnalysis - The current trade analysis result, or null if incomplete.
+ * @property {(player: Player, side: 'your' | 'target') => void} addPlayerToTrade - Add a player to a trade side.
+ * @property {(playerId: string, side: 'your' | 'target') => void} removePlayerFromTrade - Remove a player from a trade side.
+ * @property {() => void} clearTrade - Clear all players from both sides of the trade.
+ * @property {Player[]} availablePlayers - All available players for trade.
+ * @property {RankingSet | null} currentSet - The current ranking set in use.
+ * @property {number} maxRank - The maximum rank value used for value calculations.
+ */
 export interface UseTradeAnalysisResult {
   yourPlayers: TradePlayer[];
   targetPlayers: TradePlayer[];
@@ -54,10 +83,41 @@ export type PlayerValueScaling =
   | "logarithmic"
   | { type: "custom"; factor: number };
 
+/**
+ * Options for configuring the player value scaling in useTradeAnalysis.
+ * @typedef {object} UseTradeAnalysisOptions
+ * @property {PlayerValueScaling} [scaling] - The scaling method for player value calculation.
+ */
 export interface UseTradeAnalysisOptions {
   scaling?: PlayerValueScaling;
 }
 
+/**
+ * React hook for analyzing fantasy football trades between two sides using player rankings and value scaling.
+ *
+ * @param {UseTradeAnalysisOptions} [options] - Optional configuration for value scaling.
+ * @returns {UseTradeAnalysisResult} Object containing trade state, analysis, and manipulation methods.
+ *
+ * @example
+ * const {
+ *   yourPlayers,
+ *   targetPlayers,
+ *   tradeAnalysis,
+ *   addPlayerToTrade,
+ *   removePlayerFromTrade,
+ *   clearTrade,
+ *   availablePlayers,
+ *   currentSet,
+ *   maxRank
+ * } = useTradeAnalysis({ scaling: 'quadratic' });
+ *
+ * addPlayerToTrade(player, 'your');
+ * addPlayerToTrade(targetPlayer, 'target');
+ * // ...
+ * if (tradeAnalysis) {
+ *   console.log(tradeAnalysis.fairness, tradeAnalysis.recommendation);
+ * }
+ */
 export function useTradeAnalysis(
   options: UseTradeAnalysisOptions = {}
 ): UseTradeAnalysisResult {
@@ -68,13 +128,13 @@ export function useTradeAnalysis(
   const scaling = options.scaling || "quadratic";
 
   const maxRank = useMemo(() => {
-    return Math.max(state.rankedPlayers.length, 200); // Default to 200 if no rankings
-  }, [state.rankedPlayers]);
+    return Math.max(state.rankedItems.length, 200); // Default to 200 if no rankings
+  }, [state.rankedItems]);
 
   const calculatePlayerValue = useCallback(
     (player: Player): number => {
-      const rankedPlayer = state.rankedPlayers.find(
-        (rp) => rp.player_id === player.id
+      const rankedPlayer = state.rankedItems.find(
+        (rp: any) => rp.player_id === player.id
       );
       const rank = rankedPlayer?.overall_rank;
 
@@ -104,13 +164,13 @@ export function useTradeAnalysis(
         ] || 1.0;
       return Math.max(baseValue * multiplier, 1); // Minimum value of 1
     },
-    [state.rankedPlayers, maxRank, scaling]
+    [state.rankedItems, maxRank, scaling]
   );
 
   const getTradePlayer = useCallback(
     (player: Player): TradePlayer => {
-      const rankedPlayer = state.rankedPlayers.find(
-        (rp) => rp.player_id === player.id
+      const rankedPlayer = state.rankedItems.find(
+        (rp: any) => rp.player_id === player.id
       );
       return {
         ...player,
@@ -118,7 +178,7 @@ export function useTradeAnalysis(
         tradeValue: calculatePlayerValue(player),
       };
     },
-    [state.rankedPlayers, calculatePlayerValue]
+    [state.rankedItems, calculatePlayerValue]
   );
 
   const addPlayerToTrade = useCallback(

@@ -51,8 +51,6 @@ interface RankingsState {
   availablePlayers: DatabasePlayer[];
   availablePicks: DraftPick[];
   rankedItems: RankedItem[];
-  // Legacy field for backward compatibility
-  rankedPlayers: RankedPlayer[];
   loading: boolean;
   saving: boolean;
   error: string | null;
@@ -86,14 +84,6 @@ type RankingsAction =
       };
     }
   | { type: "REMOVE_RANKED_ITEM"; payload: string }
-  // Legacy actions for backward compatibility
-  | {
-      type: "ADD_RANKED_PLAYER";
-      payload: { player: DatabasePlayer; rank: number };
-    }
-  | { type: "REMOVE_RANKED_PLAYER"; payload: string }
-  | { type: "SET_RANKED_PLAYERS"; payload: RankedPlayer[] }
-  | { type: "REORDER_RANKINGS"; payload: RankedItem[] }
   | { type: "SET_SEARCH_TERM"; payload: string }
   | { type: "SET_POSITION_FILTER"; payload: string }
   | { type: "SET_TEAM_FILTER"; payload: string }
@@ -112,7 +102,6 @@ const initialState: RankingsState = {
   availablePlayers: [],
   availablePicks: [],
   rankedItems: [],
-  rankedPlayers: [],
   loading: false,
   saving: false,
   error: null,
@@ -204,30 +193,7 @@ function rankingsCoreReducer(
     case "SET_AVAILABLE_PICKS":
       return { ...state, availablePicks: action.payload };
     case "SET_RANKED_ITEMS": {
-      // Also update legacy rankedPlayers for backward compatibility
-      const rankedPlayers = action.payload
-        .filter((item) => item.type === "player" && item.player)
-        .map((item) => ({
-          player_id: item.player_id!,
-          overall_rank: item.overall_rank,
-          tier: item.tier,
-          notes: item.notes,
-          player: item.player!,
-        }));
-      return { ...state, rankedItems: action.payload, rankedPlayers };
-    }
-    case "SET_RANKED_PLAYERS": {
-      // Legacy compatibility - convert to new format
-      const rankedItems = action.payload.map((p) => ({
-        id: p.player_id,
-        type: "player" as const,
-        player_id: p.player_id,
-        overall_rank: p.overall_rank,
-        tier: p.tier,
-        notes: p.notes,
-        player: p.player,
-      }));
-      return { ...state, rankedPlayers: action.payload, rankedItems };
+      return { ...state, rankedItems: action.payload };
     }
     case "ADD_RANKED_ITEM": {
       const newRanked = [...state.rankedItems];
@@ -258,29 +224,7 @@ function rankingsCoreReducer(
         (a, b) => a.overall_rank - b.overall_rank
       );
 
-      // Update legacy rankedPlayers
-      const rankedPlayers = sortedItems
-        .filter((item) => item.type === "player" && item.player)
-        .map((item) => ({
-          player_id: item.player_id!,
-          overall_rank: item.overall_rank,
-          tier: item.tier,
-          notes: item.notes,
-          player: item.player!,
-        }));
-
-      return { ...state, rankedItems: sortedItems, rankedPlayers };
-    }
-    case "ADD_RANKED_PLAYER": {
-      // Legacy compatibility
-      return rankingsCoreReducer(state, {
-        type: "ADD_RANKED_ITEM",
-        payload: {
-          item: action.payload.player,
-          type: "player",
-          rank: action.payload.rank,
-        },
-      });
+      return { ...state, rankedItems: sortedItems };
     }
     case "REMOVE_RANKED_ITEM": {
       const filtered = state.rankedItems.filter(
@@ -290,38 +234,7 @@ function rankingsCoreReducer(
         item.overall_rank = index + 1;
       });
 
-      // Update legacy rankedPlayers
-      const rankedPlayers = filtered
-        .filter((item) => item.type === "player" && item.player)
-        .map((item) => ({
-          player_id: item.player_id!,
-          overall_rank: item.overall_rank,
-          tier: item.tier,
-          notes: item.notes,
-          player: item.player!,
-        }));
-
-      return { ...state, rankedItems: filtered, rankedPlayers };
-    }
-    case "REMOVE_RANKED_PLAYER": {
-      // Legacy compatibility
-      return rankingsCoreReducer(state, {
-        type: "REMOVE_RANKED_ITEM",
-        payload: action.payload,
-      });
-    }
-    case "REORDER_RANKINGS": {
-      // Update legacy rankedPlayers
-      const rankedPlayers = action.payload
-        .filter((item) => item.type === "player" && item.player)
-        .map((item) => ({
-          player_id: item.player_id!,
-          overall_rank: item.overall_rank,
-          tier: item.tier,
-          notes: item.notes,
-          player: item.player!,
-        }));
-      return { ...state, rankedItems: action.payload, rankedPlayers };
+      return { ...state, rankedItems: filtered };
     }
     default:
       return state;
@@ -359,6 +272,23 @@ function rankingsReducer(
   return nextState;
 }
 
+/**
+ * Context type for rankings state and actions.
+ * @typedef {object} RankingsContextType
+ * @property {RankingsState} state - The current rankings state.
+ * @property {React.Dispatch<RankingsAction>} dispatch - Dispatch function for rankings actions.
+ * @property {() => Promise<void>} fetchSets - Fetch all ranking sets from the backend.
+ * @property {(name: string, format: 'dynasty' | 'redraft', copyFromSetId?: string) => Promise<void>} createSet - Create a new ranking set.
+ * @property {(setId: string) => Promise<void>} selectSet - Select a ranking set by ID.
+ * @property {() => Promise<void>} saveRankings - Save the current rankings to the backend.
+ * @property {() => Promise<void>} createDefaultRankings - Create default rankings for the current set.
+ * @property {() => Promise<void>} fetchPlayers - Fetch all available players.
+ * @property {() => Promise<void>} fetchPicks - Fetch all available draft picks.
+ * @property {(DatabasePlayer | DraftPick)[]} filteredAvailableItems - Filtered list of available items (players and picks).
+ * @property {() => (DatabasePlayer | DraftPick)[]} getFilteredAvailableItems - Get the filtered available items.
+ * @property {DatabasePlayer[]} filteredAvailablePlayers - Filtered list of available players (legacy).
+ * @property {() => DatabasePlayer[]} getFilteredAvailablePlayers - Get the filtered available players (legacy).
+ */
 interface RankingsContextType {
   state: RankingsState;
   dispatch: React.Dispatch<RankingsAction>;
@@ -632,7 +562,7 @@ export function RankingsProvider({ children }: { children: React.ReactNode }) {
   // Legacy compatibility - filtered players only
   const filteredAvailablePlayers = useMemo(() => {
     const rankedPlayerIds = new Set(
-      state.rankedPlayers.map((p) => p.player_id)
+      state.rankedItems.map((item) => item.player_id)
     );
     return state.availablePlayers.filter((player) => {
       if (state.showOnlyUnranked && rankedPlayerIds.has(player.id))
@@ -653,7 +583,7 @@ export function RankingsProvider({ children }: { children: React.ReactNode }) {
     });
   }, [
     state.availablePlayers,
-    state.rankedPlayers,
+    state.rankedItems,
     state.showOnlyUnranked,
     state.positionFilter,
     state.teamFilter,
@@ -694,6 +624,30 @@ export function RankingsProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
+/**
+ * React hook to access the rankings context, including state and all ranking-related actions.
+ *
+ * @returns {RankingsContextType} Rankings context value with state and actions.
+ *
+ * @throws {Error} If used outside of a RankingsProvider.
+ *
+ * @example
+ * const {
+ *   state,
+ *   dispatch,
+ *   fetchSets,
+ *   createSet,
+ *   selectSet,
+ *   saveRankings,
+ *   createDefaultRankings,
+ *   fetchPlayers,
+ *   fetchPicks,
+ *   filteredAvailableItems,
+ *   getFilteredAvailableItems,
+ *   filteredAvailablePlayers,
+ *   getFilteredAvailablePlayers
+ * } = useRankings();
+ */
 export function useRankings() {
   const context = useContext(RankingsContext);
   if (!context) {

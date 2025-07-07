@@ -1,18 +1,13 @@
 import { motion } from "framer-motion";
 import { MOCK_TOP_PLAYERS } from "../lib/mock";
-import {
-  THEME_CONSTANTS,
-  UI_CONSTANTS,
-  MESSAGE_CONSTANTS,
-  getThemeClasses,
-} from "@/lib/constants";
-import Layout from "../components/Layout";
+import { getThemeClasses } from "@/lib/constants";
+import Layout from "@/components/Layout";
 import PlayerCard from "../components/ui/cards/PlayerCard";
 import { StatGrid } from "../components/ui/common";
-import { useAuth } from "../contexts/AuthContext";
-import { useTheme } from "../contexts/ThemeContext";
-import { Activity, TrendingUp, Users, BarChart3, Brain } from "lucide-react";
-import React, { useMemo, useCallback } from "react";
+import { useAuth } from "@/contexts/AuthContext";
+import { useTheme } from "@/contexts/ThemeContext";
+import { Activity, TrendingUp } from "lucide-react";
+import React, { useMemo } from "react";
 
 const Dashboard: React.FC = () => {
   const { user } = useAuth();
@@ -40,7 +35,7 @@ const Dashboard: React.FC = () => {
         variant: "default" as const,
       },
     ],
-    [],
+    []
   );
 
   // No need for useMemo here: MOCK_TOP_PLAYERS is static. If this becomes dynamic or expensive, wrap in useMemo.
@@ -102,10 +97,20 @@ const Dashboard: React.FC = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {topPlayers.map((player, index) => {
+            {topPlayers.map((player) => {
               const { tier, ...rest } = player;
               return (
-                <PlayerCard key={player.name} {...rest} tierLabel={tier} />
+                <PlayerCard
+                  key={player.name}
+                  player={{ ...rest, id: player.name }}
+                  tier={
+                    tier === "Elite"
+                      ? 1
+                      : tier === "RB1" || tier === "WR1"
+                        ? 2
+                        : 3
+                  }
+                />
               );
             })}
           </div>

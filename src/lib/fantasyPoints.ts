@@ -115,6 +115,70 @@ export async function calculateFantasyPoints(
 }
 
 /**
+ * Synchronous version of calculateFantasyPoints for testing purposes.
+ * Calculates fantasy points locally without API calls.
+ */
+export function calculateFantasyPointsSync(
+  stats: Partial<WeeklyStatsInput>,
+  scoringSettings: ScoringSettings = DEFAULT_SCORING_SETTINGS.standard
+): number {
+  const defaultStats: WeeklyStatsInput = {
+    passing_yards: 0,
+    passing_tds: 0,
+    passing_interceptions: 0,
+    rushing_yards: 0,
+    rushing_tds: 0,
+    receiving_yards: 0,
+    receiving_tds: 0,
+    receptions: 0,
+    fumbles_lost: 0,
+  };
+
+  const completeStats = { ...defaultStats, ...stats };
+
+  let points = 0;
+
+  // Passing points
+  points +=
+    completeStats.passing_yards / scoringSettings.passing_yards_per_point;
+  points += completeStats.passing_tds * scoringSettings.passing_td_points;
+  points +=
+    completeStats.passing_interceptions * scoringSettings.interception_penalty;
+
+  // Rushing points
+  points +=
+    completeStats.rushing_yards /
+    scoringSettings.rushing_receiving_yards_per_point;
+  points +=
+    completeStats.rushing_tds * scoringSettings.rushing_receiving_td_points;
+
+  // Receiving points
+  points +=
+    completeStats.receiving_yards /
+    scoringSettings.rushing_receiving_yards_per_point;
+  points +=
+    completeStats.receiving_tds * scoringSettings.rushing_receiving_td_points;
+  points += completeStats.receptions * scoringSettings.reception_points;
+
+  // Penalty points
+  points += completeStats.fumbles_lost * scoringSettings.fumble_penalty;
+
+  return points;
+}
+
+/**
+ * Sums up a specific stat across multiple stat objects.
+ */
+export function getPlayerStatTotal(
+  stats: Array<Partial<WeeklyStatsInput>>,
+  statKey: keyof WeeklyStatsInput
+): number {
+  return stats.reduce((total, stat) => {
+    return total + (stat[statKey] || 0);
+  }, 0);
+}
+
+/**
  * Calculates fantasy points for a batch of players.
  * Optimized: validates and filters only valid players before API call.
  * Error boundary included for robust error handling.

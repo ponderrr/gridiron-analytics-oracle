@@ -148,9 +148,18 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
       }
     };
 
-    mediaQuery.addEventListener("change", handleSystemThemeChange);
-    return () =>
-      mediaQuery.removeEventListener("change", handleSystemThemeChange);
+    if (mediaQuery.addEventListener) {
+      mediaQuery.addEventListener("change", handleSystemThemeChange);
+    } else if (mediaQuery.addListener) {
+      mediaQuery.addListener(handleSystemThemeChange);
+    }
+    return () => {
+      if (mediaQuery.removeEventListener) {
+        mediaQuery.removeEventListener("change", handleSystemThemeChange);
+      } else if (mediaQuery.removeListener) {
+        mediaQuery.removeListener(handleSystemThemeChange);
+      }
+    };
   }, [theme]);
 
   const handleSetTheme = (newTheme: Theme) => {
@@ -184,3 +193,5 @@ export const useTheme = () => {
   }
   return context;
 };
+
+export { ThemeContext };

@@ -37,12 +37,14 @@ export const ThemeToggle: React.FC<ThemeToggleProps> = ({
 
   const getCurrentIcon = () => {
     if (theme === "system") {
-      return <Monitor className={getIconSize()} />;
+      return (
+        <Monitor className={getIconSize() + " " + themeClasses.TEXT_PRIMARY} />
+      );
     }
     return effectiveTheme === "dark" ? (
-      <Moon className={getIconSize()} />
+      <Moon className={getIconSize() + " " + themeClasses.TEXT_PRIMARY} />
     ) : (
-      <Sun className={getIconSize()} />
+      <Sun className={getIconSize() + " " + themeClasses.TEXT_PRIMARY} />
     );
   };
 

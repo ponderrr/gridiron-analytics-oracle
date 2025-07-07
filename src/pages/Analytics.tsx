@@ -1,8 +1,8 @@
 import { motion } from "framer-motion";
-import Layout from "../components/Layout";
-import { Brain, Construction, Zap } from "lucide-react";
+import Layout from "@/components/Layout";
+import { Brain, Construction } from "lucide-react";
 import { Card } from "../components/ui/card";
-import { useTheme } from "../contexts/ThemeContext";
+import { useTheme } from "@/contexts/ThemeContext";
 import { getThemeClasses } from "@/lib/constants";
 
 const Analytics: React.FC = () => {
@@ -82,19 +82,6 @@ const Analytics: React.FC = () => {
                   </h3>
                   <p className={`text-sm ${themeClasses.TEXT_TERTIARY}`}>
                     Machine learning powered performance predictions
-                  </p>
-                </div>
-                <div
-                  className={`${themeClasses.BG_SECONDARY} rounded-lg p-6 text-center`}
-                >
-                  <Zap className="h-8 w-8 text-blue-400 mx-auto mb-4" />
-                  <h3
-                    className={`text-lg font-semibold ${themeClasses.TEXT_PRIMARY} mb-2`}
-                  >
-                    Real-time Analysis
-                  </h3>
-                  <p className={`text-sm ${themeClasses.TEXT_TERTIARY}`}>
-                    Live performance tracking and analysis
                   </p>
                 </div>
                 <div

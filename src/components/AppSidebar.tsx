@@ -5,7 +5,6 @@ import {
   Users,
   TrendingUp,
   ArrowLeftRight,
-  Trophy,
   Settings,
   ChevronLeft,
   ChevronRight,
@@ -14,7 +13,6 @@ import {
   BarChart3,
   ChevronDown,
   ChevronUp,
-  Zap,
   Target,
   Wrench,
 } from "lucide-react";
@@ -55,7 +53,7 @@ const NavItem: React.FC<NavItemProps> = React.memo(
           className={cn(
             "flex items-center justify-center p-3 rounded-xl transition-all duration-200 group relative",
             isActive
-              ? "bg-gradient-to-r from-emerald-500 to-blue-500 text-white shadow-lg shadow-emerald-500/25"
+              ? `${themeClasses.BG_ACTIVE} ${themeClasses.TEXT_PRIMARY} ${themeClasses.SHADOW}`
               : `${themeClasses.TEXT_TERTIARY} ${themeClasses.BG_HOVER} hover:${themeClasses.TEXT_PRIMARY}`
           )}
           title={label}
@@ -65,7 +63,9 @@ const NavItem: React.FC<NavItemProps> = React.memo(
         >
           <Icon className="h-5 w-5" />
           {comingSoon && (
-            <div className="absolute -top-1 -right-1 w-2 h-2 bg-yellow-400 rounded-full"></div>
+            <div
+              className={`absolute -top-1 -right-1 w-2 h-2 ${THEME_CONSTANTS.THEME.COMMON.BG_ACCENT_WARNING} rounded-full`}
+            ></div>
           )}
         </Link>
       );
@@ -77,7 +77,7 @@ const NavItem: React.FC<NavItemProps> = React.memo(
         className={cn(
           "flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all duration-200 group relative overflow-hidden",
           isActive
-            ? "bg-gradient-to-r from-emerald-500 to-blue-500 text-white shadow-lg shadow-emerald-500/25"
+            ? `${themeClasses.BG_ACTIVE} ${themeClasses.TEXT_PRIMARY} ${themeClasses.SHADOW}`
             : `${themeClasses.TEXT_TERTIARY} ${themeClasses.BG_HOVER} hover:${themeClasses.TEXT_PRIMARY}`
         )}
         aria-label={label}
@@ -85,12 +85,16 @@ const NavItem: React.FC<NavItemProps> = React.memo(
         tabIndex={0}
       >
         {/* Hover gradient effect */}
-        <div className="absolute inset-0 bg-gradient-to-r from-emerald-500/10 to-blue-500/10 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+        <div
+          className={`absolute inset-0 ${themeClasses.BG_HOVER} opacity-0 group-hover:opacity-100 transition-opacity duration-300`}
+        />
 
         <Icon className="h-5 w-5 mr-3 flex-shrink-0 relative z-10" />
         <span className="truncate relative z-10">{label}</span>
         {comingSoon && (
-          <span className="ml-auto text-xs bg-yellow-500/20 text-yellow-400 px-2 py-1 rounded-full flex-shrink-0 relative z-10">
+          <span
+            className={`ml-auto text-xs ${THEME_CONSTANTS.THEME.COMMON.BG_ACCENT_WARNING} ${THEME_CONSTANTS.THEME.COMMON.ACCENT_WARNING} px-2 py-1 rounded-full flex-shrink-0 relative z-10`}
+          >
             {MESSAGE_CONSTANTS.SOON_LABEL}
           </span>
         )}
@@ -245,10 +249,7 @@ const AppSidebar: React.FC = () => {
     <nav
       className={cn(
         `${themeClasses.BG_SIDEBAR} border-r ${themeClasses.BORDER} transition-all duration-300 flex flex-col h-screen flex-shrink-0 relative fixed left-0 top-0 z-30`,
-        isCollapsed ? "w-20" : "w-72",
-        effectiveTheme === "dark"
-          ? "bg-gradient-to-b from-slate-800 to-slate-900"
-          : "bg-gradient-to-b from-slate-50 to-slate-100"
+        isCollapsed ? "w-20" : "w-72"
       )}
       role="navigation"
       aria-label="Main sidebar navigation"
@@ -307,7 +308,7 @@ const AppSidebar: React.FC = () => {
                 sectionId={sectionId}
               >
                 <ul className="sidebar-nested-list">
-                  {section.items.map((item, itemIdx) => (
+                  {section.items.map((item) => (
                     <li key={item.href}>
                       <NavItem {...item} isCollapsed={isCollapsed} />
                     </li>

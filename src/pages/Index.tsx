@@ -2,13 +2,12 @@ import React from "react";
 import { Link } from "react-router-dom";
 import {
   Trophy,
-  BarChart3,
   TrendingUp,
   Users,
   ArrowRight,
   Brain,
 } from "lucide-react";
-import Layout from "../components/Layout";
+import Layout from "@/components/Layout";
 
 const Index: React.FC = () => {
   return (

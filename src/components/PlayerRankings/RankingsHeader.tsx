@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import { useRef } from "react";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -8,7 +8,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Plus, Save, Download, Upload, Undo, Redo } from "lucide-react";
+import { Plus, Save, Download, Undo, Redo } from "lucide-react";
 import { useRankings } from "./RankingsProvider";
 import { CreateSetModal, CreateSetModalRef } from "./CreateSetModal";
 import { toast } from "sonner";
@@ -35,19 +35,30 @@ export function RankingsHeader() {
   };
 
   const handleExport = () => {
-    if (!state.currentSet || state.rankedPlayers.length === 0) {
+    if (!state.currentSet || state.rankedItems.length === 0) {
       toast.error("No rankings to export");
       return;
     }
 
+    // Helper to derive legacy rankedPlayers from rankedItems
+    const rankedPlayers = state.rankedItems
+      .filter((item) => item.type === "player" && item.player)
+      .map((item) => ({
+        player_id: item.player_id!,
+        overall_rank: item.overall_rank,
+        tier: item.tier,
+        notes: item.notes,
+        player: item.player!,
+      }));
+
     const csvData = [
       ["Rank", "Player", "Position", "Team", "Tier"],
-      ...state.rankedPlayers.map((p) => [
+      ...rankedPlayers.map((p) => [
         p.overall_rank.toString(),
         p.player.name,
         p.player.position,
         p.player.team,
-        p.tier?.toString() || "",
+        p.player.bye_week ?? "",
       ]),
     ];
 
@@ -122,7 +133,7 @@ export function RankingsHeader() {
             variant="outline"
             size="sm"
             onClick={handleExport}
-            disabled={!state.currentSet || state.rankedPlayers.length === 0}
+            disabled={!state.currentSet || state.rankedItems.length === 0}
           >
             <Download className="h-4 w-4 mr-2" />
             Export
@@ -165,7 +176,7 @@ export function RankingsHeader() {
           Create New
         </Button>
 
-        {state.currentSet && state.rankedPlayers.length === 0 && (
+        {state.currentSet && state.rankedItems.length === 0 && (
           <Button
             variant="outline"
             size="sm"
@@ -177,7 +188,7 @@ export function RankingsHeader() {
         )}
 
         <div className="text-sm text-slate-400">
-          {state.rankedPlayers.length} players ranked
+          {state.rankedItems.length} players ranked
         </div>
       </div>
 

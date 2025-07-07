@@ -4,32 +4,25 @@ import {
   Settings as SettingsIcon,
   User,
   Shield,
-  Palette,
   Save,
   Lock,
   Mail,
   Link as LinkIcon,
 } from "lucide-react";
-import Layout from "../components/Layout";
+import Layout from "@/components/Layout";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/contexts/ThemeContext";
 import { Card } from "../components/ui/card";
 import { THEME_CONSTANTS, getThemeClasses } from "@/lib/constants";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import DOMPurify from "dompurify";
 
 const Settings: React.FC = () => {
   const { user } = useAuth();
-  const { theme, setTheme, effectiveTheme } = useTheme();
+  const { effectiveTheme } = useTheme();
   const themeClasses = getThemeClasses(effectiveTheme);
   const [isEditing, setIsEditing] = useState(false);
   const [displayName, setDisplayName] = useState(
-    user?.email?.split("@")[0] || "",
+    user?.email?.split("@")[0] || ""
   );
 
   const containerVariants = {
@@ -115,7 +108,9 @@ const Settings: React.FC = () => {
                   <input
                     type="text"
                     value={displayName}
-                    onChange={(e) => setDisplayName(e.target.value)}
+                    onChange={(e) =>
+                      setDisplayName(DOMPurify.sanitize(e.target.value))
+                    }
                     placeholder="Enter your display name"
                     className={`w-full pl-10 pr-4 py-3 ${themeClasses.BG_SECONDARY} border ${themeClasses.BORDER} rounded-lg ${themeClasses.TEXT_PRIMARY} placeholder-${themeClasses.TEXT_TERTIARY} focus:outline-none focus:ring-2 focus:ring-emerald-500`}
                   />

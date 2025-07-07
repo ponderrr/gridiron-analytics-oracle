@@ -1,5 +1,7 @@
 import React from "react";
 import { cn } from "@/lib/utils";
+import { useTheme } from "@/contexts/ThemeContext";
+import { getThemeClasses } from "@/lib/constants";
 
 interface LoadingSpinnerProps {
   size?: "sm" | "md" | "lg";
@@ -18,11 +20,13 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
   className,
   message,
 }) => {
+  const { effectiveTheme } = useTheme();
+  const themeClasses = getThemeClasses(effectiveTheme);
   return (
     <div className={cn("flex flex-col items-center justify-center", className)}>
       <div
         className={cn(
-          "rounded-full border-slate-600 border-t-emerald-500 animate-spin bg-transparent",
+          `rounded-full ${themeClasses.BORDER} border-t-emerald-500 animate-spin bg-transparent`,
           sizeClasses[size]
         )}
         role="status"
@@ -30,7 +34,9 @@ const LoadingSpinner: React.FC<LoadingSpinnerProps> = ({
         aria-label="Loading"
       />
       {message && (
-        <div className="mt-3 text-center text-base text-slate-500">
+        <div
+          className={`mt-3 text-center text-base ${themeClasses.TEXT_TERTIARY}`}
+        >
           {message}
         </div>
       )}

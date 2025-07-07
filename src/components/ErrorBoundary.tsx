@@ -2,6 +2,8 @@ import React, { ReactNode } from "react";
 import { AlertTriangle, RefreshCw, Home } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { createAppError, getErrorType } from "@/lib/errorHandling";
+import { getThemeClasses, THEME_CONSTANTS } from "@/lib/constants";
+import { ThemeContext } from "@/contexts/ThemeContext";
 
 /**
  * ErrorBoundary Component
@@ -41,7 +43,7 @@ interface ErrorBoundaryState {
 // Standardized error reporting
 function reportError(
   error: Error,
-  errorInfo: React.ErrorInfo,
+  _errorInfo: React.ErrorInfo,
   context?: string
 ) {
   const appError = createAppError(
@@ -106,53 +108,75 @@ class ErrorBoundary extends React.Component<
       // Error type mapping for title and message
       const errorTypeMap: Record<string, { title: string; message: string }> = {
         network: {
-          title: "Network Error",
+          title: "Connection Issue",
           message:
-            "We couldn't connect to the server. Please check your internet connection and try again.",
+            "We couldn't connect to the server. Please check your internet connection, then click 'Try Again.' If the problem continues, contact support.",
         },
         auth: {
-          title: "Authentication Error",
+          title: "Sign-in Required",
           message:
-            "There was a problem with your authentication. Please log in again or contact support.",
+            "Your session has expired or there was a problem signing you in. Please log in again. If you continue to have trouble, contact support for help.",
         },
         data: {
-          title: "Data Error",
+          title: "Data Unavailable",
           message:
-            "We couldn't load the requested data. Please try again later.",
+            "We couldn't load the information you requested. Please refresh the page or try again later. If this keeps happening, let us know.",
         },
         unknown: {
-          title: "Something went wrong",
+          title: "Something Went Wrong",
           message:
-            "An unexpected error occurred. Please try again or contact support if the problem persists.",
+            "Oops! An unexpected error occurred. Please click 'Try Again' or return to the home page. If the issue persists, contact our support team for assistance.",
         },
       };
 
       const { title, message } =
         errorTypeMap[errorType] || errorTypeMap["unknown"];
 
+      // Get theme classes
+      const { effectiveTheme } = this.context as {
+        effectiveTheme: "light" | "dark";
+      };
+      const themeClasses = getThemeClasses(effectiveTheme || "light");
+
       return (
-        <div className="flex flex-col items-center justify-center min-h-[400px] text-center p-8">
+        <div
+          className={`flex flex-col items-center justify-center min-h-[400px] text-center p-8 ${themeClasses.BG_PRIMARY}`}
+        >
           <div className="max-w-md mx-auto">
             {/* Error Icon */}
             <div className="flex justify-center mb-6">
-              <div className="bg-red-500/20 p-4 rounded-full">
-                <AlertTriangle className="h-8 w-8 text-red-400" />
+              <div
+                className={`${THEME_CONSTANTS.THEME.COMMON.BG_ACCENT_DANGER} p-4 rounded-full`}
+              >
+                <AlertTriangle
+                  className={`${THEME_CONSTANTS.THEME.COMMON.ACCENT_DANGER} h-8 w-8`}
+                />
               </div>
             </div>
 
             {/* Error Title */}
-            <h2 className="text-xl font-bold text-white mb-3">{title}</h2>
+            <h2
+              className={`text-xl font-bold ${themeClasses.TEXT_PRIMARY} mb-3`}
+            >
+              {title}
+            </h2>
 
             {/* Error Message */}
-            <p className="text-slate-400 mb-6 leading-relaxed">{message}</p>
+            <p className={`${themeClasses.TEXT_TERTIARY} mb-6 leading-relaxed`}>
+              {message}
+            </p>
 
             {/* Error Details (Development Only) */}
             {process.env.NODE_ENV === "development" && this.state.error && (
               <details className="mb-6 text-left">
-                <summary className="text-sm text-slate-500 cursor-pointer hover:text-slate-400 mb-2">
+                <summary
+                  className={`text-sm ${themeClasses.TEXT_MUTED} cursor-pointer hover:${themeClasses.TEXT_TERTIARY} mb-2`}
+                >
                   Error Details (Development)
                 </summary>
-                <div className="bg-slate-800/50 border border-slate-700 rounded-lg p-4 text-xs text-slate-400 font-mono overflow-auto">
+                <div
+                  className={`${themeClasses.BG_CARD} border ${themeClasses.BORDER} rounded-lg p-4 text-xs ${themeClasses.TEXT_TERTIARY} font-mono overflow-auto`}
+                >
                   <div className="mb-2">
                     <strong>Error:</strong> {this.state.error.message}
                   </div>
@@ -180,7 +204,7 @@ class ErrorBoundary extends React.Component<
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <button
                 onClick={this.handleRetry}
-                className="flex items-center justify-center space-x-2 bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-3 rounded-lg font-medium transition-colors"
+                className={`flex items-center justify-center space-x-2 ${THEME_CONSTANTS.THEME.COMMON.BG_ACCENT_PRIMARY} hover:${THEME_CONSTANTS.THEME.COMMON.HOVER_ACCENT_PRIMARY} ${THEME_CONSTANTS.THEME.COMMON.ACCENT_PRIMARY} px-6 py-3 rounded-lg font-medium transition-colors`}
               >
                 <RefreshCw className="h-4 w-4" />
                 <span>Try Again</span>
@@ -234,5 +258,8 @@ export function withErrorBoundary<P extends object>(
 
   return WrappedComponent;
 }
+
+// Add contextType for theme
+ErrorBoundary.contextType = ThemeContext;
 
 export default ErrorBoundaryWithRouter;

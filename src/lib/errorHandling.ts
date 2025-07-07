@@ -1,10 +1,46 @@
 // Standardized error handling utility
 
+// Error interfaces
+export interface NetworkError {
+  message: string;
+  code?: string | number;
+  status?: number;
+  type: "network";
+}
+export interface AuthError {
+  message: string;
+  code?: string | number;
+  status?: number;
+  type: "auth";
+}
+export interface DataError {
+  message: string;
+  code?: string | number;
+  status?: number;
+  type: "data";
+}
+export interface TimeoutError {
+  message: string;
+  code?: string | number;
+  status?: number;
+  type: "timeout";
+}
+export interface UnknownError {
+  message?: string;
+  [key: string]: unknown;
+  type?: "unknown";
+}
+
 export type AppErrorType = "network" | "auth" | "data" | "timeout" | "unknown";
 
-export type UnknownError =
+export type AnyAppError =
+  | AppError
+  | NetworkError
+  | AuthError
+  | DataError
+  | TimeoutError
+  | UnknownError
   | Error
-  | { message?: string; [key: string]: unknown }
   | string;
 
 export interface AppError extends Error {
@@ -12,7 +48,7 @@ export interface AppError extends Error {
   status?: number;
   stack?: string;
   context?: string;
-  originalError?: UnknownError;
+  originalError?: AnyAppError;
 }
 
 export function createAppError(
@@ -20,7 +56,7 @@ export function createAppError(
   type: AppErrorType = "unknown",
   status?: number,
   context?: string,
-  originalError?: UnknownError
+  originalError?: AnyAppError
 ): AppError {
   const error = new Error(message) as AppError;
   error.type = type;
@@ -30,7 +66,7 @@ export function createAppError(
   return error;
 }
 
-export function formatErrorMessage(error: AppError | UnknownError): string {
+export function formatErrorMessage(error: AppError | AnyAppError): string {
   if (typeof error === "string") return error;
   if (error && typeof error === "object" && "message" in error) {
     return (
@@ -40,7 +76,7 @@ export function formatErrorMessage(error: AppError | UnknownError): string {
   return "An unknown error occurred.";
 }
 
-export function getErrorType(error: AppError | UnknownError): AppErrorType {
+export function getErrorType(error: AppError | AnyAppError): AppErrorType {
   // Check for explicit type property first
   if (
     typeof error === "object" &&
@@ -166,11 +202,11 @@ export function withErrorHandling<T, A extends unknown[]>(
       return await fn(...args);
     } catch (err) {
       throw createAppError(
-        formatErrorMessage(err as UnknownError),
-        getErrorType(err as UnknownError),
+        formatErrorMessage(err as AnyAppError),
+        getErrorType(err as AnyAppError),
         undefined,
         context,
-        err as UnknownError
+        err as AnyAppError
       );
     }
   };
@@ -192,7 +228,7 @@ function isAppError(obj: unknown): obj is AppError {
  * This is useful for converting generic errors (like from React Query) into typed AppErrors
  */
 export function inferAndCreateAppError(
-  error: UnknownError,
+  error: AnyAppError,
   context?: string
 ): AppError {
   // If it's already an AppError with a type, return it as is
@@ -208,4 +244,42 @@ export function inferAndCreateAppError(
     (error as { status?: number; statusCode?: number })?.statusCode;
 
   return createAppError(message, errorType, status, context, error);
+}
+
+// Type guards
+export function isNetworkError(error: unknown): error is NetworkError {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    (error as NetworkError).type === "network"
+  );
+}
+export function isAuthError(error: unknown): error is AuthError {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    (error as AuthError).type === "auth"
+  );
+}
+export function isDataError(error: unknown): error is DataError {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    (error as DataError).type === "data"
+  );
+}
+export function isTimeoutError(error: unknown): error is TimeoutError {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    (error as TimeoutError).type === "timeout"
+  );
+}
+export function isUnknownError(error: unknown): error is UnknownError {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    ((error as UnknownError).type === "unknown" ||
+      !("type" in (error as object)))
+  );
 }

@@ -8,7 +8,7 @@ import {
   Target,
   Brain,
 } from "lucide-react";
-import Layout from "../components/Layout";
+import Layout from "@/components/Layout";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,12 +23,10 @@ import {
 import { Separator } from "@/components/ui/separator";
 import {
   calculateFantasyPoints,
-  type WeeklyStatsInput,
   type FantasyPointsResult,
 } from "@/lib/fantasyPoints";
 import { DEFAULT_SCORING_SETTINGS } from "@/lib/fantasyPoints.constants";
 import LoadingSpinner from "@/components/LoadingSpinner";
-import ErrorBoundary from "@/components/ErrorBoundary";
 import {
   MESSAGE_CONSTANTS,
   UI_CONSTANTS,
@@ -74,7 +72,7 @@ const FantasyPointsTest: React.FC = () => {
 
   const handleStatChange = (
     field: keyof WeeklyStatsFormInput,
-    value: string,
+    value: string
   ) => {
     setStats((prev) => ({
       ...prev,
@@ -117,12 +115,12 @@ const FantasyPointsTest: React.FC = () => {
           ...acc,
           [key]: value.trim() === "" ? 0 : Number(value),
         }),
-        {} as import("@/lib/fantasyPoints").WeeklyStatsInput,
+        {} as import("@/lib/fantasyPoints").WeeklyStatsInput
       );
 
       const calculatedResult = await calculateFantasyPoints(
         parsedStats,
-        DEFAULT_SCORING_SETTINGS[scoringFormat],
+        DEFAULT_SCORING_SETTINGS[scoringFormat]
       );
 
       setResult(calculatedResult);
@@ -265,7 +263,7 @@ const FantasyPointsTest: React.FC = () => {
                       onChange={(e) =>
                         handleStatChange(
                           "passing_interceptions",
-                          e.target.value,
+                          e.target.value
                         )
                       }
                       className={`${themeClasses.BG_SECONDARY} border ${themeClasses.BORDER} ${themeClasses.TEXT_PRIMARY}`}

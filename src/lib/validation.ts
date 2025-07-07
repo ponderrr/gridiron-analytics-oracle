@@ -1,4 +1,5 @@
 import isEmail from "validator/lib/isEmail";
+import isRFC5322 from "email-validator";
 
 // Email validation constants
 export const COMMON_EMAIL_DOMAINS = [
@@ -134,4 +135,65 @@ export function formatErrorMessage(error: unknown): string {
     return String((error as { message: unknown }).message);
   }
   return "An unknown error occurred.";
+}
+
+/**
+ * Returns a comprehensive email validation result with feedback and suggestions.
+ */
+export function validateEmailDetailed(email: string): ValidationResult {
+  const errors: string[] = [];
+  let score = 0;
+  if (!email) {
+    errors.push(VALIDATION_MESSAGES.EMAIL_REQUIRED);
+    return { valid: false, errors, score };
+  }
+  if (!isEmail(email) || !isRFC5322.validate(email)) {
+    errors.push(VALIDATION_MESSAGES.EMAIL_INVALID);
+  } else {
+    score += 50;
+  }
+  const [_, domain] = email.split("@");
+  if (domain && !COMMON_EMAIL_DOMAINS.includes(domain)) {
+    errors.push(VALIDATION_MESSAGES.EMAIL_DOMAIN_RESTRICTED);
+  } else if (domain) {
+    score += 50;
+  }
+  return { valid: errors.length === 0, errors, score };
+}
+
+/**
+ * Returns real-time feedback for password as the user types.
+ */
+export function getPasswordFeedback(password: string): string[] {
+  const feedback: string[] = [];
+  if (!password) {
+    feedback.push("Password is required.");
+    return feedback;
+  }
+  if (password.length < PASSWORD_REQUIREMENTS.MIN_LENGTH) {
+    feedback.push(`At least ${PASSWORD_REQUIREMENTS.MIN_LENGTH} characters`);
+  }
+  if (PASSWORD_REQUIREMENTS.REQUIRE_UPPERCASE && !/[A-Z]/.test(password)) {
+    feedback.push("One uppercase letter");
+  }
+  if (PASSWORD_REQUIREMENTS.REQUIRE_LOWERCASE && !/[a-z]/.test(password)) {
+    feedback.push("One lowercase letter");
+  }
+  if (PASSWORD_REQUIREMENTS.REQUIRE_NUMBER && !/\d/.test(password)) {
+    feedback.push("One number");
+  }
+  if (PASSWORD_REQUIREMENTS.REQUIRE_SPECIAL && !/[^A-Za-z0-9]/.test(password)) {
+    feedback.push("One special character");
+  }
+  return feedback;
+}
+
+/**
+ * Returns a password strength label based on score.
+ */
+export function passwordStrengthLabel(score: number): string {
+  if (score >= 90) return "Strong";
+  if (score >= 70) return "Good";
+  if (score >= 50) return "Fair";
+  return "Weak";
 }
