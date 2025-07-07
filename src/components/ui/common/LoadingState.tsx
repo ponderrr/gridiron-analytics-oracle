@@ -1,5 +1,4 @@
 import React from "react";
-import styles from "../../LoadingSpinner.module.css";
 import { cn } from "@/lib/utils";
 
 // Types for loading variants
@@ -26,6 +25,13 @@ export interface LoadingStateProps {
 
 const skeletonBase = "bg-slate-700/50 rounded animate-pulse mb-2 last:mb-0";
 
+// Spinner size classes
+const spinnerSizes = {
+  sm: "w-4 h-4",
+  md: "w-6 h-6",
+  lg: "w-8 h-8",
+};
+
 export const LoadingState: React.FC<LoadingStateProps> = ({
   type = "spinner",
   size = "md",
@@ -50,8 +56,8 @@ export const LoadingState: React.FC<LoadingStateProps> = ({
       >
         <div
           className={cn(
-            styles.spinner,
-            size === "sm" ? styles.sm : size === "lg" ? styles.lg : styles.md
+            "animate-spin rounded-full border-2 border-slate-300 border-t-blue-600",
+            spinnerSizes[size]
           )}
           role="status"
           aria-live="polite"
@@ -95,8 +101,8 @@ export const LoadingState: React.FC<LoadingStateProps> = ({
     <div className={cn("flex items-center", className)}>
       <div
         className={cn(
-          styles.spinner,
-          size === "sm" ? styles.sm : size === "lg" ? styles.lg : styles.md
+          "animate-spin rounded-full border-2 border-slate-300 border-t-blue-600",
+          spinnerSizes[size]
         )}
         role="status"
         aria-live="polite"
