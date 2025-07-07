@@ -91,7 +91,12 @@ serve(async (req) => {
     let totalProcessed = 0;
     let teamChanges = 0;
     let retiredPlayers = 0;
+    let validationErrors = 0;
+    let databaseErrors = 0;
+    let apiErrors = 0;
     const errors: string[] = [];
+    const validationDetails: any[] = [];
+    const startTime = Date.now();
 
     // Map team abbreviations to bye weeks (hardcoded for 2024 season)
     const teamByeWeeks = new Map<string, number>([
@@ -136,7 +141,32 @@ serve(async (req) => {
         const team = player.team;
         const active = player.status !== "Inactive" && player.active !== false;
 
+        // Comprehensive validation using database function
+        const { data: validationResult, error: validationError } = await supabase
+          .rpc('validate_player_data', {
+            player_name: name,
+            player_position: position,
+            player_team: team || "FA"
+          });
+
+        if (validationError) {
+          console.error('Validation function error:', validationError);
+          validationErrors++;
+          continue;
+        }
+
+        if (validationResult && !validationResult.valid) {
+          validationErrors++;
+          validationDetails.push({
+            sleeper_id: sleeperId,
+            errors: validationResult.errors
+          });
+          errors.push(`Validation failed for ${name || sleeperId}: ${validationResult.errors.join(', ')}`);
+          continue;
+        }
+
         if (!name || !position || !sleeperId) {
+          validationErrors++;
           errors.push(
             `Missing required data for player: ${JSON.stringify(player)}`
           );
@@ -177,6 +207,7 @@ serve(async (req) => {
 
         players.push(playerData);
       } catch (error) {
+        apiErrors++;
         errors.push(`Error processing player ${sleeperId}: ${error.message}`);
         console.error("Player processing error:", error);
       }
@@ -256,28 +287,41 @@ serve(async (req) => {
             `Successfully upserted batch of ${batch.length} players: ${added} added, ${updated} updated`
           );
         } catch (error) {
+          databaseErrors++;
           errors.push(`Database batch error: ${error.message}`);
           console.error("Database batch error:", error);
         }
       }
     }
 
-    // Update sync status tracking
+    // Log comprehensive sync operation
+    const endTime = Date.now();
+    const duration = endTime - startTime;
+    
     try {
-      await supabase.rpc('log_sync_status', {
+      await supabase.rpc('log_sync_operation', {
         sync_type: 'nfl_data',
-        success: errors.length < totalProcessed / 2,
-        players_processed: totalProcessed,
-        team_changes: teamChanges,
-        retired_players: retiredPlayers,
-        error_count: errors.length
-      }).then(() => {
-        console.log('Sync status logged successfully');
-      }).catch((rpcError) => {
-        console.warn('Failed to log sync status:', rpcError);
+        total_records: totalProcessed,
+        processed_records: players.length,
+        validation_errors: validationErrors,
+        database_errors: databaseErrors,
+        api_errors: apiErrors,
+        duration_ms: duration,
+        error_details: errors.length > 0 ? errors.slice(0, 20) : null,
+        validation_stats: {
+          total_validated: totalProcessed,
+          validation_failed: validationErrors,
+          validation_details: validationDetails.slice(0, 10)
+        },
+        performance_metrics: {
+          duration_ms: duration,
+          records_per_second: Math.round((totalProcessed / duration) * 1000),
+          success_rate: totalProcessed > 0 ? ((totalProcessed - validationErrors - apiErrors) / totalProcessed) : 0
+        }
       });
-    } catch (statusError) {
-      console.warn('Sync status tracking failed:', statusError);
+      console.log('Comprehensive sync operation logged successfully');
+    } catch (logError) {
+      console.warn('Failed to log sync operation:', logError);
     }
 
     const result: SyncResult = {

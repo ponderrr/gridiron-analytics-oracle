@@ -42,6 +42,8 @@ import {
 } from "@/lib/errorHandling";
 import { LoadingState } from "@/components/ui/common";
 import LoadingSpinner from "@/components/LoadingSpinner";
+import SyncStatusDashboard from "@/components/ui/monitoring/SyncStatusDashboard";
+import DataQualityMetrics from "@/components/ui/monitoring/DataQualityMetrics";
 
 const { ICON_SIZES } = THEME_CONSTANTS;
 const { HEIGHT } = UI_CONSTANTS;
@@ -404,6 +406,12 @@ const Admin: React.FC = () => {
 
           {activeTab === ADMIN_TABS.DATA_SYNC && (
             <div className="px-8 space-y-6">
+              {/* Monitoring Dashboard */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                <SyncStatusDashboard />
+                <DataQualityMetrics />
+              </div>
+
               {/* Player Sync Section */}
               <div className="bg-slate-900/50 rounded-lg p-6 border border-slate-700/50">
                 <h3 className="text-lg font-bold text-white mb-4 flex items-center">

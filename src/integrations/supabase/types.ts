@@ -89,6 +89,60 @@ export type Database = {
           },
         ]
       }
+      sync_logs: {
+        Row: {
+          api_errors: number | null
+          completed_at: string | null
+          created_at: string
+          database_errors: number | null
+          duration_ms: number | null
+          error_details: Json | null
+          id: string
+          performance_metrics: Json | null
+          processed_records: number | null
+          started_at: string
+          success: boolean
+          sync_type: string
+          total_records: number | null
+          validation_errors: number | null
+          validation_stats: Json | null
+        }
+        Insert: {
+          api_errors?: number | null
+          completed_at?: string | null
+          created_at?: string
+          database_errors?: number | null
+          duration_ms?: number | null
+          error_details?: Json | null
+          id?: string
+          performance_metrics?: Json | null
+          processed_records?: number | null
+          started_at?: string
+          success?: boolean
+          sync_type: string
+          total_records?: number | null
+          validation_errors?: number | null
+          validation_stats?: Json | null
+        }
+        Update: {
+          api_errors?: number | null
+          completed_at?: string | null
+          created_at?: string
+          database_errors?: number | null
+          duration_ms?: number | null
+          error_details?: Json | null
+          id?: string
+          performance_metrics?: Json | null
+          processed_records?: number | null
+          started_at?: string
+          success?: boolean
+          sync_type?: string
+          total_records?: number | null
+          validation_errors?: number | null
+          validation_stats?: Json | null
+        }
+        Relationships: []
+      }
       sync_status: {
         Row: {
           created_at: string
@@ -336,6 +390,21 @@ export type Database = {
         Args: { user_uuid: string }
         Returns: undefined
       }
+      log_sync_operation: {
+        Args: {
+          sync_type: string
+          total_records?: number
+          processed_records?: number
+          validation_errors?: number
+          database_errors?: number
+          api_errors?: number
+          duration_ms?: number
+          error_details?: Json
+          validation_stats?: Json
+          performance_metrics?: Json
+        }
+        Returns: string
+      }
       log_sync_status: {
         Args: {
           sync_type: string
@@ -347,6 +416,14 @@ export type Database = {
           error_details?: string
         }
         Returns: undefined
+      }
+      validate_player_data: {
+        Args: {
+          player_name: string
+          player_position: string
+          player_team: string
+        }
+        Returns: Json
       }
     }
     Enums: {
