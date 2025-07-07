@@ -9,6 +9,36 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      draft_picks: {
+        Row: {
+          created_at: string
+          id: string
+          league_type: string
+          overall_pick: number
+          pick: number
+          round: number
+          year: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          league_type: string
+          overall_pick: number
+          pick: number
+          round: number
+          year: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          league_type?: string
+          overall_pick?: number
+          pick?: number
+          round?: number
+          year?: number
+        }
+        Relationships: []
+      }
       players: {
         Row: {
           active: boolean | null
