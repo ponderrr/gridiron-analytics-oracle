@@ -89,6 +89,45 @@ export type Database = {
           },
         ]
       }
+      sync_status: {
+        Row: {
+          created_at: string
+          error_count: number | null
+          error_details: string | null
+          id: string
+          last_sync_at: string
+          players_processed: number | null
+          retired_players: number | null
+          success: boolean
+          sync_type: string
+          team_changes: number | null
+        }
+        Insert: {
+          created_at?: string
+          error_count?: number | null
+          error_details?: string | null
+          id?: string
+          last_sync_at?: string
+          players_processed?: number | null
+          retired_players?: number | null
+          success?: boolean
+          sync_type: string
+          team_changes?: number | null
+        }
+        Update: {
+          created_at?: string
+          error_count?: number | null
+          error_details?: string | null
+          id?: string
+          last_sync_at?: string
+          players_processed?: number | null
+          retired_players?: number | null
+          success?: boolean
+          sync_type?: string
+          team_changes?: number | null
+        }
+        Relationships: []
+      }
       trade_values: {
         Row: {
           created_at: string
@@ -295,6 +334,18 @@ export type Database = {
     Functions: {
       create_default_ranking_sets_for_user: {
         Args: { user_uuid: string }
+        Returns: undefined
+      }
+      log_sync_status: {
+        Args: {
+          sync_type: string
+          success: boolean
+          players_processed?: number
+          team_changes?: number
+          retired_players?: number
+          error_count?: number
+          error_details?: string
+        }
         Returns: undefined
       }
     }

@@ -352,7 +352,6 @@ const Admin: React.FC = () => {
         <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl overflow-hidden">
           {activeTab === ADMIN_TABS.PLAYERS && (
             <div className="overflow-x-auto">
-              {/* Suspense boundary for lazy-loaded AdminTable */}
               <Suspense fallback={<LoadingSpinner />}>
                 <AdminTable<Player>
                   columns={playerColumns}
