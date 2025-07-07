@@ -52,7 +52,7 @@ export function RankingsHeader() {
       }));
 
     const csvData = [
-      ["Rank", "Player", "Position", "Team", "Tier"],
+      ["Rank", "Player", "Position", "Team", "Bye Week"],
       ...rankedPlayers.map((p) => [
         p.overall_rank.toString(),
         p.player.name,

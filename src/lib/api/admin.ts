@@ -5,7 +5,13 @@ export async function fetchPlayers(): Promise<Player[]> {
   try {
     const { data, error } = await supabase.from("players").select("*");
     if (error) throw error;
-    return data || [];
+    return (data || []).map((player) => ({
+      ...player,
+      metadata:
+        typeof player.metadata === "string"
+          ? JSON.parse(player.metadata)
+          : player.metadata,
+    }));
   } catch (err) {
     console.error("fetchPlayers error:", err);
     throw err;
@@ -48,4 +54,3 @@ export async function fetchTradeValues(): Promise<TradeValue[]> {
     throw err;
   }
 }
-

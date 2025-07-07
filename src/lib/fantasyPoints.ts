@@ -115,8 +115,9 @@ export async function calculateFantasyPoints(
 }
 
 /**
- * Synchronous version of calculateFantasyPoints for testing purposes.
- * Calculates fantasy points locally without API calls.
+ * Synchronous calculation of fantasy points for a single player's weekly stats.
+ * Calculates fantasy points locally without API calls. Can be used in any synchronous scenario (e.g., UI previews, tests, or local calculations).
+ * Validates input and scoring settings to ensure robust error handling.
  */
 export function calculateFantasyPointsSync(
   stats: Partial<WeeklyStatsInput>,
@@ -135,6 +136,10 @@ export function calculateFantasyPointsSync(
   };
 
   const completeStats = { ...defaultStats, ...stats };
+
+  // Input validation (mirrors async version)
+  validateStatsInput(completeStats);
+  validateScoringSettings(scoringSettings);
 
   let points = 0;
 
@@ -286,83 +291,14 @@ export async function updateWeeklyStatsWithFantasyPoints(
         );
       }
       throw new Error(
-        `Failed to update fantasy points: ${updateError.message}`
+        `Failed to update fantasy points for ${playerId}: ${updateError.message}`
       );
     }
   } catch (err) {
     // Error boundary for update
     if (process.env.NODE_ENV === "development") {
-      console.error("Update weekly stats with fantasy points error:", err);
+      console.error("Error updating fantasy points:", err);
     }
     throw err;
-  }
-}
-
-/**
- * Recalculates fantasy points for all weekly stats rows.
- * @param scoringFormat 'standard' | 'ppr' | 'half_ppr'
- */
-export async function recalculateAllFantasyPoints(
-  scoringFormat: "standard" | "ppr" | "half_ppr" = "standard"
-): Promise<void> {
-  // Fetch all weekly stats
-  const { data: allStats, error: fetchError } = await supabase
-    .from("weekly_stats")
-    .select("*");
-
-  if (fetchError) {
-    throw new Error(`Failed to fetch all weekly stats: ${fetchError.message}`);
-  }
-
-  if (!allStats || allStats.length === 0) {
-    return;
-  }
-
-  // Prepare batch calculation
-  const players = allStats.map((stat) => {
-    const stats: WeeklyStatsInput = {
-      passing_yards: stat.passing_yards || 0,
-      passing_tds: stat.passing_tds || 0,
-      passing_interceptions: stat.passing_interceptions || 0,
-      rushing_yards: stat.rushing_yards || 0,
-      rushing_tds: stat.rushing_tds || 0,
-      receiving_yards: stat.receiving_yards || 0,
-      receiving_tds: stat.receiving_tds || 0,
-      receptions: stat.receptions || 0,
-      fumbles_lost: stat.fumbles_lost || 0,
-    };
-    validateStatsInput(stats);
-    return {
-      player_id: stat.id,
-      stats,
-    };
-  });
-
-  // Calculate all fantasy points
-  const results = await calculateBatchFantasyPoints(
-    players,
-    DEFAULT_SCORING_SETTINGS[scoringFormat]
-  );
-
-  // Update database with all calculated points
-  const updates = results.map((result, index) => ({
-    id: allStats[index].id,
-    fantasy_points: result.total_points,
-  }));
-
-  for (const update of updates) {
-    const { error } = await supabase
-      .from("weekly_stats")
-      .update({ fantasy_points: update.fantasy_points })
-      .eq("id", update.id);
-
-    if (error) {
-      if (process.env.NODE_ENV === "development") {
-        console.error(
-          `Failed to update fantasy points for ${update.id}:`,
-          error
-        );
-      }
-    }
   }
 }

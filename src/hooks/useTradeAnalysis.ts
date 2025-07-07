@@ -1,8 +1,7 @@
 import { useState, useCallback, useMemo } from "react";
 import { useRankings } from "@/components/PlayerRankings";
-import {
-  Player,
-} from "@/components/PlayerRankings/RankingsProvider";
+import { Player } from "@/components/PlayerRankings/RankingsProvider";
+import type { RankedItem } from "@/components/PlayerRankings/RankingsProvider";
 
 /**
  * Represents a player involved in a trade, including their rank and calculated trade value.
@@ -134,7 +133,7 @@ export function useTradeAnalysis(
   const calculatePlayerValue = useCallback(
     (player: Player): number => {
       const rankedPlayer = state.rankedItems.find(
-        (rp: any) => rp.player_id === player.id
+        (rp: RankedItem) => rp.player_id === player.id
       );
       const rank = rankedPlayer?.overall_rank;
 
@@ -170,7 +169,7 @@ export function useTradeAnalysis(
   const getTradePlayer = useCallback(
     (player: Player): TradePlayer => {
       const rankedPlayer = state.rankedItems.find(
-        (rp: any) => rp.player_id === player.id
+        (rp: RankedItem) => rp.player_id === player.id
       );
       return {
         ...player,

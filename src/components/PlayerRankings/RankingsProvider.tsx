@@ -464,7 +464,16 @@ export function RankingsProvider({ children }: { children: React.ReactNode }) {
         .order("name");
 
       if (error) throw error;
-      dispatch({ type: "SET_AVAILABLE_PLAYERS", payload: data || [] });
+      dispatch({
+        type: "SET_AVAILABLE_PLAYERS",
+        payload: (data || []).map((player) => ({
+          ...player,
+          metadata:
+            typeof player.metadata === "string"
+              ? JSON.parse(player.metadata)
+              : player.metadata,
+        })),
+      });
     } catch (error) {
       console.error("Error fetching players:", error);
       toast.error("Failed to fetch players");

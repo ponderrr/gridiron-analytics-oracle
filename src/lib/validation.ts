@@ -15,6 +15,11 @@ export const COMMON_EMAIL_DOMAINS = [
   "gmx.com",
 ];
 
+// Email validation configuration
+export const EMAIL_VALIDATION_CONFIG = {
+  RESTRICT_DOMAINS: false, // Set to true to restrict to common domains only
+} as const;
+
 // Password validation constants
 export const MIN_PASSWORD_LENGTH = 8;
 export const PASSWORD_REQUIREMENTS = {
@@ -153,10 +158,15 @@ export function validateEmailDetailed(email: string): ValidationResult {
     score += 50;
   }
   const [_, domain] = email.split("@");
-  if (domain && !COMMON_EMAIL_DOMAINS.includes(domain)) {
-    errors.push(VALIDATION_MESSAGES.EMAIL_DOMAIN_RESTRICTED);
-  } else if (domain) {
-    score += 50;
+  if (domain) {
+    if (
+      EMAIL_VALIDATION_CONFIG.RESTRICT_DOMAINS &&
+      !COMMON_EMAIL_DOMAINS.includes(domain)
+    ) {
+      errors.push(VALIDATION_MESSAGES.EMAIL_DOMAIN_RESTRICTED);
+    } else {
+      score += 50;
+    }
   }
   return { valid: errors.length === 0, errors, score };
 }

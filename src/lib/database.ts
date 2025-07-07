@@ -3,7 +3,7 @@ export interface Player {
   bye_week: number | null;
   created_at: string;
   id: string;
-  metadata: any | null;
+  metadata: Record<string, unknown> | null;
   name: string;
   player_id: string;
   position: string;
