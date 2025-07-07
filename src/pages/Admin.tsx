@@ -381,10 +381,10 @@ const Admin: React.FC = () => {
           {activeTab === ADMIN_TABS.PROJECTIONS && (
             <div className="overflow-x-auto">
               <Suspense fallback={<LoadingSpinner />}>
-                <AdminTable<Projection>
+                <AdminTable
                   columns={projectionsColumns}
                   data={projections}
-                  rowKey={(row) => row.id as string}
+                  rowKey={(row: any) => row.id as string}
                   pageSize={20}
                 />
               </Suspense>
@@ -394,10 +394,10 @@ const Admin: React.FC = () => {
           {activeTab === ADMIN_TABS.TRADE_VALUES && (
             <div className="overflow-x-auto">
               <Suspense fallback={<LoadingSpinner />}>
-                <AdminTable<TradeValue>
+                <AdminTable
                   columns={tradeValuesColumns}
                   data={tradeValues}
-                  rowKey={(row) => row.id as string}
+                  rowKey={(row: any) => row.id as string}
                   pageSize={20}
                 />
               </Suspense>
