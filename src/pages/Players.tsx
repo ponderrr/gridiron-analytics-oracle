@@ -23,7 +23,7 @@ function PlayersContent() {
     if (!destination) return;
 
     // Save current state for undo
-    dispatch({ type: "PUSH_UNDO", payload: [...state.rankedPlayers] });
+    dispatch({ type: "PUSH_UNDO", payload: [...state.rankedItems] });
 
     // Handle dragging from available players to rankings
     if (

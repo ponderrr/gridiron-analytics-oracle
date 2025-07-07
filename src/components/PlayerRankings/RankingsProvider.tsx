@@ -8,30 +8,31 @@ import React, {
 } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { Player as DatabasePlayer, DraftPick } from "@/lib/database";
 
-export interface Player {
-  id: string;
-  name: string;
-  position: string;
-  team: string;
-  player_id: string;
-  active: boolean;
-  bye_week?: number;
-  fantasy_points?: number;
-  season_stats?: {
-    passing_yards?: number;
-    rushing_yards?: number;
-    receiving_yards?: number;
-    touchdowns?: number;
-  };
-}
+// Re-export for compatibility
+export type { Player } from "@/lib/database";
+export type { DraftPick } from "@/lib/database";
 
+// Legacy interface for backward compatibility
 export interface RankedPlayer {
   player_id: string;
   overall_rank: number;
   tier?: number;
   notes?: string;
-  player: Player;
+  player: DatabasePlayer;
+}
+
+export interface RankedItem {
+  id: string;
+  type: "player" | "pick";
+  player_id?: string;
+  pick_id?: string;
+  overall_rank: number;
+  tier?: number;
+  notes?: string;
+  player?: DatabasePlayer;
+  pick?: DraftPick;
 }
 
 export interface RankingSet {
@@ -41,13 +42,16 @@ export interface RankingSet {
   is_active: boolean;
   created_at: string;
   updated_at: string;
-  rankings?: RankedPlayer[];
+  rankings?: RankedItem[];
 }
 
 interface RankingsState {
   sets: RankingSet[];
   currentSet: RankingSet | null;
-  availablePlayers: Player[];
+  availablePlayers: DatabasePlayer[];
+  availablePicks: DraftPick[];
+  rankedItems: RankedItem[];
+  // Legacy field for backward compatibility
   rankedPlayers: RankedPlayer[];
   loading: boolean;
   saving: boolean;
@@ -55,9 +59,13 @@ interface RankingsState {
   searchTerm: string;
   positionFilter: string;
   teamFilter: string;
+  yearFilter: string;
+  roundFilter: string;
   showOnlyUnranked: boolean;
-  undoStack: RankedPlayer[][];
-  redoStack: RankedPlayer[][];
+  showPlayers: boolean;
+  showPicks: boolean;
+  undoStack: RankedItem[][];
+  redoStack: RankedItem[][];
 }
 
 type RankingsAction =
@@ -66,16 +74,25 @@ type RankingsAction =
   | { type: "SET_ERROR"; payload: string | null }
   | { type: "SET_SETS"; payload: RankingSet[] }
   | { type: "SET_CURRENT_SET"; payload: RankingSet | null }
-  | { type: "SET_AVAILABLE_PLAYERS"; payload: Player[] }
-  | { type: "SET_RANKED_PLAYERS"; payload: RankedPlayer[] }
-  | { type: "ADD_RANKED_PLAYER"; payload: { player: Player; rank: number } }
+  | { type: "SET_AVAILABLE_PLAYERS"; payload: DatabasePlayer[] }
+  | { type: "SET_AVAILABLE_PICKS"; payload: DraftPick[] }
+  | { type: "SET_RANKED_ITEMS"; payload: RankedItem[] }
+  | { type: "ADD_RANKED_ITEM"; payload: { item: DatabasePlayer | DraftPick; type: "player" | "pick"; rank: number } }
+  | { type: "REMOVE_RANKED_ITEM"; payload: string }
+  // Legacy actions for backward compatibility
+  | { type: "ADD_RANKED_PLAYER"; payload: { player: DatabasePlayer; rank: number } }
   | { type: "REMOVE_RANKED_PLAYER"; payload: string }
-  | { type: "REORDER_RANKINGS"; payload: RankedPlayer[] }
+  | { type: "SET_RANKED_PLAYERS"; payload: RankedPlayer[] }
+  | { type: "REORDER_RANKINGS"; payload: RankedItem[] }
   | { type: "SET_SEARCH_TERM"; payload: string }
   | { type: "SET_POSITION_FILTER"; payload: string }
   | { type: "SET_TEAM_FILTER"; payload: string }
+  | { type: "SET_YEAR_FILTER"; payload: string }
+  | { type: "SET_ROUND_FILTER"; payload: string }
   | { type: "SET_SHOW_ONLY_UNRANKED"; payload: boolean }
-  | { type: "PUSH_UNDO"; payload: RankedPlayer[] }
+  | { type: "SET_SHOW_PLAYERS"; payload: boolean }
+  | { type: "SET_SHOW_PICKS"; payload: boolean }
+  | { type: "PUSH_UNDO"; payload: RankedItem[] }
   | { type: "UNDO" }
   | { type: "REDO" };
 
@@ -83,6 +100,8 @@ const initialState: RankingsState = {
   sets: [],
   currentSet: null,
   availablePlayers: [],
+  availablePicks: [],
+  rankedItems: [],
   rankedPlayers: [],
   loading: false,
   saving: false,
@@ -90,7 +109,11 @@ const initialState: RankingsState = {
   searchTerm: "",
   positionFilter: "all",
   teamFilter: "all",
+  yearFilter: "all",
+  roundFilter: "all",
   showOnlyUnranked: false,
+  showPlayers: true,
+  showPicks: true,
   undoStack: [],
   redoStack: [],
 };
@@ -111,9 +134,9 @@ function undoRedoReducer(
       const previousState = state.undoStack[state.undoStack.length - 1];
       return {
         ...state,
-        rankedPlayers: previousState,
+        rankedItems: previousState,
         undoStack: state.undoStack.slice(0, -1),
-        redoStack: [state.rankedPlayers, ...state.redoStack.slice(0, 9)],
+        redoStack: [state.rankedItems, ...state.redoStack.slice(0, 9)],
       };
     }
     case "REDO": {
@@ -121,8 +144,8 @@ function undoRedoReducer(
       const nextState = state.redoStack[0];
       return {
         ...state,
-        rankedPlayers: nextState,
-        undoStack: [...state.undoStack, state.rankedPlayers],
+        rankedItems: nextState,
+        undoStack: [...state.undoStack, state.rankedItems],
         redoStack: state.redoStack.slice(1),
       };
     }
@@ -142,8 +165,16 @@ function filterReducer(
       return { ...state, positionFilter: action.payload };
     case "SET_TEAM_FILTER":
       return { ...state, teamFilter: action.payload };
+    case "SET_YEAR_FILTER":
+      return { ...state, yearFilter: action.payload };
+    case "SET_ROUND_FILTER":
+      return { ...state, roundFilter: action.payload };
     case "SET_SHOW_ONLY_UNRANKED":
       return { ...state, showOnlyUnranked: action.payload };
+    case "SET_SHOW_PLAYERS":
+      return { ...state, showPlayers: action.payload };
+    case "SET_SHOW_PICKS":
+      return { ...state, showPicks: action.payload };
     default:
       return state;
   }
@@ -160,39 +191,115 @@ function rankingsCoreReducer(
       return { ...state, currentSet: action.payload };
     case "SET_AVAILABLE_PLAYERS":
       return { ...state, availablePlayers: action.payload };
-    case "SET_RANKED_PLAYERS":
-      return { ...state, rankedPlayers: action.payload };
-    case "ADD_RANKED_PLAYER": {
-      const newRanked = [...state.rankedPlayers];
+    case "SET_AVAILABLE_PICKS":
+      return { ...state, availablePicks: action.payload };
+    case "SET_RANKED_ITEMS": {
+      // Also update legacy rankedPlayers for backward compatibility
+      const rankedPlayers = action.payload
+        .filter(item => item.type === "player" && item.player)
+        .map(item => ({
+          player_id: item.player_id!,
+          overall_rank: item.overall_rank,
+          tier: item.tier,
+          notes: item.notes,
+          player: item.player!
+        }));
+      return { ...state, rankedItems: action.payload, rankedPlayers };
+    }
+    case "SET_RANKED_PLAYERS": {
+      // Legacy compatibility - convert to new format
+      const rankedItems = action.payload.map(p => ({
+        id: p.player_id,
+        type: "player" as const,
+        player_id: p.player_id,
+        overall_rank: p.overall_rank,
+        tier: p.tier,
+        notes: p.notes,
+        player: p.player
+      }));
+      return { ...state, rankedPlayers: action.payload, rankedItems };
+    }
+    case "ADD_RANKED_ITEM": {
+      const newRanked = [...state.rankedItems];
       const insertIndex = action.payload.rank - 1;
-      newRanked.forEach((p) => {
-        if (p.overall_rank >= action.payload.rank) {
-          p.overall_rank += 1;
+      newRanked.forEach((item) => {
+        if (item.overall_rank >= action.payload.rank) {
+          item.overall_rank += 1;
         }
       });
-      newRanked.splice(insertIndex, 0, {
-        player_id: action.payload.player.id,
+      
+      const newItem: RankedItem = {
+        id: action.payload.item.id,
+        type: action.payload.type,
         overall_rank: action.payload.rank,
-        player: action.payload.player,
-      });
-      return {
-        ...state,
-        rankedPlayers: newRanked.sort(
-          (a, b) => a.overall_rank - b.overall_rank
-        ),
+        ...(action.payload.type === "player" 
+          ? { player_id: action.payload.item.id, player: action.payload.item as DatabasePlayer }
+          : { pick_id: action.payload.item.id, pick: action.payload.item as DraftPick }
+        )
       };
+      
+      newRanked.splice(insertIndex, 0, newItem);
+      const sortedItems = newRanked.sort((a, b) => a.overall_rank - b.overall_rank);
+      
+      // Update legacy rankedPlayers
+      const rankedPlayers = sortedItems
+        .filter(item => item.type === "player" && item.player)
+        .map(item => ({
+          player_id: item.player_id!,
+          overall_rank: item.overall_rank,
+          tier: item.tier,
+          notes: item.notes,
+          player: item.player!
+        }));
+        
+      return { ...state, rankedItems: sortedItems, rankedPlayers };
+    }
+    case "ADD_RANKED_PLAYER": {
+      // Legacy compatibility
+      return rankingsCoreReducer(state, {
+        type: "ADD_RANKED_ITEM",
+        payload: { item: action.payload.player, type: "player", rank: action.payload.rank }
+      });
+    }
+    case "REMOVE_RANKED_ITEM": {
+      const filtered = state.rankedItems.filter((item) => item.id !== action.payload);
+      filtered.forEach((item, index) => {
+        item.overall_rank = index + 1;
+      });
+      
+      // Update legacy rankedPlayers
+      const rankedPlayers = filtered
+        .filter(item => item.type === "player" && item.player)
+        .map(item => ({
+          player_id: item.player_id!,
+          overall_rank: item.overall_rank,
+          tier: item.tier,
+          notes: item.notes,
+          player: item.player!
+        }));
+        
+      return { ...state, rankedItems: filtered, rankedPlayers };
     }
     case "REMOVE_RANKED_PLAYER": {
-      const filtered = state.rankedPlayers.filter(
-        (p) => p.player_id !== action.payload
-      );
-      filtered.forEach((p, index) => {
-        p.overall_rank = index + 1;
+      // Legacy compatibility
+      return rankingsCoreReducer(state, {
+        type: "REMOVE_RANKED_ITEM",
+        payload: action.payload
       });
-      return { ...state, rankedPlayers: filtered };
     }
-    case "REORDER_RANKINGS":
-      return { ...state, rankedPlayers: action.payload };
+    case "REORDER_RANKINGS": {
+      // Update legacy rankedPlayers
+      const rankedPlayers = action.payload
+        .filter(item => item.type === "player" && item.player)
+        .map(item => ({
+          player_id: item.player_id!,
+          overall_rank: item.overall_rank,
+          tier: item.tier,
+          notes: item.notes,
+          player: item.player!
+        }));
+      return { ...state, rankedItems: action.payload, rankedPlayers };
+    }
     default:
       return state;
   }
@@ -242,8 +349,12 @@ interface RankingsContextType {
   saveRankings: () => Promise<void>;
   createDefaultRankings: () => Promise<void>;
   fetchPlayers: () => Promise<void>;
-  filteredAvailablePlayers: Player[];
-  getFilteredAvailablePlayers: () => Player[];
+  fetchPicks: () => Promise<void>;
+  filteredAvailableItems: (DatabasePlayer | DraftPick)[];
+  getFilteredAvailableItems: () => (DatabasePlayer | DraftPick)[];
+  // Legacy methods for backward compatibility
+  filteredAvailablePlayers: DatabasePlayer[];
+  getFilteredAvailablePlayers: () => DatabasePlayer[];
 }
 
 const RankingsContext = createContext<RankingsContextType | null>(null);
@@ -323,7 +434,7 @@ export function RankingsProvider({ children }: { children: React.ReactNode }) {
 
       dispatch({ type: "SET_CURRENT_SET", payload: data.data });
       dispatch({
-        type: "SET_RANKED_PLAYERS",
+        type: "SET_RANKED_ITEMS",
         payload: data.data.rankings || [],
       });
     } catch (error) {
@@ -339,11 +450,12 @@ export function RankingsProvider({ children }: { children: React.ReactNode }) {
 
     try {
       dispatch({ type: "SET_SAVING", payload: true });
-      const rankings = state.rankedPlayers.map((p) => ({
-        playerId: p.player_id,
-        overallRank: p.overall_rank,
-        tier: p.tier,
-        notes: p.notes,
+      const rankings = state.rankedItems.map((item) => ({
+        playerId: item.type === "player" ? item.player_id : null,
+        pickId: item.type === "pick" ? item.pick_id : null,
+        overallRank: item.overall_rank,
+        tier: item.tier,
+        notes: item.notes,
       }));
 
       const { data, error } = await supabase.functions.invoke(
@@ -363,7 +475,7 @@ export function RankingsProvider({ children }: { children: React.ReactNode }) {
     } finally {
       dispatch({ type: "SET_SAVING", payload: false });
     }
-  }, [state.currentSet, state.rankedPlayers]);
+  }, [state.currentSet, state.rankedItems]);
 
   const createDefaultRankings = useCallback(async () => {
     if (!state.currentSet) return;
@@ -406,25 +518,81 @@ export function RankingsProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+  const fetchPicks = useCallback(async () => {
+    try {
+      const { data, error } = await supabase
+        .from("draft_picks")
+        .select("*")
+        .order("year")
+        .order("overall_pick");
+
+      if (error) throw error;
+      dispatch({ type: "SET_AVAILABLE_PICKS", payload: data || [] });
+    } catch (error) {
+      console.error("Error fetching draft picks:", error);
+      toast.error("Failed to fetch draft picks");
+    }
+  }, []);
+
+  const filteredAvailableItems = useMemo(() => {
+    const rankedItemIds = new Set(state.rankedItems.map((item) => item.id));
+    const items: (DatabasePlayer | DraftPick)[] = [];
+    
+    // Add players if enabled
+    if (state.showPlayers) {
+      const filteredPlayers = state.availablePlayers.filter((player) => {
+        if (state.showOnlyUnranked && rankedItemIds.has(player.id)) return false;
+        if (state.positionFilter !== "all" && player.position !== state.positionFilter) return false;
+        if (state.teamFilter !== "all" && player.team !== state.teamFilter) return false;
+        if (state.searchTerm && !player.name.toLowerCase().includes(state.searchTerm.toLowerCase())) return false;
+        return true;
+      });
+      items.push(...filteredPlayers);
+    }
+    
+    // Add picks if enabled
+    if (state.showPicks) {
+      const filteredPicks = state.availablePicks.filter((pick) => {
+        if (state.showOnlyUnranked && rankedItemIds.has(pick.id)) return false;
+        if (state.yearFilter !== "all" && pick.year.toString() !== state.yearFilter) return false;
+        if (state.roundFilter !== "all" && pick.round.toString() !== state.roundFilter) return false;
+        if (state.searchTerm) {
+          const pickDisplay = `${pick.year} ${pick.round}.${pick.pick.toString().padStart(2, '0')}`;
+          if (!pickDisplay.toLowerCase().includes(state.searchTerm.toLowerCase())) return false;
+        }
+        return true;
+      });
+      items.push(...filteredPicks);
+    }
+    
+    return items;
+  }, [
+    state.availablePlayers,
+    state.availablePicks,
+    state.rankedItems,
+    state.showOnlyUnranked,
+    state.showPlayers,
+    state.showPicks,
+    state.positionFilter,
+    state.teamFilter,
+    state.yearFilter,
+    state.roundFilter,
+    state.searchTerm,
+  ]);
+
+  const getFilteredAvailableItems = useCallback(
+    () => filteredAvailableItems,
+    [filteredAvailableItems]
+  );
+
+  // Legacy compatibility - filtered players only
   const filteredAvailablePlayers = useMemo(() => {
-    const rankedPlayerIds = new Set(
-      state.rankedPlayers.map((p) => p.player_id)
-    );
+    const rankedPlayerIds = new Set(state.rankedPlayers.map((p) => p.player_id));
     return state.availablePlayers.filter((player) => {
-      if (state.showOnlyUnranked && rankedPlayerIds.has(player.id))
-        return false;
-      if (
-        state.positionFilter !== "all" &&
-        player.position !== state.positionFilter
-      )
-        return false;
-      if (state.teamFilter !== "all" && player.team !== state.teamFilter)
-        return false;
-      if (
-        state.searchTerm &&
-        !player.name.toLowerCase().includes(state.searchTerm.toLowerCase())
-      )
-        return false;
+      if (state.showOnlyUnranked && rankedPlayerIds.has(player.id)) return false;
+      if (state.positionFilter !== "all" && player.position !== state.positionFilter) return false;
+      if (state.teamFilter !== "all" && player.team !== state.teamFilter) return false;
+      if (state.searchTerm && !player.name.toLowerCase().includes(state.searchTerm.toLowerCase())) return false;
       return true;
     });
   }, [
@@ -444,7 +612,8 @@ export function RankingsProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     fetchSets();
     fetchPlayers();
-  }, [fetchSets, fetchPlayers]);
+    fetchPicks();
+  }, [fetchSets, fetchPlayers, fetchPicks]);
 
   const contextValue: RankingsContextType = {
     state,
@@ -455,6 +624,9 @@ export function RankingsProvider({ children }: { children: React.ReactNode }) {
     saveRankings,
     createDefaultRankings,
     fetchPlayers,
+    fetchPicks,
+    filteredAvailableItems,
+    getFilteredAvailableItems,
     filteredAvailablePlayers,
     getFilteredAvailablePlayers,
   };

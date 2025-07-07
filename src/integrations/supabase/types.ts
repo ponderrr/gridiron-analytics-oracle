@@ -255,6 +255,7 @@ export type Database = {
           created_at: string
           notes: string | null
           overall_rank: number | null
+          pick_id: string | null
           player_id: string
           ranking_set_id: string
           tier: number | null
@@ -263,6 +264,7 @@ export type Database = {
           created_at?: string
           notes?: string | null
           overall_rank?: number | null
+          pick_id?: string | null
           player_id: string
           ranking_set_id: string
           tier?: number | null
@@ -271,11 +273,19 @@ export type Database = {
           created_at?: string
           notes?: string | null
           overall_rank?: number | null
+          pick_id?: string | null
           player_id?: string
           ranking_set_id?: string
           tier?: number | null
         }
         Relationships: [
+          {
+            foreignKeyName: "fk_user_rankings_players_pick_id"
+            columns: ["pick_id"]
+            isOneToOne: false
+            referencedRelation: "draft_picks"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "user_rankings_players_player_id_fkey"
             columns: ["player_id"]
