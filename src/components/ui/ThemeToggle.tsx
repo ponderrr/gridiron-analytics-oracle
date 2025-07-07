@@ -12,13 +12,13 @@ import { getThemeClasses } from "@/lib/constants";
 
 interface ThemeToggleProps {
   variant?: "button" | "icon" | "dropdown";
-  size?: "sm" | "md" | "lg";
+  size?: "sm" | "default" | "lg";
   className?: string;
 }
 
 export const ThemeToggle: React.FC<ThemeToggleProps> = ({
   variant = "dropdown",
-  size = "md",
+  size = "default",
   className = "",
 }) => {
   const { theme, setTheme, effectiveTheme } = useTheme();
