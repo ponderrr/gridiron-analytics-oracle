@@ -21,6 +21,7 @@ import { MESSAGE_CONSTANTS, getThemeClasses } from "@/lib/constants";
 import useLocalStorage from "@/hooks/useLocalStorage";
 import { THEME_CONSTANTS } from "@/lib/constants";
 import { useTheme } from "@/contexts/ThemeContext";
+import Logo from "@/components/ui/Logo";
 
 interface NavItemProps {
   href: string;
@@ -262,24 +263,7 @@ const AppSidebar: React.FC = () => {
       <div
         className={`flex items-center justify-between px-4 py-4 border-b ${themeClasses.BORDER} relative z-10`}
       >
-        {!isCollapsed && (
-          <Link
-            to="/dashboard"
-            className="flex items-center space-x-3 group"
-            aria-label="Go to dashboard home"
-          >
-            <div>
-              <span
-                className={`text-xl font-black ${themeClasses.TEXT_PRIMARY}`}
-              >
-                FF META
-              </span>
-              <div className="text-xs text-emerald-400 font-medium">
-                {MESSAGE_CONSTANTS.DOMINATE_LEAGUE}
-              </div>
-            </div>
-          </Link>
-        )}
+        {!isCollapsed && <Logo size="md" />}
         <button
           onClick={toggleSidebar}
           aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
