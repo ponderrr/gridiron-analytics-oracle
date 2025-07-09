@@ -68,3 +68,9 @@ verify_jwt = true
 
 [functions.rankings-default]
 verify_jwt = true
+
+[functions.weekly_refresh]
+verify_jwt = false
+
+[cron]
+"weekly-sleeper-etl" = "0 9 * * 2"
