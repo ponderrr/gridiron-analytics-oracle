@@ -150,36 +150,6 @@ export function RankingsHeader() {
       </div>
 
       <div className="flex items-center gap-4 flex-wrap">
-        {/* Temporarily hidden Rankings Set dropdown - TODO: Fix or remove permanently */}
-        {/* <div className="flex items-center gap-2">
-          <label className="text-sm font-medium text-slate-300">
-            Rankings Set:
-          </label>
-          <Select
-            value={state.currentSet?.id || ""}
-            onValueChange={handleSetChange}
-            disabled={state.loading}
-          >
-            <SelectTrigger className="w-64">
-              <SelectValue placeholder="Select a ranking set..." />
-            </SelectTrigger>
-            <SelectContent>
-              {state.sets.map((set) => (
-                <SelectItem key={set.id} value={set.id}>
-                  <div className="flex items-center gap-2">
-                    <span>{set.name}</span>
-                    {set.is_active && (
-                      <Badge variant="secondary" className="text-xs">
-                        Active
-                      </Badge>
-                    )}
-                  </div>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div> */}
-
         {state.currentSet && state.rankedItems.length === 0 && (
           <Button
             variant="outline"

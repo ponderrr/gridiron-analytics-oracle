@@ -66,7 +66,7 @@ export function createAppError(
   return error;
 }
 
-export function formatErrorMessage(error: AppError | AnyAppError): string {
+export function formatErrorMessage(error: unknown): string {
   if (typeof error === "string") return error;
   if (error && typeof error === "object" && "message" in error) {
     return (

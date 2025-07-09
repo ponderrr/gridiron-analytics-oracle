@@ -5,6 +5,11 @@ interface UseModalOptions<T = undefined> {
   initialForm?: T;
 }
 
+interface UseModalOptionsWithForm<T> {
+  initialOpen?: boolean;
+  initialForm: T;
+}
+
 interface UseModalReturn<T = undefined> {
   isOpen: boolean;
   openModal: () => void;
@@ -22,25 +27,15 @@ interface UseModalReturn<T = undefined> {
 /**
  * Reusable hook for modal open/close, loading, error, and form state.
  */
-export function useModal<T = undefined>(
+// Overload for when no type argument is provided (T is undefined)
+function useModal(): UseModalReturn<undefined>;
+// Overload for when a type argument T is provided (initialForm is required)
+function useModal<T>(options: UseModalOptionsWithForm<T>): UseModalReturn<T>;
+// Implementation signature
+function useModal<T = undefined>(
   options: UseModalOptions<T> = {}
 ): UseModalReturn<T> {
-  // Runtime check for initialForm
-  let initialFormValue: T;
-  if (options.initialForm !== undefined) {
-    initialFormValue = options.initialForm;
-  } else {
-    // If T is undefined, allow undefined. Otherwise, throw error for missing initialForm.
-    if (typeof (undefined as unknown as T) === "undefined") {
-      initialFormValue = undefined as T;
-    } else {
-      throw new Error(
-        "useModal: initialForm is required when T is not undefined. Please provide an initialForm value."
-      );
-    }
-  }
-
-  const initialFormRef = useRef<T>(initialFormValue);
+  const initialFormRef = useRef<T>(options.initialForm as T);
   const [isOpen, setIsOpen] = useState<boolean>(!!options.initialOpen);
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -68,3 +63,5 @@ export function useModal<T = undefined>(
     resetForm,
   };
 }
+
+export { useModal };

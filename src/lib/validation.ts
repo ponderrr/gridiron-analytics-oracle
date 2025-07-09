@@ -1,5 +1,6 @@
 import isEmail from "validator/lib/isEmail";
-import isRFC5322 from "email-validator";
+// import isRFC5322 from "email-validator"; // Removed unused import
+import { formatErrorMessage } from "./errorHandling";
 
 // Email validation constants
 export const COMMON_EMAIL_DOMAINS = [
@@ -27,7 +28,7 @@ export const PASSWORD_REQUIREMENTS = {
   REQUIRE_UPPERCASE: true,
   REQUIRE_LOWERCASE: true,
   REQUIRE_NUMBER: true,
-  REQUIRE_SPECIAL: false, // Optional for now
+  // REQUIRE_SPECIAL: false, // Removed
 } as const;
 
 // Password strength scoring weights
@@ -70,7 +71,7 @@ export interface PasswordStrength {
   hasUpper: boolean;
   hasLower: boolean;
   hasNumber: boolean;
-  hasSpecial?: boolean;
+  // hasSpecial?: boolean; // Removed
 }
 
 /**
@@ -115,7 +116,7 @@ export function getPasswordStrength(password: string): PasswordStrength {
     hasUpper: /[A-Z]/.test(password),
     hasLower: /[a-z]/.test(password),
     hasNumber: /\d/.test(password),
-    hasSpecial: /[^A-Za-z0-9]/.test(password),
+    // hasSpecial: /[^A-Za-z0-9]/.test(password), // Removed
   };
 }
 
@@ -130,16 +131,8 @@ export function passwordStrengthScore(password: string): number {
   if (/[A-Z]/.test(password)) score += PASSWORD_STRENGTH_WEIGHTS.UPPERCASE;
   if (/[a-z]/.test(password)) score += PASSWORD_STRENGTH_WEIGHTS.LOWERCASE;
   if (/\d/.test(password)) score += PASSWORD_STRENGTH_WEIGHTS.NUMBER;
-  if (/[^A-Za-z0-9]/.test(password)) score += PASSWORD_STRENGTH_WEIGHTS.SPECIAL;
+  // if (/[^A-Za-z0-9]/.test(password)) score += PASSWORD_STRENGTH_WEIGHTS.SPECIAL; // Removed
   return Math.min(score, 100);
-}
-
-export function formatErrorMessage(error: unknown): string {
-  if (typeof error === "string") return error;
-  if (error && typeof error === "object" && "message" in error) {
-    return String((error as { message: unknown }).message);
-  }
-  return "An unknown error occurred.";
 }
 
 /**
@@ -152,7 +145,7 @@ export function validateEmailDetailed(email: string): ValidationResult {
     errors.push(VALIDATION_MESSAGES.EMAIL_REQUIRED);
     return { valid: false, errors, score };
   }
-  if (!isEmail(email) || !isRFC5322.validate(email)) {
+  if (!isEmail(email)) {
     errors.push(VALIDATION_MESSAGES.EMAIL_INVALID);
   } else {
     score += 50;
@@ -192,9 +185,9 @@ export function getPasswordFeedback(password: string): string[] {
   if (PASSWORD_REQUIREMENTS.REQUIRE_NUMBER && !/\d/.test(password)) {
     feedback.push("One number");
   }
-  if (PASSWORD_REQUIREMENTS.REQUIRE_SPECIAL && !/[^A-Za-z0-9]/.test(password)) {
-    feedback.push("One special character");
-  }
+  // if (PASSWORD_REQUIREMENTS.REQUIRE_SPECIAL && !/[^A-Za-z0-9]/.test(password)) {
+  //   feedback.push("One special character");
+  // } // Removed
   return feedback;
 }
 

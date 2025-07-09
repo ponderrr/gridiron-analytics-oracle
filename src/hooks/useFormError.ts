@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react";
-import { formatErrorMessage } from "../lib/validation";
+import { formatErrorMessage } from "../lib/errorHandling";
 
 export interface FormErrorHook {
   error: string;
