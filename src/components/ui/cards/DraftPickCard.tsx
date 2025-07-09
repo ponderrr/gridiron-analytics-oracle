@@ -1,7 +1,7 @@
 import React from "react";
 import { cn } from "@/lib/utils";
 import type { Database } from "@/integrations/supabase/types";
-import "./PlayerCard.css"; // Import the CSS for micro-interactions
+import "./PlayerCard.css"; 
 
 type DraftPick = Database["public"]["Tables"]["draft_picks"]["Row"];
 

@@ -4,7 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { type FantasyPointsResult } from "@/lib/fantasyPoints";
-import { MESSAGE_CONSTANTS, getThemeClasses } from "@/lib/constants";
+import { getThemeClasses } from "@/lib/constants";
 import { useTheme } from "@/contexts/ThemeContext";
 
 interface FantasyPointsResultModalProps {

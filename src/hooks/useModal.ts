@@ -24,14 +24,8 @@ interface UseModalReturn<T = undefined> {
   resetForm: () => void;
 }
 
-/**
- * Reusable hook for modal open/close, loading, error, and form state.
- */
-// Overload for when no type argument is provided (T is undefined)
 function useModal(): UseModalReturn<undefined>;
-// Overload for when a type argument T is provided (initialForm is required)
 function useModal<T>(options: UseModalOptionsWithForm<T>): UseModalReturn<T>;
-// Implementation signature
 function useModal<T = undefined>(
   options: UseModalOptions<T> = {}
 ): UseModalReturn<T> {

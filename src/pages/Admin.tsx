@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from "react";
 import { RefreshCw, Users, BarChart3 } from "lucide-react";
 import Layout from "@/components/Layout";
-import { MESSAGE_CONSTANTS, UI_CONSTANTS } from "@/lib/constants";
+import { MESSAGE_CONSTANTS } from "@/lib/constants";
 import { useSyncData } from "@/hooks/useSyncData";
 import { Button } from "@/components/ui/button";
 import {
@@ -26,24 +26,6 @@ import DataQualityMetrics from "@/components/ui/monitoring/DataQualityMetrics";
 import { toast } from "sonner";
 
 const { ICON_SIZES } = THEME_CONSTANTS;
-const { HEIGHT } = UI_CONSTANTS;
-
-
-const adminQueryKeys = {
-  players: () => ["players"],
-  weeklyStats: (week?: number) => ["weeklyStats", week],
-  projections: () => ["projections"],
-  tradeValues: () => ["tradeValues"],
-};
-
-// Memoized AdminTable import
-const AdminTable = React.lazy(() =>
-  import("../components/ui/table/AdminTable").then((mod) => ({
-    default: mod.AdminTable,
-  }))
-) as unknown as <T>(
-  props: import("../components/ui/table/AdminTable").AdminTableProps<T>
-) => JSX.Element;
 
 const Admin: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string>(ADMIN_TABS.DATA_SYNC);

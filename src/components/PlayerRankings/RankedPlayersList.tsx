@@ -18,7 +18,6 @@ export function RankedPlayersList() {
   const { state, dispatch } = useRankings();
   const [viewMode, setViewMode] = React.useState<"linear" | "tiers">("linear");
   const [positionFilter, setPositionFilter] = useState<string>("all");
-  // Keyboard drag state
   const [kbdDragIndex, setKbdDragIndex] = useState<number | null>(null);
   const [kbdDragOrigin, setKbdDragOrigin] = useState<number | null>(null);
 

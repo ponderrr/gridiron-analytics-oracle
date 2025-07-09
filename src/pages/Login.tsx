@@ -35,7 +35,6 @@ const Login: React.FC = () => {
     e.preventDefault();
     clearError();
 
-    // Sanitize inputs before validation and use
     const sanitizedEmail = DOMPurify.sanitize(email);
     const sanitizedPassword = DOMPurify.sanitize(password);
 

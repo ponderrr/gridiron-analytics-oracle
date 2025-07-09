@@ -41,4 +41,3 @@ export const DEFAULT_SCORING_SETTINGS: Record<string, ScoringSettings> = {
     fumble_penalty: -2,
   },
 };
-

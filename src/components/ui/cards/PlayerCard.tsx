@@ -1,6 +1,5 @@
 import React, { useRef } from "react";
 import { cn } from "@/lib/utils";
-import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { GripVertical, Plus, X } from "lucide-react";
@@ -302,8 +301,8 @@ const PlayerCard: React.FC<PlayerCardProps> = (props) => {
     <div
       className={cn(
         "interactive-card",
-        props.className,
-        props.isDragging && "dragging",
+        className,
+        isDragging && "dragging",
         props.kbdDragActive && "kbd-drag-active"
       )}
       tabIndex={props.tabIndex ?? 0}

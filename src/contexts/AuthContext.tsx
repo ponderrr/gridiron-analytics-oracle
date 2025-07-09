@@ -14,7 +14,6 @@ import {
   withErrorHandling,
 } from "@/lib/errorHandling";
 
-// Helper to extract a message string from any error-like object
 function extractErrorMessage(error: unknown): string {
   if (error && typeof error === "object" && "message" in error) {
     return (error as { message?: string }).message || String(error);

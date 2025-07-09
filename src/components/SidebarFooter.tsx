@@ -11,7 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { MESSAGE_CONSTANTS, getThemeClasses } from "@/lib/constants";
+import { getThemeClasses } from "@/lib/constants";
 import { THEME_CONSTANTS } from "@/lib/constants";
 
 interface SidebarFooterProps {

@@ -3,13 +3,6 @@ import { useRankings } from "@/components/PlayerRankings";
 import { Player } from "@/components/PlayerRankings/RankingsProvider";
 import type { RankedItem } from "@/components/PlayerRankings/RankingsProvider";
 
-/**
- * Represents a player involved in a trade, including their rank and calculated trade value.
- * @typedef {object} TradePlayer
- * @property {number} [rank] - The player's overall rank (if available).
- * @property {number} tradeValue - The calculated trade value for the player.
- * @augments Player
- */
 export interface TradePlayer extends Player {
   rank?: number;
   tradeValue: number;

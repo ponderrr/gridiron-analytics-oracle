@@ -6,10 +6,7 @@ import LoadingSpinner from "../components/LoadingSpinner";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/contexts/ThemeContext";
 import { getThemeClasses } from "@/lib/constants";
-import {
-  validateEmail,
-  validateEmailDetailed,
-} from "@/lib/validation";
+import { validateEmail, validateEmailDetailed } from "@/lib/validation";
 import { useFormError } from "@/hooks/useFormError";
 
 const ForgotPassword: React.FC = () => {
@@ -56,7 +53,9 @@ const ForgotPassword: React.FC = () => {
         <div className="max-w-md w-full space-y-8">
           {/* Header */}
           <div className="text-center">
-            <h2 className={`text-3xl font-bold mb-2 ${themeClasses.TEXT_PRIMARY}`}>
+            <h2
+              className={`text-3xl font-bold mb-2 ${themeClasses.TEXT_PRIMARY}`}
+            >
               Reset Password
             </h2>
             <p className={themeClasses.TEXT_TERTIARY}>
@@ -81,11 +80,15 @@ const ForgotPassword: React.FC = () => {
 
               {/* Email */}
               <div>
-                <label className={`block text-sm font-medium mb-2 ${themeClasses.TEXT_SECONDARY}`}>
+                <label
+                  className={`block text-sm font-medium mb-2 ${themeClasses.TEXT_SECONDARY}`}
+                >
                   Email Address
                 </label>
                 <div className="relative">
-                  <Mail className={`absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 ${themeClasses.TEXT_TERTIARY}`} />
+                  <Mail
+                    className={`absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 ${themeClasses.TEXT_TERTIARY}`}
+                  />
                   <input
                     type="email"
                     value={email}
