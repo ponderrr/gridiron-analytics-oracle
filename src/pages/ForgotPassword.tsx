@@ -20,6 +20,7 @@ const ForgotPassword: React.FC = () => {
   const { effectiveTheme } = useTheme();
   const themeClasses = getThemeClasses(effectiveTheme);
 
+  /* ---------- handlers ---------- */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     clearError();
@@ -30,6 +31,7 @@ const ForgotPassword: React.FC = () => {
       setError(emailError);
       return;
     }
+
     setIsLoading(true);
     try {
       await resetPassword(email);
@@ -47,12 +49,15 @@ const ForgotPassword: React.FC = () => {
     setEmailFeedback(result.errors);
   };
 
+  /* ---------- render ---------- */
   return (
     <Layout>
-      <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-md w-full space-y-8">
+      <div className="min-h-screen flex items-center justify-center px-2 pt-8 sm:pt-16 pb-4 sm:px-4">
+        <div
+          className={`w-full max-w-md rounded-xl shadow-xl ${themeClasses.BG_CARD} p-6 sm:p-8`}
+        >
           {/* Header */}
-          <div className="text-center">
+          <div className="text-center mb-8">
             <h2
               className={`text-3xl font-bold mb-2 ${themeClasses.TEXT_PRIMARY}`}
             >
@@ -64,78 +69,81 @@ const ForgotPassword: React.FC = () => {
           </div>
 
           {/* Form */}
-          <div className="card-gradient rounded-xl p-8">
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {error && (
-                <div className="bg-red-500/10 border border-red-500/20 text-red-400 px-4 py-3 rounded-lg text-sm">
-                  {error}
-                </div>
-              )}
-
-              {message && (
-                <div className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-4 py-3 rounded-lg text-sm">
-                  {message}
-                </div>
-              )}
-
-              {/* Email */}
-              <div>
-                <label
-                  htmlFor="email-input"
-                  className={`block text-sm font-medium mb-2 ${themeClasses.TEXT_SECONDARY}`}
-                >
-                  Email Address
-                </label>
-                <div className="relative">
-                  <Mail
-                    className={`absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 ${themeClasses.TEXT_TERTIARY}`}
-                  />
-                  <input
-                    id="email-input"
-                    type="email"
-                    value={email}
-                    onChange={(e) => handleEmailChange(e.target.value)}
-                    className={`w-full pl-10 pr-4 py-3 ${themeClasses.BG_TERTIARY} border ${themeClasses.BORDER} rounded-lg ${themeClasses.TEXT_PRIMARY} placeholder-${themeClasses.TEXT_TERTIARY} focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all`}
-                    placeholder="Enter your email"
-                    required
-                  />
-                </div>
-                {email && emailFeedback.length > 0 && (
-                  <ul className="mt-1 text-xs text-red-400 space-y-0.5">
-                    {emailFeedback.map((msg, i) => (
-                      <li key={i}>{msg}</li>
-                    ))}
-                  </ul>
-                )}
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Alerts */}
+            {error && (
+              <div className="bg-red-500/10 border border-red-500/20 text-red-400 px-4 py-3 rounded-lg text-sm">
+                {error}
               </div>
+            )}
+            {message && (
+              <div className="bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 px-4 py-3 rounded-lg text-sm">
+                {message}
+              </div>
+            )}
 
-              {/* Submit Button */}
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="w-full btn-primary py-3 flex items-center justify-center disabled:opacity-50 disabled:cursor-not-allowed"
+            {/* Email */}
+            <div>
+              <label
+                htmlFor="email-input"
+                className={`block text-sm font-medium mb-2 ${themeClasses.TEXT_PRIMARY}`}
               >
-                {isLoading ? (
-                  <>
-                    <LoadingSpinner size="sm" className="mr-2" />
-                    Sending...
-                  </>
-                ) : (
-                  "Send Reset Instructions"
-                )}
-              </button>
-            </form>
-
-            {/* back to Sign In */}
-            <div className="mt-6 text-center">
-              <Link
-                to="/login"
-                className="inline-flex items-center text-emerald-400 hover:text-emerald-300 font-medium transition-colors"
-              >
-                <ArrowLeft className="h-4 w-4 mr-1" />
-                Back to Sign In
-              </Link>
+                Email <span className="text-red-500 align-middle">*</span>
+              </label>
+              <div className="relative">
+                <Mail
+                  className={`absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 ${themeClasses.TEXT_TERTIARY}`}
+                />
+                <input
+                  id="email-input"
+                  type="email"
+                  value={email}
+                  onChange={(e) => handleEmailChange(e.target.value)}
+                  className={`w-full pl-10 pr-4 py-3 bg-transparent border border-black dark:border-slate-600 rounded-lg ${themeClasses.TEXT_PRIMARY} placeholder-black/40 dark:placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition-all`}
+                  placeholder="Enter your email"
+                  required
+                />
+              </div>
+              {email && emailFeedback.length > 0 && (
+                <ul className="mt-1 text-xs text-red-400 space-y-0.5">
+                  {emailFeedback.map((msg, i) => (
+                    <li key={i}>{msg}</li>
+                  ))}
+                </ul>
+              )}
             </div>
+
+            {/* Submit */}
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="w-full mt-2 py-3 rounded-lg text-lg font-semibold bg-indigo-500 hover:bg-indigo-400 transition-colors text-white shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isLoading ? (
+                <span className="flex items-center justify-center">
+                  <LoadingSpinner size="sm" className="mr-2" />
+                  Sending...
+                </span>
+              ) : (
+                "Send Reset Instructions"
+              )}
+            </button>
+          </form>
+
+          {/* Back to Sign In */}
+          <div className="mt-6 text-center">
+            <Link
+              to="/login"
+              className={`inline-flex items-center text-sm transition-colors ${themeClasses.TEXT_PRIMARY} hover:${themeClasses.TEXT_PRIMARY}`}
+            >
+              <span
+                className={`transition-transform duration-200 mr-1 ${themeClasses.TEXT_PRIMARY} group-hover:-translate-x-1`}
+                style={{ display: "inline-flex", alignItems: "center" }}
+              >
+                <ArrowLeft className="h-4 w-4" />
+              </span>
+              Back to Sign In
+            </Link>
           </div>
         </div>
       </div>

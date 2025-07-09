@@ -13,8 +13,7 @@ const Profile = lazy(() => import("@/pages/Profile"));
 
 // Regular imports for lighter components
 import Index from "@/pages/Index";
-import Login from "@/pages/Login";
-import Signup from "@/pages/Signup";
+import Auth from "@/pages/Auth";
 import ForgotPassword from "@/pages/ForgotPassword";
 import NotFound from "@/pages/NotFound";
 
@@ -33,13 +32,18 @@ export const routes: RouteConfig[] = [
     protected: false,
   },
   {
+    path: "/auth",
+    component: Auth,
+    protected: false,
+  },
+  {
     path: "/login",
-    component: Login,
+    component: Auth,
     protected: false,
   },
   {
     path: "/signup",
-    component: Signup,
+    component: Auth,
     protected: false,
   },
   {
