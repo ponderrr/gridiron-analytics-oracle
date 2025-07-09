@@ -1,15 +1,27 @@
-<svg width="120" height="32" viewBox="0 0 120 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <!-- Football -->
-  <ellipse cx="16" cy="16" rx="14" ry="8" fill="#10B981" stroke="#059669" stroke-width="2"/>
-  <rect x="14" y="10" width="4" height="12" rx="2" fill="#fff"/>
-  <rect x="15.25" y="11" width="1.5" height="10" rx="0.75" fill="#10B981"/>
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background circle with gradient -->
+  <defs>
+    <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#10b981;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#059669;stop-opacity:1" />
+    </linearGradient>
+  </defs>
   
-  <!-- FF Text -->
-  <text x="40" y="18" font-family="system-ui, -apple-system, sans-serif" font-size="12" font-weight="900" fill="#1e293b">FF</text>
+  <!-- Main circle background -->
+  <circle cx="16" cy="16" r="15" fill="url(#logoGradient)" stroke="#ffffff" stroke-width="1"/>
   
-  <!-- META Text -->
-  <text x="40" y="28" font-family="system-ui, -apple-system, sans-serif" font-size="8" font-weight="600" fill="#64748b">META</text>
+  <!-- Football shape -->
+  <ellipse cx="16" cy="16" rx="8" ry="5" fill="none" stroke="#ffffff" stroke-width="1.5"/>
   
-  <!-- Optional: Add a subtle accent line -->
-  <line x1="35" y1="20" x2="38" y2="20" stroke="#10B981" stroke-width="1" opacity="0.6"/>
+  <!-- Football laces -->
+  <path d="M12 14 L20 14 M12 16 L20 16 M12 18 L20 18" stroke="#ffffff" stroke-width="1" stroke-linecap="round"/>
+  
+  <!-- Analytics bars -->
+  <rect x="22" y="12" width="2" height="6" fill="#ffffff" rx="1"/>
+  <rect x="25" y="10" width="2" height="8" fill="#ffffff" rx="1"/>
+  <rect x="28" y="14" width="2" height="4" fill="#ffffff" rx="1"/>
+  
+  <!-- Small accent dots -->
+  <circle cx="8" cy="10" r="1" fill="#ffffff" opacity="0.8"/>
+  <circle cx="6" cy="22" r="1" fill="#ffffff" opacity="0.6"/>
 </svg> 
