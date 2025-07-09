@@ -1,4 +1,4 @@
-export const positions = ["all", "QB", "RB", "WR", "TE", "K", "D/ST"];
+export const positions = ["all", "QB", "RB", "WR", "TE"];
 
 export const teams = [
   "all",

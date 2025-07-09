@@ -1,13 +1,6 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import {
-  Calculator,
-  Activity,
-  TrendingUp,
-  BarChart3,
-  Target,
-  Brain,
-} from "lucide-react";
+import { Calculator, Activity, TrendingUp, Target, Brain } from "lucide-react";
 import Layout from "@/components/Layout";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -20,19 +13,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Separator } from "@/components/ui/separator";
 import {
   calculateFantasyPoints,
   type FantasyPointsResult,
 } from "@/lib/fantasyPoints";
 import { DEFAULT_SCORING_SETTINGS } from "@/lib/fantasyPoints.constants";
 import LoadingSpinner from "@/components/LoadingSpinner";
-import {
-  MESSAGE_CONSTANTS,
-  UI_CONSTANTS,
-  getThemeClasses,
-} from "@/lib/constants";
+import { MESSAGE_CONSTANTS, getThemeClasses } from "@/lib/constants";
 import { useTheme } from "@/contexts/ThemeContext";
+import { FantasyPointsResultModal } from "@/components/modals/FantasyPointsResult";
 
 // Form state interface for string values
 interface WeeklyStatsFormInput {
@@ -69,6 +58,7 @@ const FantasyPointsTest: React.FC = () => {
   const [result, setResult] = useState<FantasyPointsResult | null>(null);
   const [isCalculating, setIsCalculating] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
 
   const handleStatChange = (
     field: keyof WeeklyStatsFormInput,
@@ -124,6 +114,7 @@ const FantasyPointsTest: React.FC = () => {
       );
 
       setResult(calculatedResult);
+      setIsModalOpen(true);
     } catch (err) {
       console.error(MESSAGE_CONSTANTS.ERROR_FANTASY_POINTS, err);
       setError(err instanceof Error ? err.message : "An error occurred");
@@ -175,39 +166,25 @@ const FantasyPointsTest: React.FC = () => {
         </motion.div>
 
         {/* Main Content */}
-        <motion.div
-          variants={itemVariants}
-          className="grid grid-cols-1 lg:grid-cols-2 gap-6"
-        >
-          {/* Input Card */}
+        <motion.div variants={itemVariants}>
+          {/* Player Statistics Card */}
           <Card
-            className={`p-6 ${themeClasses.BG_CARD} border ${themeClasses.BORDER} ${effectiveTheme === "dark" ? "bg-gradient-to-br from-blue-900/30 to-slate-800/50 border-blue-500/30" : "bg-gradient-to-br from-blue-50/30 to-slate-50/50 border-blue-200/30"}`}
+            className={`${themeClasses.BG_CARD} border ${themeClasses.BORDER} ${effectiveTheme === "dark" ? "bg-gradient-to-br from-blue-900/30 to-slate-800/50 border-blue-500/30" : "bg-gradient-to-br from-blue-50/30 to-slate-50/50 border-blue-200/30"}`}
           >
-            <div className="flex items-center space-x-3 mb-6">
-              <Brain className="h-6 w-6 text-emerald-400" />
-              <h3
-                className={`text-lg font-semibold ${themeClasses.TEXT_PRIMARY}`}
-              >
-                Player Statistics
-              </h3>
+            {/* Card Header */}
+            <div className="p-6 border-b border-slate-700">
+              <div className="flex items-center space-x-3">
+                <Brain className="h-6 w-6 text-emerald-400" />
+                <h3
+                  className={`text-lg font-semibold ${themeClasses.TEXT_PRIMARY}`}
+                >
+                  Player Statistics
+                </h3>
+              </div>
             </div>
 
-            <div className="space-y-6 pb-20">
-              {/* Calculate Button - Fixed Position */}
-              <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-20 w-[calc(100%-3rem)] max-w-xl">
-                <Button
-                  onClick={handleCalculate}
-                  className="w-full bg-emerald-500 hover:bg-emerald-600 py-6 text-lg shadow-lg"
-                  disabled={isCalculating}
-                >
-                  {isCalculating ? (
-                    <LoadingSpinner size="sm" />
-                  ) : (
-                    "Calculate Fantasy Points"
-                  )}
-                </Button>
-              </div>
-
+            {/* Card Content */}
+            <div className="p-6 space-y-6">
               {/* Passing Stats */}
               <div className="space-y-4">
                 <div className="flex items-center space-x-2 text-lg font-semibold text-emerald-400">
@@ -430,143 +407,33 @@ const FantasyPointsTest: React.FC = () => {
                 </div>
               )}
             </div>
-          </Card>
 
-          {/* Results Card */}
-          <Card
-            className={`p-6 ${themeClasses.BG_CARD} border ${themeClasses.BORDER} ${effectiveTheme === "dark" ? "bg-gradient-to-br from-purple-900/30 to-slate-800/50 border-purple-500/30" : "bg-gradient-to-br from-purple-50/30 to-slate-50/50 border-purple-200/30"}`}
-          >
-            <div className="flex items-center space-x-3 mb-6">
-              <BarChart3 className="h-6 w-6 text-blue-400" />
-              <h3
-                className={`text-lg font-semibold ${themeClasses.TEXT_PRIMARY}`}
-              >
-                Fantasy Points Result
-              </h3>
+            {/* Card Footer */}
+            <div className="p-6 border-t border-slate-700 bg-slate-800/30">
+              <div className="flex justify-end">
+                <Button
+                  onClick={handleCalculate}
+                  className="bg-emerald-500 hover:bg-emerald-600 px-8 py-3 text-lg"
+                  disabled={isCalculating}
+                >
+                  {isCalculating ? (
+                    <LoadingSpinner size="sm" />
+                  ) : (
+                    "Calculate Fantasy Points"
+                  )}
+                </Button>
+              </div>
             </div>
-
-            {result ? (
-              <div className="space-y-6">
-                <div
-                  className={`text-center p-8 ${themeClasses.BG_SECONDARY} rounded-xl`}
-                >
-                  <div className="text-5xl font-bold text-emerald-400 mb-2">
-                    {result.total_points}
-                  </div>
-                  <p className={themeClasses.TEXT_TERTIARY}>
-                    Total Fantasy Points ({result.scoring_format})
-                  </p>
-                </div>
-
-                <Separator className={themeClasses.BORDER} />
-
-                <div className="space-y-4">
-                  <h3
-                    className={`text-lg font-semibold ${themeClasses.TEXT_PRIMARY}`}
-                  >
-                    Points Breakdown
-                  </h3>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div
-                      className={`${themeClasses.BG_SECONDARY} p-4 rounded-lg`}
-                    >
-                      <div className="flex justify-between items-center">
-                        <span className={themeClasses.TEXT_TERTIARY}>
-                          Passing
-                        </span>
-                        <span className="text-emerald-400 font-medium text-lg">
-                          {result.breakdown.passing_points}
-                        </span>
-                      </div>
-                    </div>
-                    <div
-                      className={`${themeClasses.BG_SECONDARY} p-4 rounded-lg`}
-                    >
-                      <div className="flex justify-between items-center">
-                        <span className={themeClasses.TEXT_TERTIARY}>
-                          Rushing
-                        </span>
-                        <span className="text-blue-400 font-medium text-lg">
-                          {result.breakdown.rushing_points}
-                        </span>
-                      </div>
-                    </div>
-                    <div
-                      className={`${themeClasses.BG_SECONDARY} p-4 rounded-lg`}
-                    >
-                      <div className="flex justify-between items-center">
-                        <span className={themeClasses.TEXT_TERTIARY}>
-                          Receiving
-                        </span>
-                        <span className="text-purple-400 font-medium text-lg">
-                          {result.breakdown.receiving_points}
-                        </span>
-                      </div>
-                    </div>
-                    <div
-                      className={`${themeClasses.BG_SECONDARY} p-4 rounded-lg`}
-                    >
-                      <div className="flex justify-between items-center">
-                        <span className={themeClasses.TEXT_TERTIARY}>
-                          Penalties
-                        </span>
-                        <span
-                          className={`font-medium text-lg ${
-                            result.breakdown.penalty_points < 0
-                              ? "text-red-400"
-                              : themeClasses.TEXT_PRIMARY
-                          }`}
-                        >
-                          {result.breakdown.penalty_points}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <Separator className={themeClasses.BORDER} />
-
-                <div
-                  className={`space-y-3 ${themeClasses.BG_SECONDARY} p-4 rounded-lg`}
-                >
-                  <p
-                    className={`text-sm font-semibold ${themeClasses.TEXT_PRIMARY}`}
-                  >
-                    Scoring Rules:
-                  </p>
-                  <div
-                    className={`space-y-2 text-xs ${themeClasses.TEXT_TERTIARY}`}
-                  >
-                    <p>• Passing: 1 pt/25 yds, 6 pts/TD, -2 pts/INT</p>
-                    <p>• Rushing/Receiving: 1 pt/10 yds, 6 pts/TD</p>
-                    <p>
-                      • Receptions:{" "}
-                      {scoringFormat === "ppr"
-                        ? "1 pt"
-                        : scoringFormat === "half_ppr"
-                          ? "0.5 pts"
-                          : "0 pts"}
-                    </p>
-                    <p>• Fumbles Lost: -2 pts</p>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div
-                className={`flex flex-col items-center justify-center ${UI_CONSTANTS.HEIGHT.MIN_400} text-center`}
-              >
-                <BarChart3
-                  className={`h-16 w-16 ${themeClasses.TEXT_MUTED} mb-4`}
-                />
-                <p className={themeClasses.TEXT_TERTIARY}>
-                  Enter player statistics and click "Calculate Fantasy Points"
-                  to see the results.
-                </p>
-              </div>
-            )}
           </Card>
         </motion.div>
+
+        {/* Fantasy Points Result Modal */}
+        <FantasyPointsResultModal
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          result={result}
+          scoringFormat={scoringFormat}
+        />
       </motion.div>
     </Layout>
   );

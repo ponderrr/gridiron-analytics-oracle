@@ -1,19 +1,7 @@
-import React, { useState, useMemo, useCallback, Suspense } from "react";
-import { Users } from "lucide-react";
-import { BarChart3 } from "lucide-react";
-import { TrendingUp } from "lucide-react";
-import { ArrowLeftRight } from "lucide-react";
-import { RefreshCw } from "lucide-react";
+import React, { useState, useMemo } from "react";
+import { RefreshCw, Users, BarChart3 } from "lucide-react";
 import Layout from "@/components/Layout";
-import { useQuery } from "@tanstack/react-query";
-import { Player, WeeklyStat, Projection, TradeValue } from "../lib/database";
-import { MESSAGE_CONSTANTS } from "@/lib/constants";
-import {
-  fetchPlayers,
-  fetchWeeklyStats,
-  fetchProjections,
-  fetchTradeValues,
-} from "@/lib/api/admin";
+import { MESSAGE_CONSTANTS, UI_CONSTANTS } from "@/lib/constants";
 import { useSyncData } from "@/hooks/useSyncData";
 import { Button } from "@/components/ui/button";
 import {
@@ -25,15 +13,13 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { THEME_CONSTANTS, UI_CONSTANTS } from "@/lib/constants";
+import { THEME_CONSTANTS } from "@/lib/constants";
 import {
   ADMIN_TABS,
   ADMIN_TAB_LABELS,
   SYNC_SECTIONS,
   SYNC_DESCRIPTIONS,
 } from "../lib/adminConstants";
-import type { ColumnConfig } from "../components/ui/table/AdminTable";
-import { AppError, inferAndCreateAppError } from "@/lib/errorHandling";
 import { LoadingState } from "@/components/ui/common";
 import SyncStatusDashboard from "@/components/ui/monitoring/SyncStatusDashboard";
 import DataQualityMetrics from "@/components/ui/monitoring/DataQualityMetrics";
@@ -60,95 +46,17 @@ const AdminTable = React.lazy(() =>
 ) => JSX.Element;
 
 const Admin: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<string>(ADMIN_TABS.PLAYERS);
+  const [activeTab, setActiveTab] = useState<string>(ADMIN_TABS.DATA_SYNC);
   const [selectedWeek, setSelectedWeek] = useState<string>("1");
   const [selectedSeason, setSelectedSeason] = useState<string>("2024");
 
   // Sync data hook
   const { playerSync, statsSync, syncPlayers, syncWeeklyStats } = useSyncData();
 
-  const {
-    data: players = [],
-    isLoading: playersLoading,
-    error: playersError,
-    refetch: refetchPlayers,
-  } = useQuery<Player[], Error>({
-    queryKey: adminQueryKeys.players(),
-    queryFn: fetchPlayers,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    refetchOnWindowFocus: true,
-  });
-
-  const {
-    data: weeklyStats = [],
-    isLoading: statsLoading,
-    error: statsError,
-    refetch: refetchWeeklyStats,
-  } = useQuery<WeeklyStat[], Error>({
-    queryKey: adminQueryKeys.weeklyStats(10),
-    queryFn: () => fetchWeeklyStats(10),
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    refetchOnWindowFocus: true,
-  });
-
-  const {
-    data: projections = [],
-    isLoading: projectionsLoading,
-    error: projectionsError,
-    refetch: refetchProjections,
-  } = useQuery<Projection[], Error>({
-    queryKey: adminQueryKeys.projections(),
-    queryFn: fetchProjections,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    refetchOnWindowFocus: true,
-  });
-
-  const {
-    data: tradeValues = [],
-    isLoading: tradeValuesLoading,
-    error: tradeValuesError,
-    refetch: refetchTradeValues,
-  } = useQuery<TradeValue[], Error>({
-    queryKey: adminQueryKeys.tradeValues(),
-    queryFn: fetchTradeValues,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    refetchOnWindowFocus: true,
-  });
-
-  const loading =
-    playersLoading || statsLoading || projectionsLoading || tradeValuesLoading;
-  let error =
-    playersError || statsError || projectionsError || tradeValuesError;
-  if (error) {
-    error = inferAndCreateAppError(error, "AdminPage");
-  }
-
-  const handleRetry = useCallback(() => {
-    refetchPlayers();
-    refetchWeeklyStats();
-    refetchProjections();
-    refetchTradeValues();
-  }, [
-    refetchPlayers,
-    refetchWeeklyStats,
-    refetchProjections,
-    refetchTradeValues,
-  ]);
-
-  const getPlayerName = useCallback(
-    (playerId: string | null) => {
-      if (!playerId) return "Unknown Player";
-      const player = players.find((p) => p.id === playerId);
-      return player ? player.name : "Unknown Player";
-    },
-    [players]
-  );
-
   // Sync handlers
   const handlePlayerSync = async () => {
     try {
       await syncPlayers();
-      refetchPlayers();
       toast.success("Player sync completed successfully!");
     } catch (error) {
       toast.error("Player sync failed. Please try again.");
@@ -159,7 +67,6 @@ const Admin: React.FC = () => {
   const handleStatsSync = async () => {
     try {
       await syncWeeklyStats(parseInt(selectedWeek), parseInt(selectedSeason));
-      refetchWeeklyStats();
       toast.success("Stats sync completed successfully!");
     } catch (error) {
       toast.error("Stats sync failed. Please try again.");
@@ -170,153 +77,14 @@ const Admin: React.FC = () => {
   const tabs = useMemo(
     () => [
       {
-        id: ADMIN_TABS.PLAYERS,
-        label: ADMIN_TAB_LABELS.PLAYERS,
-        icon: Users,
-        count: players.length,
-      },
-      {
-        id: ADMIN_TABS.STATS,
-        label: ADMIN_TAB_LABELS.STATS,
-        icon: BarChart3,
-        count: weeklyStats.length,
-      },
-      {
-        id: ADMIN_TABS.PROJECTIONS,
-        label: ADMIN_TAB_LABELS.PROJECTIONS,
-        icon: TrendingUp,
-        count: projections.length,
-      },
-      {
-        id: ADMIN_TABS.TRADE_VALUES,
-        label: ADMIN_TAB_LABELS.TRADE_VALUES,
-        icon: ArrowLeftRight,
-        count: tradeValues.length,
-      },
-      {
         id: ADMIN_TABS.DATA_SYNC,
         label: ADMIN_TAB_LABELS.DATA_SYNC,
         icon: RefreshCw,
         count: 0,
       },
     ],
-    [players.length, weeklyStats.length, projections.length, tradeValues.length]
+    []
   );
-
-  // Column definitions for each table type
-  const playerColumns: ColumnConfig<Player>[] = [
-    { header: "Name", accessor: "name", sortable: true, filterable: true },
-    {
-      header: "Position",
-      accessor: "position",
-      sortable: true,
-      filterable: true,
-    },
-    { header: "Team", accessor: "team", sortable: true, filterable: true },
-    { header: "Bye Week", accessor: "bye_week", sortable: true },
-    {
-      header: "Status",
-      accessor: (row) => (row.active ? "Active" : "Inactive"),
-      sortable: true,
-      filterable: true,
-      filterFn: (row, filter) =>
-        (row.active ? "Active" : "Inactive")
-          .toLowerCase()
-          .includes(filter.toLowerCase()),
-    },
-  ];
-
-  const statsColumns: ColumnConfig<WeeklyStat>[] = [
-    {
-      header: "Player",
-      accessor: (row) => getPlayerName(row.player_id),
-      sortable: true,
-      filterable: true,
-      filterFn: (row, filter) =>
-        getPlayerName(row.player_id)
-          .toLowerCase()
-          .includes(filter.toLowerCase()),
-    },
-    { header: "Week", accessor: "week", sortable: true },
-    { header: "Fantasy Points", accessor: "fantasy_points", sortable: true },
-    { header: "Passing", accessor: "passing_yards", sortable: true },
-    { header: "Rushing", accessor: "rushing_yards", sortable: true },
-    { header: "Receiving", accessor: "receptions", sortable: true },
-  ];
-
-  const projectionsColumns: ColumnConfig<Projection>[] = [
-    {
-      header: "Player",
-      accessor: (row) => getPlayerName(row.player_id),
-      sortable: true,
-      filterable: true,
-      filterFn: (row, filter) =>
-        getPlayerName(row.player_id)
-          .toLowerCase()
-          .includes(filter.toLowerCase()),
-    },
-    { header: "Week", accessor: "week", sortable: true },
-    {
-      header: "Projected Points",
-      accessor: "projected_points",
-      sortable: true,
-    },
-    {
-      header: "Type",
-      accessor: "projection_type",
-      sortable: true,
-      filterable: true,
-    },
-    { header: "Confidence", accessor: "confidence_score", sortable: true },
-  ];
-
-  const tradeValuesColumns: ColumnConfig<TradeValue>[] = [
-    {
-      header: "Player",
-      accessor: (row) => getPlayerName(row.player_id),
-      sortable: true,
-      filterable: true,
-      filterFn: (row, filter) =>
-        getPlayerName(row.player_id)
-          .toLowerCase()
-          .includes(filter.toLowerCase()),
-    },
-    { header: "Week", accessor: "week", sortable: true },
-    { header: "Trade Value", accessor: "trade_value", sortable: true },
-    { header: "Tier", accessor: "tier", sortable: true },
-  ];
-
-  if (loading) {
-    return (
-      <Layout>
-        <LoadingState type="page" message="Loading admin data..." />
-      </Layout>
-    );
-  }
-
-  if (error) {
-    toast.error("An error occurred loading admin data. Please try again.");
-    return (
-      <Layout>
-        <div
-          className={`flex flex-col items-center justify-center ${HEIGHT.H_64} text-center`}
-        >
-          <div className="text-red-400 font-bold text-lg mb-2">
-            {MESSAGE_CONSTANTS.FAILED_TO_LOAD_DATA}
-          </div>
-          <div className="text-slate-400 mb-4">
-            {error ? (error as AppError).message : null}
-          </div>
-          <button
-            className="btn-primary px-6 py-2 rounded font-semibold"
-            onClick={handleRetry}
-          >
-            Retry
-          </button>
-        </div>
-      </Layout>
-    );
-  }
 
   return (
     <Layout>
@@ -358,62 +126,6 @@ const Admin: React.FC = () => {
 
         {/* Content */}
         <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl overflow-hidden">
-          {activeTab === ADMIN_TABS.PLAYERS && (
-            <div className="overflow-x-auto">
-              <Suspense fallback={<LoadingState type="spinner" />}>
-                <AdminTable
-                  columns={playerColumns}
-                  data={players}
-                  rowKey={(row) => row.id as string}
-                  pageSize={20}
-                  loading={playersLoading}
-                />
-              </Suspense>
-            </div>
-          )}
-
-          {activeTab === ADMIN_TABS.STATS && (
-            <div className="overflow-x-auto">
-              <Suspense fallback={<LoadingState type="spinner" />}>
-                <AdminTable
-                  columns={statsColumns}
-                  data={weeklyStats}
-                  rowKey={(row: any) => row.id as string}
-                  pageSize={20}
-                  loading={statsLoading}
-                />
-              </Suspense>
-            </div>
-          )}
-
-          {activeTab === ADMIN_TABS.PROJECTIONS && (
-            <div className="overflow-x-auto">
-              <Suspense fallback={<LoadingState type="spinner" />}>
-                <AdminTable
-                  columns={projectionsColumns}
-                  data={projections}
-                  rowKey={(row: any) => row.id as string}
-                  pageSize={20}
-                  loading={projectionsLoading}
-                />
-              </Suspense>
-            </div>
-          )}
-
-          {activeTab === ADMIN_TABS.TRADE_VALUES && (
-            <div className="overflow-x-auto">
-              <Suspense fallback={<LoadingState type="spinner" />}>
-                <AdminTable
-                  columns={tradeValuesColumns}
-                  data={tradeValues}
-                  rowKey={(row: any) => row.id as string}
-                  pageSize={20}
-                  loading={tradeValuesLoading}
-                />
-              </Suspense>
-            </div>
-          )}
-
           {activeTab === ADMIN_TABS.DATA_SYNC && (
             <div className="px-8 space-y-6">
               {/* Monitoring Dashboard */}
@@ -594,62 +306,6 @@ const Admin: React.FC = () => {
               </div>
             </div>
           )}
-        </div>
-
-        {/* Summary Stats */}
-        <div className="grid grid-cols-2 gap-6">
-          <div className="bg-slate-800/50 border border-slate-700/50 rounded-lg p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-slate-400">
-                  Total Players
-                </p>
-                <p className="text-2xl font-bold text-white">
-                  {players.length}
-                </p>
-              </div>
-              <Users className="h-8 w-8 text-emerald-400" />
-            </div>
-          </div>
-          <div className="bg-slate-800/50 border border-slate-700/50 rounded-lg p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-slate-400">
-                  Weekly Stats
-                </p>
-                <p className="text-2xl font-bold text-white">
-                  {weeklyStats.length}
-                </p>
-              </div>
-              <BarChart3 className="h-8 w-8 text-blue-400" />
-            </div>
-          </div>
-          <div className="bg-slate-800/50 border border-slate-700/50 rounded-lg p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-slate-400">
-                  Projections
-                </p>
-                <p className="text-2xl font-bold text-white">
-                  {projections.length}
-                </p>
-              </div>
-              <TrendingUp className="h-8 w-8 text-purple-400" />
-            </div>
-          </div>
-          <div className="bg-slate-800/50 border border-slate-700/50 rounded-lg p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-slate-400">
-                  Trade Values
-                </p>
-                <p className="text-2xl font-bold text-white">
-                  {tradeValues.length}
-                </p>
-              </div>
-              <ArrowLeftRight className="h-8 w-8 text-orange-400" />
-            </div>
-          </div>
         </div>
       </div>
     </Layout>

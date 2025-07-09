@@ -31,32 +31,15 @@ const Logo: React.FC<LogoProps> = ({
 
   const logoContent = (
     <div className={`flex items-center space-x-3 ${className}`}>
-      {/* Football SVG Logo */}
-      <svg
+      {/* External SVG Logo */}
+      <img
+        src="/logo.svg"
+        alt="FF META Logo"
         className={sizeClasses[size]}
-        viewBox="0 0 32 32"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <ellipse
-          cx="16"
-          cy="16"
-          rx="14"
-          ry="8"
-          fill="#10B981"
-          stroke="#059669"
-          strokeWidth="2"
-        />
-        <rect x="14" y="10" width="4" height="12" rx="2" fill="#fff" />
-        <rect
-          x="15.25"
-          y="11"
-          width="1.5"
-          height="10"
-          rx="0.75"
-          fill="#10B981"
-        />
-      </svg>
+        style={{
+          filter: effectiveTheme === "dark" ? "invert(1)" : "none",
+        }}
+      />
 
       {showText && (
         <div>

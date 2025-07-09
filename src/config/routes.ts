@@ -9,6 +9,7 @@ const FantasyPointsTest = lazy(() => import("@/pages/FantasyPointsTest"));
 const TradeAnalyzer = lazy(() => import("@/pages/TradeAnalyzer"));
 
 const Settings = lazy(() => import("@/pages/Settings"));
+const Profile = lazy(() => import("@/pages/Profile"));
 
 // Regular imports for lighter components
 import Index from "@/pages/Index";
@@ -91,6 +92,12 @@ export const routes: RouteConfig[] = [
     protected: true,
     errorBoundary: true,
   },
+  {
+    path: "/profile",
+    component: Profile,
+    protected: true,
+    errorBoundary: true,
+  },
 
   // 404 page
   {
@@ -99,4 +106,3 @@ export const routes: RouteConfig[] = [
     protected: false,
   },
 ];
-

@@ -2,12 +2,12 @@ import React from "react";
 import Layout from "@/components/Layout";
 import { ComingSoon } from "@/components/common";
 
-const Dashboard: React.FC = () => {
+const Profile: React.FC = () => {
   return (
     <Layout>
-      <ComingSoon />
+      <ComingSoon message="Profile coming soon…" />
     </Layout>
   );
 };
 
-export default Dashboard;
+export default Profile;

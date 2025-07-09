@@ -1,20 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import {
-  Home,
-  Users,
-  TrendingUp,
-  ArrowLeftRight,
-  Settings,
   ChevronLeft,
   ChevronRight,
-  Shield,
-  Calculator,
-  BarChart3,
   ChevronDown,
   ChevronUp,
-  Target,
-  Wrench,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { MESSAGE_CONSTANTS, getThemeClasses } from "@/lib/constants";
@@ -22,6 +12,8 @@ import useLocalStorage from "@/hooks/useLocalStorage";
 import { THEME_CONSTANTS } from "@/lib/constants";
 import { useTheme } from "@/contexts/ThemeContext";
 import Logo from "@/components/ui/Logo";
+import SidebarFooter from "@/components/SidebarFooter";
+import { SIDEBAR_SECTIONS_CONFIG } from "@/components/layout/SidebarLinks";
 
 interface NavItemProps {
   href: string;
@@ -166,68 +158,6 @@ const NavSection: React.FC<NavSectionProps> = React.memo(
 );
 NavSection.displayName = "NavSection";
 
-const NAV_SECTIONS_CONFIG = [
-  {
-    title: MESSAGE_CONSTANTS.NAV_SECTIONS.MAIN,
-    icon: Home,
-    items: [
-      {
-        href: MESSAGE_CONSTANTS.NAV_PATHS.DASHBOARD,
-        icon: Home,
-        label: MESSAGE_CONSTANTS.NAV_ITEMS.DASHBOARD,
-      },
-    ],
-  },
-  {
-    title: MESSAGE_CONSTANTS.NAV_SECTIONS.ANALYSIS,
-    icon: BarChart3,
-    items: [
-      {
-        href: MESSAGE_CONSTANTS.NAV_PATHS.PLAYERS,
-        icon: Users,
-        label: MESSAGE_CONSTANTS.NAV_ITEMS.PLAYERS,
-      },
-      {
-        href: MESSAGE_CONSTANTS.NAV_PATHS.ANALYTICS,
-        icon: TrendingUp,
-        label: MESSAGE_CONSTANTS.NAV_ITEMS.ANALYTICS,
-      },
-      {
-        href: MESSAGE_CONSTANTS.NAV_PATHS.TRADE_ANALYZER,
-        icon: ArrowLeftRight,
-        label: MESSAGE_CONSTANTS.NAV_ITEMS.TRADE_ANALYZER,
-      },
-    ],
-  },
-  {
-    title: MESSAGE_CONSTANTS.NAV_SECTIONS.MANAGEMENT,
-    icon: Target,
-    items: [
-      {
-        href: MESSAGE_CONSTANTS.NAV_PATHS.ADMIN,
-        icon: Shield,
-        label: MESSAGE_CONSTANTS.NAV_ITEMS.ADMIN_PANEL,
-      },
-    ],
-  },
-  {
-    title: MESSAGE_CONSTANTS.NAV_SECTIONS.TOOLS,
-    icon: Wrench,
-    items: [
-      {
-        href: MESSAGE_CONSTANTS.NAV_PATHS.FANTASY_POINTS_TEST,
-        icon: Calculator,
-        label: MESSAGE_CONSTANTS.NAV_ITEMS.POINTS_CALCULATOR,
-      },
-      {
-        href: MESSAGE_CONSTANTS.NAV_PATHS.SETTINGS,
-        icon: Settings,
-        label: MESSAGE_CONSTANTS.NAV_ITEMS.SETTINGS,
-      },
-    ],
-  },
-];
-
 const AppSidebar: React.FC = () => {
   const { effectiveTheme } = useTheme();
   const themeClasses = getThemeClasses(effectiveTheme);
@@ -244,7 +174,7 @@ const AppSidebar: React.FC = () => {
     );
   }, [isCollapsed]);
   const toggleSidebar = () => setIsCollapsed((v: boolean) => !v);
-  const navSections = NAV_SECTIONS_CONFIG;
+  const navSections = SIDEBAR_SECTIONS_CONFIG;
 
   return (
     <nav
@@ -263,7 +193,7 @@ const AppSidebar: React.FC = () => {
       <div
         className={`flex items-center justify-between px-4 py-4 border-b ${themeClasses.BORDER} relative z-10`}
       >
-        {!isCollapsed && <Logo size="md" />}
+        {isCollapsed ? <Logo size="md" showText={false} /> : <Logo size="md" />}
         <button
           onClick={toggleSidebar}
           aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
@@ -304,15 +234,7 @@ const AppSidebar: React.FC = () => {
         })}
       </ul>
       {/* Footer Section */}
-      <div
-        className={`px-4 py-4 border-t ${themeClasses.BORDER} relative z-10`}
-      >
-        <div className="text-center">
-          <p className={`text-xs ${themeClasses.TEXT_MUTED}`}>
-            &copy; {new Date().getFullYear()} {MESSAGE_CONSTANTS.APP_NAME}
-          </p>
-        </div>
-      </div>
+      <SidebarFooter isCollapsed={isCollapsed} />
     </nav>
   );
 };

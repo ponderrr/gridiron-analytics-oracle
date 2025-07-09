@@ -141,8 +141,17 @@ export function RankingsHeader() {
         </div>
       </div>
 
+      {/* Create New button positioned above table header */}
+      <div className="flex justify-start">
+        <Button onClick={handleCreateNew} disabled={state.loading} size="sm">
+          <Plus className="h-4 w-4 mr-2" />
+          Create New
+        </Button>
+      </div>
+
       <div className="flex items-center gap-4 flex-wrap">
-        <div className="flex items-center gap-2">
+        {/* Temporarily hidden Rankings Set dropdown - TODO: Fix or remove permanently */}
+        {/* <div className="flex items-center gap-2">
           <label className="text-sm font-medium text-slate-300">
             Rankings Set:
           </label>
@@ -169,12 +178,7 @@ export function RankingsHeader() {
               ))}
             </SelectContent>
           </Select>
-        </div>
-
-        <Button onClick={handleCreateNew} disabled={state.loading} size="sm">
-          <Plus className="h-4 w-4 mr-2" />
-          Create New
-        </Button>
+        </div> */}
 
         {state.currentSet && state.rankedItems.length === 0 && (
           <Button
@@ -186,10 +190,6 @@ export function RankingsHeader() {
             Create Default Rankings
           </Button>
         )}
-
-        <div className="text-sm text-slate-400">
-          {state.rankedItems.length} players ranked
-        </div>
       </div>
 
       <CreateSetModal ref={createSetModalRef} />

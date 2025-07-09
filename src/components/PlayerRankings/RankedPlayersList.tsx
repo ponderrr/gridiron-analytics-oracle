@@ -2,13 +2,22 @@ import React, { useCallback, useState } from "react";
 import { Droppable, Draggable } from "react-beautiful-dnd";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { List, Grid3X3 } from "lucide-react";
 import PlayerCard from "@/components/ui/cards/PlayerCard";
 import { useRankings } from "./RankingsProvider";
+import { positions } from "@/constants/playerData";
 
 export function RankedPlayersList() {
   const { state, dispatch } = useRankings();
   const [viewMode, setViewMode] = React.useState<"linear" | "tiers">("linear");
+  const [positionFilter, setPositionFilter] = useState<string>("all");
   // Keyboard drag state
   const [kbdDragIndex, setKbdDragIndex] = useState<number | null>(null);
   const [kbdDragOrigin, setKbdDragOrigin] = useState<number | null>(null);
@@ -24,6 +33,10 @@ export function RankedPlayersList() {
   // Helper to derive legacy rankedPlayers from rankedItems
   const rankedPlayers = state.rankedItems
     .filter((item) => item.type === "player" && item.player)
+    .filter(
+      (item) =>
+        positionFilter === "all" || item.player!.position === positionFilter
+    )
     .map((item) => ({
       player_id: item.player_id!,
       overall_rank: item.overall_rank,
@@ -158,6 +171,19 @@ export function RankedPlayersList() {
         <h2 className="text-xl font-bold text-white">My Rankings</h2>
 
         <div className="flex items-center gap-2">
+          <Select value={positionFilter} onValueChange={setPositionFilter}>
+            <SelectTrigger className="w-32">
+              <SelectValue placeholder="Position" />
+            </SelectTrigger>
+            <SelectContent>
+              {positions.map((position) => (
+                <SelectItem key={position} value={position}>
+                  {position === "all" ? "All Positions" : position}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+
           <div className="flex bg-slate-800 rounded-lg p-1">
             <Button
               variant={viewMode === "linear" ? "default" : "ghost"}
