@@ -45,30 +45,30 @@ export const THEME_CONSTANTS = {
     FOUR_XL: "text-4xl",
   },
   SPACING: {
-    XS: "2",
-    SM: "3",
-    MD: "4",
-    LG: "6",
-    XL: "8",
+    XS: "2", // DEPRECATED: Use SPACING_SCALE
+    SM: "3", // DEPRECATED: Use SPACING_SCALE
+    MD: "4", // DEPRECATED: Use SPACING_SCALE
+    LG: "6", // DEPRECATED: Use SPACING_SCALE
+    XL: "8", // DEPRECATED: Use SPACING_SCALE
   },
   PADDING: {
-    SM: "p-2",
-    MD: "p-3",
-    LG: "p-4",
-    XL: "p-6",
-    XXL: "p-8",
+    SM: "p-2", // DEPRECATED: Use SPACING_SCALE
+    MD: "p-3", // DEPRECATED: Use SPACING_SCALE
+    LG: "p-4", // DEPRECATED: Use SPACING_SCALE
+    XL: "p-6", // DEPRECATED: Use SPACING_SCALE
+    XXL: "p-8", // DEPRECATED: Use SPACING_SCALE
   },
   MARGIN: {
-    SM: "m-2",
-    MD: "m-3",
-    LG: "m-4",
-    XL: "m-6",
+    SM: "m-2", // DEPRECATED: Use SPACING_SCALE
+    MD: "m-3", // DEPRECATED: Use SPACING_SCALE
+    LG: "m-4", // DEPRECATED: Use SPACING_SCALE
+    XL: "m-6", // DEPRECATED: Use SPACING_SCALE
   },
   GAP: {
-    SM: "gap-2",
-    MD: "gap-4",
-    LG: "gap-6",
-    XL: "gap-8",
+    SM: "gap-2", // DEPRECATED: Use SPACING_SCALE
+    MD: "gap-4", // DEPRECATED: Use SPACING_SCALE
+    LG: "gap-6", // DEPRECATED: Use SPACING_SCALE
+    XL: "gap-8", // DEPRECATED: Use SPACING_SCALE
   },
   SIDEBAR_EXPANDED_WIDTH_PX: UI_CONSTANTS.SIDEBAR.EXPANDED_WIDTH_PX,
   SIDEBAR_COLLAPSED_WIDTH_CSS_PX: UI_CONSTANTS.SIDEBAR.COLLAPSED_WIDTH_CSS_PX,
@@ -128,6 +128,16 @@ export const THEME_CONSTANTS = {
     },
   },
 };
+
+export const SPACING_SCALE = {
+  xs: "0.25rem", // 4px
+  sm: "0.5rem", // 8px
+  md: "1rem", // 16px
+  lg: "1.5rem", // 24px
+  xl: "2rem", // 32px
+  "2xl": "3rem", // 48px
+  "3xl": "4rem", // 64px
+} as const;
 
 export const MESSAGE_CONSTANTS = {
   APP_NAME: "FF META",

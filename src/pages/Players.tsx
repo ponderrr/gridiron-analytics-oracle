@@ -10,6 +10,7 @@ import {
 } from "../components/PlayerRankings";
 import { useTheme } from "@/contexts/ThemeContext";
 import { getThemeClasses } from "@/lib/constants";
+import { SPACING_SCALE } from "@/lib/constants";
 
 function PlayersContent() {
   const { state, dispatch, saveRankings } = useRankings();
@@ -74,21 +75,32 @@ function PlayersContent() {
 
   return (
     <Layout>
-      <div className="space-y-6">
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: SPACING_SCALE.xl,
+        }}
+      >
         <RankingsHeader />
 
         <DragDropContext onDragEnd={handleDragEnd}>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 h-[calc(100vh-200px)]">
+          <div
+            className="grid grid-cols-1 lg:grid-cols-2 h-[calc(100vh-200px)]"
+            style={{ gap: SPACING_SCALE.xl }}
+          >
             {/* Left Panel - Available Players */}
             <div
-              className={`${themeClasses.BG_CARD} border ${themeClasses.BORDER} rounded-xl p-6`}
+              className={`${themeClasses.BG_CARD} border ${themeClasses.BORDER} rounded-xl`}
+              style={{ padding: SPACING_SCALE.xl }}
             >
               <AvailablePlayersList />
             </div>
 
             {/* Right Panel - Ranked Players */}
             <div
-              className={`${themeClasses.BG_CARD} border ${themeClasses.BORDER} rounded-xl p-6`}
+              className={`${themeClasses.BG_CARD} border ${themeClasses.BORDER} rounded-xl`}
+              style={{ padding: SPACING_SCALE.xl }}
             >
               <RankedPlayersList />
             </div>
@@ -97,36 +109,51 @@ function PlayersContent() {
 
         {/* Keyboard Shortcuts Help */}
         <div
-          className={`${themeClasses.BG_CARD} border ${themeClasses.BORDER} rounded-xl p-4`}
+          className={`${themeClasses.BG_CARD} border ${themeClasses.BORDER} rounded-xl`}
+          style={{ padding: SPACING_SCALE.lg }}
         >
           <h3
-            className={`text-sm font-medium ${themeClasses.TEXT_PRIMARY} mb-2`}
+            className={`text-sm font-medium ${themeClasses.TEXT_PRIMARY}`}
+            style={{ marginBottom: SPACING_SCALE.sm }}
           >
             Keyboard Shortcuts
           </h3>
           <div
-            className={`grid grid-cols-2 md:grid-cols-4 gap-4 text-xs ${themeClasses.TEXT_TERTIARY}`}
+            className={`grid grid-cols-2 md:grid-cols-4 text-xs ${themeClasses.TEXT_TERTIARY}`}
+            style={{ gap: SPACING_SCALE.md }}
           >
             <div>
-              <kbd className={`${themeClasses.BG_TERTIARY} px-1 rounded`}>
+              <kbd
+                className={`${themeClasses.BG_TERTIARY} rounded`}
+                style={{ padding: `0 ${SPACING_SCALE.xs}` }}
+              >
                 Ctrl+Z
               </kbd>{" "}
               Undo
             </div>
             <div>
-              <kbd className={`${themeClasses.BG_TERTIARY} px-1 rounded`}>
+              <kbd
+                className={`${themeClasses.BG_TERTIARY} rounded`}
+                style={{ padding: `0 ${SPACING_SCALE.xs}` }}
+              >
                 Ctrl+Y
               </kbd>{" "}
               Redo
             </div>
             <div>
-              <kbd className={`${themeClasses.BG_TERTIARY} px-1 rounded`}>
+              <kbd
+                className={`${themeClasses.BG_TERTIARY} rounded`}
+                style={{ padding: `0 ${SPACING_SCALE.xs}` }}
+              >
                 Ctrl+S
               </kbd>{" "}
               Save
             </div>
             <div>
-              <kbd className={`${themeClasses.BG_TERTIARY} px-1 rounded`}>
+              <kbd
+                className={`${themeClasses.BG_TERTIARY} rounded`}
+                style={{ padding: `0 ${SPACING_SCALE.xs}` }}
+              >
                 Del
               </kbd>{" "}
               Remove player

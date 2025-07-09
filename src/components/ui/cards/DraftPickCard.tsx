@@ -1,6 +1,7 @@
 import React from "react";
 import { cn } from "@/lib/utils";
 import type { Database } from "@/integrations/supabase/types";
+import "./PlayerCard.css"; // Import the CSS for micro-interactions
 
 type DraftPick = Database["public"]["Tables"]["draft_picks"]["Row"];
 
@@ -39,13 +40,12 @@ export const DraftPickCard: React.FC<DraftPickCardProps> = ({
 
   return (
     <div
-      className={cn(
-        "bg-card text-card-foreground rounded-lg border border-border p-4 transition-all duration-200",
-        "hover:bg-accent hover:border-accent-foreground/20 hover:shadow-lg",
-        "cursor-pointer select-none",
-        className
-      )}
+      className={cn("interactive-card", className)}
+      tabIndex={0}
       onClick={onClick}
+      style={{ transition: "all 0.2s ease" }}
+      role="button"
+      aria-label={`Draft pick card for ${pickDisplay}`}
     >
       <div className="flex items-center justify-between">
         <div className="flex-1">

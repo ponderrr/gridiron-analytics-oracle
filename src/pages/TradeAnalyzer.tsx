@@ -18,7 +18,11 @@ import {
   Crown,
   Target,
 } from "lucide-react";
-import { THEME_CONSTANTS, getThemeClasses } from "@/lib/constants";
+import {
+  THEME_CONSTANTS,
+  getThemeClasses,
+  SPACING_SCALE,
+} from "@/lib/constants";
 import { RankingsProvider, useRankings } from "@/components/PlayerRankings";
 import { useTradeAnalysis } from "@/hooks/useTradeAnalysis";
 import { useTheme } from "@/contexts/ThemeContext";
@@ -86,11 +90,19 @@ function TradeAnalyzerContent() {
         variants={containerVariants}
         initial="hidden"
         animate="visible"
-        className={`max-w-6xl mx-auto space-y-${SPACING.XL}`}
+        className="max-w-6xl mx-auto"
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: SPACING_SCALE.xl,
+        }}
       >
         {/* Header with Rankings Selector */}
         <motion.div variants={itemVariants}>
-          <div className="flex items-center justify-between mb-4">
+          <div
+            className="flex items-center justify-between"
+            style={{ marginBottom: SPACING_SCALE.lg }}
+          >
             <div>
               <h1
                 className={`${TEXT_SIZES.FOUR_XL} font-bold ${themeClasses.TEXT_PRIMARY} flex items-center`}
@@ -100,7 +112,10 @@ function TradeAnalyzerContent() {
                 />
                 Trade Analyzer
               </h1>
-              <p className={`${themeClasses.TEXT_TERTIARY} mt-1`}>
+              <p
+                className={`${themeClasses.TEXT_TERTIARY}`}
+                style={{ marginTop: SPACING_SCALE.xs }}
+              >
                 Analyze trades using your personal rankings
               </p>
             </div>
@@ -129,7 +144,8 @@ function TradeAnalyzerContent() {
 
           {currentSet && (
             <div
-              className={`${themeClasses.BG_CARD} border ${themeClasses.BORDER} rounded-lg p-4`}
+              className={`${themeClasses.BG_CARD} border ${themeClasses.BORDER} rounded-lg`}
+              style={{ padding: SPACING_SCALE.lg }}
             >
               <div className="flex items-center space-x-4 text-sm">
                 <span className={themeClasses.TEXT_TERTIARY}>Using:</span>
@@ -148,14 +164,26 @@ function TradeAnalyzerContent() {
         </motion.div>
 
         {/* Trade Builder */}
-        <motion.div variants={itemVariants} className="space-y-6">
-          <div className={`grid grid-cols-1 lg:grid-cols-2 ${GAP.XL}`}>
+        <motion.div
+          variants={itemVariants}
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: SPACING_SCALE.xl,
+          }}
+        >
+          <div
+            className={`grid grid-cols-1 lg:grid-cols-2`}
+            style={{ gap: SPACING_SCALE.xl }}
+          >
             {/* Your Team */}
             <div
-              className={`rounded-2xl border ${themeClasses.BORDER} p-6 ${themeClasses.BG_CARD}`}
+              className={`rounded-2xl border ${themeClasses.BORDER} ${themeClasses.BG_CARD}`}
+              style={{ padding: SPACING_SCALE.xl }}
             >
               <h3
-                className={`text-lg font-semibold ${themeClasses.TEXT_PRIMARY} mb-4 flex items-center justify-between`}
+                className={`text-lg font-semibold ${themeClasses.TEXT_PRIMARY} flex items-center justify-between`}
+                style={{ marginBottom: SPACING_SCALE.lg }}
               >
                 <div className="flex items-center">
                   <TrendingUp
@@ -173,13 +201,23 @@ function TradeAnalyzerContent() {
                 )}
               </h3>
 
-              <div className="space-y-3 mb-4">
+              <div
+                className="space-y-3"
+                style={{
+                  marginBottom: SPACING_SCALE.lg,
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: SPACING_SCALE.md,
+                }}
+              >
                 {yourPlayers.length === 0 ? (
                   <div
-                    className={`${themeClasses.BG_SECONDARY} border-2 border-dashed ${themeClasses.BORDER} rounded-lg ${PADDING.XXL} text-center`}
+                    className={`${themeClasses.BG_SECONDARY} border-2 border-dashed ${themeClasses.BORDER} rounded-lg text-center`}
+                    style={{ padding: SPACING_SCALE["2xl"] }}
                   >
                     <Plus
-                      className={`${ICON_SIZES.XL} ${themeClasses.TEXT_MUTED} mx-auto mb-2`}
+                      className={`${ICON_SIZES.XL} ${themeClasses.TEXT_MUTED} mx-auto`}
+                      style={{ marginBottom: SPACING_SCALE.sm }}
                     />
                     <p className={themeClasses.TEXT_MUTED}>
                       Select players to trade away
@@ -267,10 +305,12 @@ function TradeAnalyzerContent() {
 
             {/* Trade Target */}
             <div
-              className={`rounded-2xl border ${themeClasses.BORDER} p-6 ${themeClasses.BG_CARD}`}
+              className={`rounded-2xl border ${themeClasses.BORDER} ${themeClasses.BG_CARD}`}
+              style={{ padding: SPACING_SCALE.xl }}
             >
               <h3
-                className={`text-lg font-semibold ${themeClasses.TEXT_PRIMARY} mb-4 flex items-center justify-between`}
+                className={`text-lg font-semibold ${themeClasses.TEXT_PRIMARY} flex items-center justify-between`}
+                style={{ marginBottom: SPACING_SCALE.lg }}
               >
                 <div className="flex items-center">
                   <ArrowRight
@@ -288,13 +328,23 @@ function TradeAnalyzerContent() {
                 )}
               </h3>
 
-              <div className="space-y-3 mb-4">
+              <div
+                className="space-y-3"
+                style={{
+                  marginBottom: SPACING_SCALE.lg,
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: SPACING_SCALE.md,
+                }}
+              >
                 {targetPlayers.length === 0 ? (
                   <div
-                    className={`${themeClasses.BG_SECONDARY} border-2 border-dashed ${themeClasses.BORDER} rounded-lg ${PADDING.XXL} text-center`}
+                    className={`${themeClasses.BG_SECONDARY} border-2 border-dashed ${themeClasses.BORDER} rounded-lg text-center`}
+                    style={{ padding: SPACING_SCALE["2xl"] }}
                   >
                     <Plus
-                      className={`${ICON_SIZES.XL} ${themeClasses.TEXT_MUTED} mx-auto mb-2`}
+                      className={`${ICON_SIZES.XL} ${themeClasses.TEXT_MUTED} mx-auto`}
+                      style={{ marginBottom: SPACING_SCALE.sm }}
                     />
                     <p className={themeClasses.TEXT_MUTED}>
                       Select players to acquire

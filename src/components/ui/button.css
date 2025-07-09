@@ -1,0 +1,122 @@
+.button {
+  transition: all 0.2s ease;
+  will-change: transform, box-shadow;
+  position: relative;
+}
+.button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+.button:focus-visible {
+  outline: 2px solid var(--primary-500, #10b981);
+  outline-offset: 2px;
+  z-index: 1;
+}
+.button:active:not(:disabled) {
+  transform: translateY(0);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+.button[disabled] {
+  opacity: 0.6;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+.button-spinner {
+  display: inline-block;
+  width: 1.25em;
+  height: 1.25em;
+  border: 2px solid #e5e7eb;
+  border-top: 2px solid var(--primary-500, #10b981);
+  border-radius: 50%;
+  animation: button-spin 0.7s linear infinite;
+  margin-right: 0.5em;
+  vertical-align: middle;
+}
+@keyframes button-spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.btn-primary {
+  background: var(--primary-600, #059669);
+  color: #fff;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  border: none;
+  transition: all 0.2s ease;
+  font-size: 1rem;
+}
+.btn-primary:hover:not(:disabled) {
+  background: var(--primary-700, #047857);
+}
+.btn-primary:focus-visible {
+  outline: 2px solid var(--primary-500, #10b981);
+  outline-offset: 2px;
+}
+.btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  background: transparent;
+  color: var(--primary-600, #059669);
+  border: 1px solid var(--primary-600, #059669);
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  font-size: 1rem;
+}
+.btn-secondary:hover:not(:disabled) {
+  background: var(--primary-50, #f0fdf4);
+}
+.btn-secondary:focus-visible {
+  outline: 2px solid var(--primary-500, #10b981);
+  outline-offset: 2px;
+}
+.btn-secondary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-ghost {
+  background: transparent;
+  color: var(--gray-700, #374151);
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 0.5rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  font-size: 1rem;
+}
+.btn-ghost:hover:not(:disabled) {
+  background: var(--gray-100, #f3f4f6);
+}
+.btn-ghost:focus-visible {
+  outline: 2px solid var(--primary-500, #10b981);
+  outline-offset: 2px;
+}
+.btn-ghost:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Button sizing */
+.btn-sm {
+  font-size: 0.875rem;
+  padding: 0.5rem 1rem;
+}
+.btn-md {
+  font-size: 1rem;
+  padding: 0.75rem 1.5rem;
+}
+.btn-lg {
+  font-size: 1.125rem;
+  padding: 1rem 2rem;
+}

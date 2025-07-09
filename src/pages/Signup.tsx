@@ -16,6 +16,7 @@ import {
 import { VALIDATION_MESSAGES } from "../lib/validation";
 import { useFormError } from "@/hooks/useFormError";
 import DOMPurify from "dompurify";
+import { SPACING_SCALE } from "@/lib/constants";
 
 const Signup: React.FC = () => {
   const [email, setEmail] = useState("");
@@ -102,11 +103,24 @@ const Signup: React.FC = () => {
 
   return (
     <Layout>
-      <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-md w-full space-y-8">
+      <div
+        className="min-h-screen flex items-center justify-center"
+        style={{ padding: `${SPACING_SCALE["2xl"]} ${SPACING_SCALE.md}` }}
+      >
+        <div
+          className="max-w-md w-full"
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: SPACING_SCALE.xl,
+          }}
+        >
           {/* Header */}
           <div className="text-center">
-            <h2 className="text-3xl font-bold text-white mb-2">
+            <h2
+              className="text-3xl font-bold text-white"
+              style={{ marginBottom: SPACING_SCALE.sm }}
+            >
               Join the Guru Club
             </h2>
             <p className="text-slate-400">
@@ -115,23 +129,42 @@ const Signup: React.FC = () => {
           </div>
 
           {/* Form */}
-          <div className="card-gradient rounded-xl p-8">
-            <form onSubmit={handleSubmit} className="space-y-6">
+          <div
+            className="card-gradient rounded-xl"
+            style={{ padding: SPACING_SCALE.xl }}
+          >
+            <form
+              onSubmit={handleSubmit}
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: SPACING_SCALE.lg,
+              }}
+            >
               {error && (
-                <div className="bg-red-500/10 border border-red-500/20 text-red-400 px-4 py-3 rounded-lg text-sm">
+                <div
+                  className="bg-red-500/10 border border-red-500/20 text-red-400 rounded-lg text-sm"
+                  style={{ padding: `${SPACING_SCALE.sm} ${SPACING_SCALE.md}` }}
+                >
                   {error}
                 </div>
               )}
 
               {success && (
-                <div className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-4 py-3 rounded-lg text-sm">
+                <div
+                  className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-lg text-sm"
+                  style={{ padding: `${SPACING_SCALE.sm} ${SPACING_SCALE.md}` }}
+                >
                   {success}
                 </div>
               )}
 
               {/* Email */}
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">
+                <label
+                  className="block text-sm font-medium text-slate-300"
+                  style={{ marginBottom: SPACING_SCALE.xs }}
+                >
                   Email Address
                 </label>
                 <div className="relative">
@@ -146,7 +179,15 @@ const Signup: React.FC = () => {
                   />
                 </div>
                 {email && emailFeedback.length > 0 && (
-                  <ul className="mt-1 text-xs text-red-400 space-y-0.5">
+                  <ul
+                    className="text-xs text-red-400"
+                    style={{
+                      marginTop: SPACING_SCALE.xs,
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: SPACING_SCALE.xs,
+                    }}
+                  >
                     {emailFeedback.map((msg, i) => (
                       <li key={i}>{msg}</li>
                     ))}
@@ -156,7 +197,10 @@ const Signup: React.FC = () => {
 
               {/* Password */}
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">
+                <label
+                  className="block text-sm font-medium text-slate-300"
+                  style={{ marginBottom: SPACING_SCALE.xs }}
+                >
                   Password
                 </label>
                 <div className="relative">
@@ -184,7 +228,14 @@ const Signup: React.FC = () => {
 
                 {/* Password Requirements */}
                 {password && (
-                  <div className="mt-2 space-y-1">
+                  <div
+                    style={{
+                      marginTop: SPACING_SCALE.xs,
+                      display: "flex",
+                      flexDirection: "column",
+                      gap: SPACING_SCALE.xs,
+                    }}
+                  >
                     <div
                       className={`text-xs flex items-center ${
                         passwordStrength.minLength
