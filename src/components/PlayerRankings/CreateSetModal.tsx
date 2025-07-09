@@ -57,12 +57,10 @@ export const CreateSetModal = forwardRef<CreateSetModalRef>((_, ref) => {
 
   useEffect(() => {
     setForm({ ...form, copyFromSetId: "" });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [form.format]);
 
   useEffect(() => {
     if (!isOpen) resetForm();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen]);
 
   const handleSubmit = async (e: React.FormEvent) => {

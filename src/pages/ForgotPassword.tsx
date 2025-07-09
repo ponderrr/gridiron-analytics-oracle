@@ -4,6 +4,8 @@ import { Mail, ArrowLeft } from "lucide-react";
 import Layout from "@/components/Layout";
 import LoadingSpinner from "../components/LoadingSpinner";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTheme } from "@/contexts/ThemeContext";
+import { getThemeClasses } from "@/lib/constants";
 import {
   validateEmail,
   validateEmailDetailed,
@@ -18,6 +20,8 @@ const ForgotPassword: React.FC = () => {
   const [emailFeedback, setEmailFeedback] = useState<string[]>([]);
 
   const { resetPassword } = useAuth();
+  const { effectiveTheme } = useTheme();
+  const themeClasses = getThemeClasses(effectiveTheme);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -52,10 +56,10 @@ const ForgotPassword: React.FC = () => {
         <div className="max-w-md w-full space-y-8">
           {/* Header */}
           <div className="text-center">
-            <h2 className="text-3xl font-bold text-white mb-2">
+            <h2 className={`text-3xl font-bold mb-2 ${themeClasses.TEXT_PRIMARY}`}>
               Reset Password
             </h2>
-            <p className="text-slate-400">
+            <p className={themeClasses.TEXT_TERTIARY}>
               Enter your email to receive reset instructions
             </p>
           </div>
@@ -77,16 +81,16 @@ const ForgotPassword: React.FC = () => {
 
               {/* Email */}
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">
+                <label className={`block text-sm font-medium mb-2 ${themeClasses.TEXT_SECONDARY}`}>
                   Email Address
                 </label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-400" />
+                  <Mail className={`absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 ${themeClasses.TEXT_TERTIARY}`} />
                   <input
                     type="email"
                     value={email}
                     onChange={(e) => handleEmailChange(e.target.value)}
-                    className="w-full pl-10 pr-4 py-3 bg-slate-800 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
+                    className={`w-full pl-10 pr-4 py-3 ${themeClasses.BG_TERTIARY} border ${themeClasses.BORDER} rounded-lg ${themeClasses.TEXT_PRIMARY} placeholder-${themeClasses.TEXT_TERTIARY} focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all`}
                     placeholder="Enter your email"
                     required
                   />

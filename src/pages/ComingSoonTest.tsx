@@ -48,7 +48,7 @@ const ComingSoonTest: React.FC = () => {
               <p
                 className={`text-lg ${themeClasses.TEXT_MUTED} font-medium tracking-wide`}
               >
-                This feature is under development...
+                This feature is currentlyunder development...
               </p>
             </div>
           </div>

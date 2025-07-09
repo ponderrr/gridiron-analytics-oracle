@@ -8,6 +8,7 @@ import ErrorBoundary from "./ErrorBoundary";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import { MESSAGE_CONSTANTS, getThemeClasses } from "@/lib/constants";
 import { THEME_CONSTANTS } from "@/lib/constants";
+import ThemeToggle from "@/components/ui/ThemeToggle";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -124,40 +125,29 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   // Public layout for non-authenticated users
   return (
     <div className={`min-h-screen ${themeClasses.BG_PRIMARY}`}>
-      {/* Header */}
-      <header
-        className={`${themeClasses.BG_HEADER} backdrop-blur-lg border-b ${themeClasses.BORDER} sticky top-0 z-50`}
-      >
+      {/* Transparent Navbar */}
+      <header className="sticky top-0 z-50 w-full">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
+          <div className="flex justify-between items-center h-16 backdrop-blur-md bg-transparent border-b border-b-transparent transition-all duration-300 ease-in-out">
             {/* Logo */}
-            <Link to="/" className="flex items-center space-x-2 group">
+            <Link to="/" className="flex items-center space-x-3 group">
               <div className="bg-emerald-500 p-2 rounded-lg group-hover:bg-emerald-400 transition-colors">
-                <Trophy className="h-6 w-6 text-white" />
+                <img src="/logo.svg" alt="FF Meta Logo" className="h-6 w-6" />
               </div>
               <div>
-                <h1
-                  className={`text-xl font-bold ${themeClasses.TEXT_PRIMARY}`}
-                >
-                  {MESSAGE_CONSTANTS.APP_NAME}
-                </h1>
-                <p className="text-xs text-emerald-400 -mt-1">
-                  {MESSAGE_CONSTANTS.APP_TAGLINE}
-                </p>
+                <h1 className={`text-xl font-bold ${themeClasses.TEXT_PRIMARY}`}>{MESSAGE_CONSTANTS.APP_NAME}</h1>
+                <p className="text-xs text-emerald-400 -mt-1">{MESSAGE_CONSTANTS.APP_TAGLINE}</p>
               </div>
             </Link>
-
             {/* Navigation */}
             <nav className="flex items-center space-x-4">
               <Link
                 to="/login"
-                className={`${themeClasses.TEXT_SECONDARY} hover:${themeClasses.TEXT_PRIMARY} px-3 py-2 rounded-md text-sm font-medium transition-colors`}
+                className={`${themeClasses.TEXT_SECONDARY} hover:${themeClasses.TEXT_PRIMARY} px-4 py-2 rounded-full text-sm font-medium transition-colors hover:${themeClasses.BG_HOVER}`}
               >
                 Login
               </Link>
-              <Link to="/signup" className="btn-primary">
-                Sign Up
-              </Link>
+              <ThemeToggle variant="icon" size="sm" />
             </nav>
           </div>
         </div>
@@ -166,16 +156,10 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       {/* Main Content */}
       <main className="flex-1">{children}</main>
 
-      {/* Footer */}
-      <footer
-        className={`${themeClasses.BG_SECONDARY} border-t ${themeClasses.BORDER} mt-auto`}
-      >
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="text-center">
-            <p className={`${themeClasses.TEXT_TERTIARY} text-sm`}>
-              © 2025 FF Meta — All rights reserved.
-            </p>
-          </div>
+      {/* Simple Footer (no pill/rounded) */}
+      <footer className={`w-full py-6 mt-auto bg-transparent`}>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-center items-center text-sm">
+          <span className={`${themeClasses.TEXT_TERTIARY}`}>© 2025 FF Meta</span>
         </div>
       </footer>
     </div>

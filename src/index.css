@@ -1,5 +1,8 @@
+/* stylelint-disable-next-line */
 @tailwind base;
+/* stylelint-disable-next-line */
 @tailwind components;
+/* stylelint-disable-next-line */
 @tailwind utilities;
 
 /* Fantasy Football Guru Theme System */
@@ -15,7 +18,7 @@
     --popover: 225 25% 8%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 160 84% 39%;
+    --primary: 226 100% 66%;
     --primary-foreground: 0 0% 100%;
 
     --secondary: 217.2 32.6% 17.5%;
@@ -24,7 +27,7 @@
     --muted: 217.2 32.6% 17.5%;
     --muted-foreground: 215 20.2% 65.1%;
 
-    --accent: 160 84% 39%;
+    --accent: 199 89% 48%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 62.8% 30.6%;
@@ -32,7 +35,7 @@
 
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
-    --ring: 160 84% 39%;
+    --ring: 226 100% 66%;
 
     --radius: 0.75rem;
     --text-color: #555;
@@ -63,7 +66,7 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
 
-    --primary: 160 84% 39%;
+    --primary: 226 100% 66%;
     --primary-foreground: 0 0% 100%;
 
     --secondary: 210 40% 96%;
@@ -72,7 +75,7 @@
     --muted: 210 40% 96%;
     --muted-foreground: 215.4 16.3% 46.9%;
 
-    --accent: 160 84% 39%;
+    --accent: 199 89% 48%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84.2% 60.2%;
@@ -80,7 +83,7 @@
 
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 160 84% 39%;
+    --ring: 226 100% 66%;
 
     --theme-bg-primary: #ffffff;
     --theme-bg-secondary: #f8fafc;
@@ -107,7 +110,7 @@
     --popover: 225 25% 8%;
     --popover-foreground: 210 40% 98%;
 
-    --primary: 160 84% 39%;
+    --primary: 226 100% 66%;
     --primary-foreground: 0 0% 100%;
 
     --secondary: 217.2 32.6% 17.5%;
@@ -116,7 +119,7 @@
     --muted: 217.2 32.6% 17.5%;
     --muted-foreground: 215 20.2% 65.1%;
 
-    --accent: 160 84% 39%;
+    --accent: 199 89% 48%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 62.8% 30.6%;
@@ -124,7 +127,7 @@
 
     --border: 217.2 32.6% 17.5%;
     --input: 217.2 32.6% 17.5%;
-    --ring: 160 84% 39%;
+    --ring: 226 100% 66%;
 
     --theme-bg-primary: #0f172a;
     --theme-bg-secondary: #1e293b;
@@ -143,6 +146,7 @@
 
 @layer base {
   * {
+    /* stylelint-disable-next-line */
     @apply border-border;
   }
 
@@ -192,7 +196,7 @@
   }
 
   .btn-primary {
-    @apply bg-emerald-500 hover:bg-emerald-600 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200;
+    @apply bg-indigo-500 hover:bg-indigo-600 text-white font-medium py-2 px-4 rounded-lg transition-colors duration-200;
   }
 
   .btn-secondary {

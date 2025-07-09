@@ -4,6 +4,8 @@ import { Eye, EyeOff, Mail, Lock } from "lucide-react";
 import Layout from "@/components/Layout";
 import LoadingSpinner from "../components/LoadingSpinner";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTheme } from "@/contexts/ThemeContext";
+import { getThemeClasses } from "@/lib/constants";
 import {
   validateEmail,
   validatePassword,
@@ -31,6 +33,8 @@ const Signup: React.FC = () => {
   const [passwordLabel, setPasswordLabel] = useState<string>("Weak");
 
   const { signup } = useAuth();
+  const { effectiveTheme } = useTheme();
+  const themeClasses = getThemeClasses(effectiveTheme);
   const navigate = useNavigate();
   const { error, setError, clearError, formatAndSetError } = useFormError();
 
@@ -106,10 +110,10 @@ const Signup: React.FC = () => {
         <div className="max-w-md w-full space-y-8">
           {/* Header */}
           <div className="text-center">
-            <h2 className="text-3xl font-bold text-white mb-2">
+            <h2 className={`text-3xl font-bold mb-2 ${themeClasses.TEXT_PRIMARY}`}>
               Join the Guru Club
             </h2>
-            <p className="text-slate-400">
+            <p className={themeClasses.TEXT_TERTIARY}>
               Create your Fantasy Football Guru account
             </p>
           </div>
@@ -131,16 +135,16 @@ const Signup: React.FC = () => {
 
               {/* Email */}
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">
+                <label className={`block text-sm font-medium mb-2 ${themeClasses.TEXT_SECONDARY}`}>
                   Email Address
                 </label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-400" />
+                  <Mail className={`absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 ${themeClasses.TEXT_TERTIARY}`} />
                   <input
                     type="email"
                     value={email}
                     onChange={(e) => handleEmailChange(e.target.value)}
-                    className="w-full pl-10 pr-4 py-3 bg-slate-800 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
+                    className={`w-full pl-10 pr-4 py-3 ${themeClasses.BG_TERTIARY} border ${themeClasses.BORDER} rounded-lg ${themeClasses.TEXT_PRIMARY} placeholder-${themeClasses.TEXT_TERTIARY} focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all`}
                     placeholder="Enter your email"
                     required
                   />
@@ -156,23 +160,23 @@ const Signup: React.FC = () => {
 
               {/* Password */}
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">
+                <label className={`block text-sm font-medium mb-2 ${themeClasses.TEXT_SECONDARY}`}>
                   Password
                 </label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-400" />
+                  <Lock className={`absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 ${themeClasses.TEXT_TERTIARY}`} />
                   <input
                     type={showPassword ? "text" : "password"}
                     value={password}
                     onChange={(e) => handlePasswordChange(e.target.value)}
-                    className="w-full pl-10 pr-12 py-3 bg-slate-800 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
+                    className={`w-full pl-10 pr-12 py-3 ${themeClasses.BG_TERTIARY} border ${themeClasses.BORDER} rounded-lg ${themeClasses.TEXT_PRIMARY} placeholder-${themeClasses.TEXT_TERTIARY} focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all`}
                     placeholder="Create a password"
                     required
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-300 transition-colors"
+                    className={`absolute right-3 top-1/2 transform -translate-y-1/2 ${themeClasses.TEXT_TERTIARY} hover:${themeClasses.TEXT_SECONDARY} transition-colors`}
                   >
                     {showPassword ? (
                       <EyeOff className="h-5 w-5" />
@@ -189,14 +193,14 @@ const Signup: React.FC = () => {
                       className={`text-xs flex items-center ${
                         passwordStrength.minLength
                           ? "text-emerald-400"
-                          : "text-slate-400"
+                          : themeClasses.TEXT_TERTIARY
                       }`}
                     >
                       <div
                         className={`w-1.5 h-1.5 rounded-full mr-2 ${
                           passwordStrength.minLength
                             ? "bg-emerald-400"
-                            : "bg-slate-600"
+                            : themeClasses.BG_TERTIARY
                         }`}
                       />
                       At least 8 characters
@@ -205,14 +209,14 @@ const Signup: React.FC = () => {
                       className={`text-xs flex items-center ${
                         passwordStrength.hasUpper
                           ? "text-emerald-400"
-                          : "text-slate-400"
+                          : themeClasses.TEXT_TERTIARY
                       }`}
                     >
                       <div
                         className={`w-1.5 h-1.5 rounded-full mr-2 ${
                           passwordStrength.hasUpper
                             ? "bg-emerald-400"
-                            : "bg-slate-600"
+                            : themeClasses.BG_TERTIARY
                         }`}
                       />
                       One uppercase letter
@@ -221,14 +225,14 @@ const Signup: React.FC = () => {
                       className={`text-xs flex items-center ${
                         passwordStrength.hasLower
                           ? "text-emerald-400"
-                          : "text-slate-400"
+                          : themeClasses.TEXT_TERTIARY
                       }`}
                     >
                       <div
                         className={`w-1.5 h-1.5 rounded-full mr-2 ${
                           passwordStrength.hasLower
                             ? "bg-emerald-400"
-                            : "bg-slate-600"
+                            : themeClasses.BG_TERTIARY
                         }`}
                       />
                       One lowercase letter
@@ -237,14 +241,14 @@ const Signup: React.FC = () => {
                       className={`text-xs flex items-center ${
                         passwordStrength.hasNumber
                           ? "text-emerald-400"
-                          : "text-slate-400"
+                          : themeClasses.TEXT_TERTIARY
                       }`}
                     >
                       <div
                         className={`w-1.5 h-1.5 rounded-full mr-2 ${
                           passwordStrength.hasNumber
                             ? "bg-emerald-400"
-                            : "bg-slate-600"
+                            : themeClasses.BG_TERTIARY
                         }`}
                       />
                       One number
@@ -252,40 +256,30 @@ const Signup: React.FC = () => {
                   </div>
                 )}
 
-                {/* Password strength bar and label */}
+                {/* Password Strength */}
                 {password && (
-                  <div className="mt-2 flex items-center space-x-2">
-                    <div className="w-32 h-2 bg-slate-700 rounded-full overflow-hidden">
+                  <div className="mt-2">
+                    <div className="flex items-center justify-between text-xs mb-1">
+                      <span className={themeClasses.TEXT_TERTIARY}>Strength:</span>
+                      <span className="text-emerald-400">{passwordLabel}</span>
+                    </div>
+                    <div className="w-full bg-slate-700 rounded-full h-2">
                       <div
                         className={`h-2 rounded-full transition-all duration-300 ${
-                          passwordScore >= 90
-                            ? "bg-emerald-400 w-full"
-                            : passwordScore >= 70
-                              ? "bg-yellow-400 w-3/4"
-                              : passwordScore >= 50
-                                ? "bg-orange-400 w-1/2"
-                                : "bg-red-400 w-1/4"
+                          passwordScore <= 1
+                            ? "bg-red-500"
+                            : passwordScore <= 2
+                            ? "bg-yellow-500"
+                            : passwordScore <= 3
+                            ? "bg-blue-500"
+                            : "bg-emerald-500"
                         }`}
-                        style={{ width: `${passwordScore}%` }}
+                        style={{ width: `${(passwordScore / 4) * 100}%` }}
                       />
                     </div>
-                    <span
-                      className={`text-xs font-semibold ${
-                        passwordScore >= 90
-                          ? "text-emerald-400"
-                          : passwordScore >= 70
-                            ? "text-yellow-400"
-                            : passwordScore >= 50
-                              ? "text-orange-400"
-                              : "text-red-400"
-                      }`}
-                    >
-                      {passwordLabel}
-                    </span>
                   </div>
                 )}
 
-                {/* Password feedback */}
                 {password && passwordFeedback.length > 0 && (
                   <ul className="mt-1 text-xs text-red-400 space-y-0.5">
                     {passwordFeedback.map((msg, i) => (
@@ -297,25 +291,25 @@ const Signup: React.FC = () => {
 
               {/* Confirm Password */}
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">
+                <label className={`block text-sm font-medium mb-2 ${themeClasses.TEXT_SECONDARY}`}>
                   Confirm Password
                 </label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-400" />
+                  <Lock className={`absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 ${themeClasses.TEXT_TERTIARY}`} />
                   <input
                     type={showConfirmPassword ? "text" : "password"}
                     value={confirmPassword}
                     onChange={(e) =>
                       setConfirmPassword(DOMPurify.sanitize(e.target.value))
                     }
-                    className="w-full pl-10 pr-12 py-3 bg-slate-800 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
+                    className={`w-full pl-10 pr-12 py-3 ${themeClasses.BG_TERTIARY} border ${themeClasses.BORDER} rounded-lg ${themeClasses.TEXT_PRIMARY} placeholder-${themeClasses.TEXT_TERTIARY} focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all`}
                     placeholder="Confirm your password"
                     required
                   />
                   <button
                     type="button"
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-300 transition-colors"
+                    className={`absolute right-3 top-1/2 transform -translate-y-1/2 ${themeClasses.TEXT_TERTIARY} hover:${themeClasses.TEXT_SECONDARY} transition-colors`}
                   >
                     {showConfirmPassword ? (
                       <EyeOff className="h-5 w-5" />
@@ -343,15 +337,15 @@ const Signup: React.FC = () => {
               </button>
             </form>
 
-            {/* Login Link */}
+            {/* Sign In Link */}
             <div className="mt-6 text-center">
-              <p className="text-slate-400">
+              <p className={themeClasses.TEXT_TERTIARY}>
                 Already have an account?{" "}
                 <Link
                   to="/login"
                   className="text-emerald-400 hover:text-emerald-300 font-medium transition-colors"
                 >
-                  Sign in
+                  Sign in now
                 </Link>
               </p>
             </div>

@@ -4,6 +4,8 @@ import { Eye, EyeOff, Mail, Lock } from "lucide-react";
 import Layout from "@/components/Layout";
 import LoadingSpinner from "../components/LoadingSpinner";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTheme } from "@/contexts/ThemeContext";
+import { getThemeClasses } from "@/lib/constants";
 import {
   validateEmail,
   validateEmailDetailed,
@@ -21,6 +23,8 @@ const Login: React.FC = () => {
   const [emailFeedback, setEmailFeedback] = useState<string[]>([]);
 
   const { login } = useAuth();
+  const { effectiveTheme } = useTheme();
+  const themeClasses = getThemeClasses(effectiveTheme);
   const navigate = useNavigate();
   const location = useLocation();
   const { error, setError, clearError, formatAndSetError } = useFormError();
@@ -68,8 +72,8 @@ const Login: React.FC = () => {
         <div className="max-w-md w-full space-y-8">
           {/* Header */}
           <div className="text-center">
-            <h2 className="text-3xl font-bold text-white mb-2">Welcome Back</h2>
-            <p className="text-slate-400">
+            <h2 className={`text-3xl font-bold mb-2 ${themeClasses.TEXT_PRIMARY}`}>Welcome Back</h2>
+            <p className={themeClasses.TEXT_TERTIARY}>
               Sign in to your Fantasy Football Guru account
             </p>
           </div>
@@ -85,16 +89,16 @@ const Login: React.FC = () => {
 
               {/* Email */}
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">
+                <label className={`block text-sm font-medium mb-2 ${themeClasses.TEXT_SECONDARY}`}>
                   Email Address
                 </label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-400" />
+                  <Mail className={`absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 ${themeClasses.TEXT_TERTIARY}`} />
                   <input
                     type="email"
                     value={email}
                     onChange={(e) => handleEmailChange(e.target.value)}
-                    className="w-full pl-10 pr-4 py-3 bg-slate-800 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
+                    className={`w-full pl-10 pr-4 py-3 ${themeClasses.BG_TERTIARY} border ${themeClasses.BORDER} rounded-lg ${themeClasses.TEXT_PRIMARY} placeholder-${themeClasses.TEXT_TERTIARY} focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all`}
                     placeholder="Enter your email"
                     required
                   />
@@ -110,25 +114,25 @@ const Login: React.FC = () => {
 
               {/* Password */}
               <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">
+                <label className={`block text-sm font-medium mb-2 ${themeClasses.TEXT_SECONDARY}`}>
                   Password
                 </label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-400" />
+                  <Lock className={`absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 ${themeClasses.TEXT_TERTIARY}`} />
                   <input
                     type={showPassword ? "text" : "password"}
                     value={password}
                     onChange={(e) =>
                       setPassword(DOMPurify.sanitize(e.target.value))
                     }
-                    className="w-full pl-10 pr-12 py-3 bg-slate-800 border border-slate-600 rounded-lg text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
+                    className={`w-full pl-10 pr-12 py-3 ${themeClasses.BG_TERTIARY} border ${themeClasses.BORDER} rounded-lg ${themeClasses.TEXT_PRIMARY} placeholder-${themeClasses.TEXT_TERTIARY} focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all`}
                     placeholder="Enter your password"
                     required
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-300 transition-colors"
+                    className={`absolute right-3 top-1/2 transform -translate-y-1/2 ${themeClasses.TEXT_TERTIARY} hover:${themeClasses.TEXT_SECONDARY} transition-colors`}
                   >
                     {showPassword ? (
                       <EyeOff className="h-5 w-5" />
@@ -146,9 +150,9 @@ const Login: React.FC = () => {
                     type="checkbox"
                     checked={rememberMe}
                     onChange={(e) => setRememberMe(e.target.checked)}
-                    className="h-4 w-4 text-emerald-500 bg-slate-800 border-slate-600 rounded focus:ring-emerald-500 focus:ring-2"
+                    className={`h-4 w-4 text-emerald-500 ${themeClasses.BG_TERTIARY} ${themeClasses.BORDER} rounded focus:ring-emerald-500 focus:ring-2`}
                   />
-                  <span className="ml-2 text-sm text-slate-300">
+                  <span className={`ml-2 text-sm ${themeClasses.TEXT_SECONDARY}`}>
                     Remember me
                   </span>
                 </label>
@@ -179,7 +183,7 @@ const Login: React.FC = () => {
 
             {/* Sign Up Link */}
             <div className="mt-6 text-center">
-              <p className="text-slate-400">
+              <p className={themeClasses.TEXT_TERTIARY}>
                 Don't have an account?{" "}
                 <Link
                   to="/signup"

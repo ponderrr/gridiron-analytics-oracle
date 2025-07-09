@@ -28,7 +28,7 @@ import { toast } from "sonner";
 const { ICON_SIZES } = THEME_CONSTANTS;
 const { HEIGHT } = UI_CONSTANTS;
 
-// Query key factory for better cache management
+
 const adminQueryKeys = {
   players: () => ["players"],
   weeklyStats: (week?: number) => ["weeklyStats", week],

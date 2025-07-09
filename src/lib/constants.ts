@@ -131,8 +131,8 @@ export const THEME_CONSTANTS = {
 
 export const MESSAGE_CONSTANTS = {
   APP_NAME: "FF META",
-  APP_TAGLINE: "Fantasy Football Meta",
-  COPYRIGHT: `© ${new Date().getFullYear()} FF META. Fantasy Football Meta Analytics.`,
+  APP_TAGLINE: "",
+  COPYRIGHT: `© ${new Date().getFullYear()} FF META`,
   LOADING: "Loading your experience...",
   ERROR_GENERIC: "An unknown error occurred.",
   ERROR_AUTH: "Authentication Error",

@@ -62,7 +62,7 @@ function TradeAnalyzerContent() {
     },
   };
 
-  // Wrap add/remove/clear actions with toasts
+  // Add player to trade
   const handleAddPlayer = (player: any, side: "your" | "target") => {
     addPlayerToTrade(player, side);
     toast.success(
