@@ -142,10 +142,10 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
             {/* Navigation */}
             <nav className="flex items-center space-x-4">
               <Link
-                to="/login"
+                to="/auth"
                 className={`${themeClasses.TEXT_SECONDARY} hover:${themeClasses.TEXT_PRIMARY} px-4 py-2 rounded-full text-sm font-medium transition-colors hover:${themeClasses.BG_HOVER}`}
               >
-                Login
+                Sign In
               </Link>
               <ThemeToggle variant="icon" size="sm" />
             </nav>
