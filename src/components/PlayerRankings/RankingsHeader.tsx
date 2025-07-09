@@ -1,12 +1,5 @@
 import { useRef } from "react";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Save, Download, Undo, Redo } from "lucide-react";
 import { useRankings } from "./RankingsProvider";
@@ -14,13 +7,9 @@ import { CreateSetModal, CreateSetModalRef } from "./CreateSetModal";
 import { toast } from "sonner";
 
 export function RankingsHeader() {
-  const { state, dispatch, selectSet, saveRankings, createDefaultRankings } =
+  const { state, dispatch, saveRankings, createDefaultRankings } =
     useRankings();
   const createSetModalRef = useRef<CreateSetModalRef>(null);
-
-  const handleSetChange = (setId: string) => {
-    selectSet(setId);
-  };
 
   const handleUndo = () => {
     if (state.undoStack.length > 0) {

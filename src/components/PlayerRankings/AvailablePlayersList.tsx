@@ -37,7 +37,6 @@ export function AvailablePlayersList() {
     });
   };
 
-  // Check if item is a player or a draft pick
   const isPlayer = (item: Player | DraftPick): item is Player => {
     return "name" in item;
   };

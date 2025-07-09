@@ -140,7 +140,6 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
 
     updateEffectiveTheme();
 
-    // Listen for system theme changes
     const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
     const handleSystemThemeChange = () => {
       if (theme === "system") {

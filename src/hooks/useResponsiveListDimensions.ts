@@ -1,9 +1,5 @@
 import { useEffect, useState } from "react";
 
-/**
- * Returns responsive row and list heights for virtualized lists.
- * Adjusts based on viewport size, with sensible min/max values.
- */
 export function useResponsiveListDimensions() {
   const getHeights = () => {
     // Row height: 8-10% of viewport height, min 56px, max 100px

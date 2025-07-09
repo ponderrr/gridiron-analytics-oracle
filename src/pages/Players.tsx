@@ -40,7 +40,6 @@ function PlayersContent() {
           payload: { item: player, type: "player", rank: newRank },
         });
 
-        // Auto-save after a short delay
         setTimeout(() => {
           saveRankings();
         }, 1000);
@@ -48,7 +47,6 @@ function PlayersContent() {
       return;
     }
 
-    // Handle reordering within rankings
     if (
       source.droppableId === "ranked-players" &&
       destination.droppableId === "ranked-players"

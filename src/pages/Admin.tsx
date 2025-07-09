@@ -1,7 +1,7 @@
-import React, { useState, useMemo } from "react";
+import React, { useState } from "react";
 import { RefreshCw, Users, BarChart3 } from "lucide-react";
 import Layout from "@/components/Layout";
-import { MESSAGE_CONSTANTS, UI_CONSTANTS } from "@/lib/constants";
+import { MESSAGE_CONSTANTS } from "@/lib/constants";
 import { useSyncData } from "@/hooks/useSyncData";
 import { Button } from "@/components/ui/button";
 import {
@@ -19,31 +19,23 @@ import {
   ADMIN_TAB_LABELS,
   SYNC_SECTIONS,
   SYNC_DESCRIPTIONS,
-} from "../lib/adminConstants";
+} from "@/lib/adminConstants";
 import { LoadingState } from "@/components/ui/common";
 import SyncStatusDashboard from "@/components/ui/monitoring/SyncStatusDashboard";
 import DataQualityMetrics from "@/components/ui/monitoring/DataQualityMetrics";
 import { toast } from "sonner";
 
 const { ICON_SIZES } = THEME_CONSTANTS;
-const { HEIGHT } = UI_CONSTANTS;
 
-
-const adminQueryKeys = {
-  players: () => ["players"],
-  weeklyStats: (week?: number) => ["weeklyStats", week],
-  projections: () => ["projections"],
-  tradeValues: () => ["tradeValues"],
-};
-
-// Memoized AdminTable import
-const AdminTable = React.lazy(() =>
-  import("../components/ui/table/AdminTable").then((mod) => ({
-    default: mod.AdminTable,
-  }))
-) as unknown as <T>(
-  props: import("../components/ui/table/AdminTable").AdminTableProps<T>
-) => JSX.Element;
+// Define tabs outside component to avoid re-creation on every render
+const ADMIN_TABS_CONFIG = [
+  {
+    id: ADMIN_TABS.DATA_SYNC,
+    label: ADMIN_TAB_LABELS.DATA_SYNC,
+    icon: RefreshCw,
+    count: 0,
+  },
+];
 
 const Admin: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string>(ADMIN_TABS.DATA_SYNC);
@@ -66,7 +58,10 @@ const Admin: React.FC = () => {
 
   const handleStatsSync = async () => {
     try {
-      await syncWeeklyStats(parseInt(selectedWeek), parseInt(selectedSeason));
+      await syncWeeklyStats(
+        parseInt(selectedWeek, 10),
+        parseInt(selectedSeason, 10)
+      );
       toast.success("Stats sync completed successfully!");
     } catch (error) {
       toast.error("Stats sync failed. Please try again.");
@@ -74,17 +69,7 @@ const Admin: React.FC = () => {
     }
   };
 
-  const tabs = useMemo(
-    () => [
-      {
-        id: ADMIN_TABS.DATA_SYNC,
-        label: ADMIN_TAB_LABELS.DATA_SYNC,
-        icon: RefreshCw,
-        count: 0,
-      },
-    ],
-    []
-  );
+  const tabs = ADMIN_TABS_CONFIG;
 
   return (
     <Layout>

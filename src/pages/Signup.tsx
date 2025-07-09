@@ -110,7 +110,9 @@ const Signup: React.FC = () => {
         <div className="max-w-md w-full flex flex-col gap-12">
           {/* Header */}
           <div className="text-center">
-            <h2 className={`text-3xl font-bold mb-2 ${themeClasses.TEXT_PRIMARY}`}>
+            <h2
+              className={`text-3xl font-bold mb-2 ${themeClasses.TEXT_PRIMARY}`}
+            >
               Join the Guru Club
             </h2>
             <p className={themeClasses.TEXT_TERTIARY}>
@@ -119,7 +121,10 @@ const Signup: React.FC = () => {
           </div>
 
           {/* Form */}
-          <div className="card-gradient rounded-xl" style={{ padding: SPACING_SCALE.xl }}>
+          <div
+            className="card-gradient rounded-xl"
+            style={{ padding: SPACING_SCALE.xl }}
+          >
             <form onSubmit={handleSubmit} className="flex flex-col gap-6">
               {error && (
                 <div className="bg-red-500/10 border border-red-500/20 text-red-400 rounded-lg text-sm p-3">
@@ -134,12 +139,18 @@ const Signup: React.FC = () => {
 
               {/* Email */}
               <div>
-                <label className={`block text-sm font-medium mb-2 ${themeClasses.TEXT_SECONDARY}`}>
+                <label
+                  htmlFor="email"
+                  className={`block text-sm font-medium mb-2 ${themeClasses.TEXT_SECONDARY}`}
+                >
                   Email Address
                 </label>
                 <div className="relative">
-                  <Mail className={`absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 ${themeClasses.TEXT_TERTIARY}`} />
+                  <Mail
+                    className={`absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 ${themeClasses.TEXT_TERTIARY}`}
+                  />
                   <input
+                    id="email"
                     type="email"
                     value={email}
                     onChange={(e) => handleEmailChange(e.target.value)}
@@ -159,11 +170,15 @@ const Signup: React.FC = () => {
 
               {/* Password */}
               <div>
-                <label className={`block text-sm font-medium mb-2 ${themeClasses.TEXT_SECONDARY}`}>
+                <label
+                  className={`block text-sm font-medium mb-2 ${themeClasses.TEXT_SECONDARY}`}
+                >
                   Password
                 </label>
                 <div className="relative">
-                  <Lock className={`absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 ${themeClasses.TEXT_TERTIARY}`} />
+                  <Lock
+                    className={`absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 ${themeClasses.TEXT_TERTIARY}`}
+                  />
                   <input
                     type={showPassword ? "text" : "password"}
                     value={password}
@@ -177,20 +192,38 @@ const Signup: React.FC = () => {
                     onClick={() => setShowPassword(!showPassword)}
                     className={`absolute right-3 top-1/2 transform -translate-y-1/2 ${themeClasses.TEXT_TERTIARY} hover:${themeClasses.TEXT_SECONDARY} transition-colors`}
                   >
-                    {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                    {showPassword ? (
+                      <EyeOff className="h-5 w-5" />
+                    ) : (
+                      <Eye className="h-5 w-5" />
+                    )}
                   </button>
                 </div>
 
                 {/* Password Requirements */}
                 <ul className="mt-2 space-y-1 text-xs">
                   {[
-                    { label: "At least 8 characters", valid: passwordStrength.minLength },
-                    { label: "One uppercase letter", valid: passwordStrength.hasUpper },
-                    { label: "One lowercase letter", valid: passwordStrength.hasLower },
+                    {
+                      label: "At least 8 characters",
+                      valid: passwordStrength.minLength,
+                    },
+                    {
+                      label: "One uppercase letter",
+                      valid: passwordStrength.hasUpper,
+                    },
+                    {
+                      label: "One lowercase letter",
+                      valid: passwordStrength.hasLower,
+                    },
                     { label: "One number", valid: passwordStrength.hasNumber },
                   ].map(({ label, valid }, i) => (
-                    <li key={i} className={`flex items-center ${valid ? "text-emerald-400" : themeClasses.TEXT_TERTIARY}`}>
-                      <div className={`w-2 h-2 rounded-full mr-2 ${valid ? "bg-emerald-400" : themeClasses.BG_TERTIARY}`} />
+                    <li
+                      key={i}
+                      className={`flex items-center ${valid ? "text-emerald-400" : themeClasses.TEXT_TERTIARY}`}
+                    >
+                      <div
+                        className={`w-2 h-2 rounded-full mr-2 ${valid ? "bg-emerald-400" : themeClasses.BG_TERTIARY}`}
+                      />
                       {label}
                     </li>
                   ))}
@@ -199,7 +232,9 @@ const Signup: React.FC = () => {
                 {/* Password Strength Bar */}
                 <div className="mt-2">
                   <div className="flex justify-between text-xs mb-1">
-                    <span className={themeClasses.TEXT_TERTIARY}>Strength:</span>
+                    <span className={themeClasses.TEXT_TERTIARY}>
+                      Strength:
+                    </span>
                     <span className="text-emerald-400">{passwordLabel}</span>
                   </div>
                   <div className="w-full bg-slate-700 rounded-full h-2">
@@ -208,10 +243,10 @@ const Signup: React.FC = () => {
                         passwordScore <= 1
                           ? "bg-red-500"
                           : passwordScore <= 2
-                          ? "bg-yellow-500"
-                          : passwordScore <= 3
-                          ? "bg-blue-500"
-                          : "bg-emerald-500"
+                            ? "bg-yellow-500"
+                            : passwordScore <= 3
+                              ? "bg-blue-500"
+                              : "bg-emerald-500"
                       }`}
                       style={{ width: `${(passwordScore / 4) * 100}%` }}
                     />
@@ -229,15 +264,21 @@ const Signup: React.FC = () => {
 
               {/* Confirm Password */}
               <div>
-                <label className={`block text-sm font-medium mb-2 ${themeClasses.TEXT_SECONDARY}`}>
+                <label
+                  className={`block text-sm font-medium mb-2 ${themeClasses.TEXT_SECONDARY}`}
+                >
                   Confirm Password
                 </label>
                 <div className="relative">
-                  <Lock className={`absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 ${themeClasses.TEXT_TERTIARY}`} />
+                  <Lock
+                    className={`absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 ${themeClasses.TEXT_TERTIARY}`}
+                  />
                   <input
                     type={showConfirmPassword ? "text" : "password"}
                     value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(DOMPurify.sanitize(e.target.value))}
+                    onChange={(e) =>
+                      setConfirmPassword(DOMPurify.sanitize(e.target.value))
+                    }
                     className={`w-full pl-10 pr-12 py-3 ${themeClasses.BG_TERTIARY} border ${themeClasses.BORDER} rounded-lg ${themeClasses.TEXT_PRIMARY} placeholder-${themeClasses.TEXT_TERTIARY} focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all`}
                     placeholder="Confirm your password"
                     required
@@ -247,7 +288,11 @@ const Signup: React.FC = () => {
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                     className={`absolute right-3 top-1/2 transform -translate-y-1/2 ${themeClasses.TEXT_TERTIARY} hover:${themeClasses.TEXT_SECONDARY} transition-colors`}
                   >
-                    {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
+                    {showConfirmPassword ? (
+                      <EyeOff className="h-5 w-5" />
+                    ) : (
+                      <Eye className="h-5 w-5" />
+                    )}
                   </button>
                 </div>
               </div>

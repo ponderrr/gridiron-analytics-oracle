@@ -28,7 +28,7 @@ import { useTradeAnalysis } from "@/hooks/useTradeAnalysis";
 import { useTheme } from "@/contexts/ThemeContext";
 import { toast } from "sonner";
 
-const { ICON_SIZES, TEXT_SIZES, PADDING, GAP, SPACING } = THEME_CONSTANTS;
+const { ICON_SIZES, TEXT_SIZES, PADDING, GAP } = THEME_CONSTANTS;
 
 function TradeAnalyzerContent() {
   const { state, selectSet } = useRankings();

@@ -23,7 +23,6 @@ import { MESSAGE_CONSTANTS, getThemeClasses } from "@/lib/constants";
 import { useTheme } from "@/contexts/ThemeContext";
 import { FantasyPointsResultModal } from "@/components/modals/FantasyPointsResult";
 
-// Form state interface for string values
 interface WeeklyStatsFormInput {
   passing_yards: string;
   passing_tds: string;

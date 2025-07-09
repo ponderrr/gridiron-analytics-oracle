@@ -2,21 +2,6 @@ import React from "react";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import ErrorBoundary from "@/components/ErrorBoundary";
 
-/**
- * Route Helpers for App Routing
- *
- * Usage examples:
- *
- * 1. Protected route with error boundary (default):
- *    createProtectedRoute("/admin", AdminPage)
- *
- * 2. Public route with error boundary (default):
- *    createPublicRoute("/", HomePage)
- *
- * 3. Route without error boundary:
- *    createProtectedRoute("/admin", AdminPage, false)
- */
-
 // Standard error handlers for routes
 const handleRouteError = (error: Error, errorInfo: React.ErrorInfo) => {
   // Log route-specific errors

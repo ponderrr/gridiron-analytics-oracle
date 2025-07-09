@@ -56,7 +56,6 @@ function useLocalStorage<T>(
   const setValue = (value: T | ((val: T) => T)) => {
     setStoredValue((prev) => {
       const valueToStore = value instanceof Function ? value(prev) : value;
-      // Don't write immediately, let the effect handle it (debounced)
       return valueToStore;
     });
   };

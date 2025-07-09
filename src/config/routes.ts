@@ -52,7 +52,7 @@ export const routes: RouteConfig[] = [
     protected: false,
   },
 
-  // Protected routes - All lazy loaded for consistency
+  // Protected routes - Lazy loaded for bundle-size optimization
   {
     path: "/dashboard",
     component: Dashboard,
