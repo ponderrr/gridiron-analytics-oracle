@@ -35,8 +35,8 @@ const SidebarFooter: React.FC<SidebarFooterProps> = ({
     }
   }, [logout, navigate]);
 
-  // Helper function to safely get user display name - memoized
-  const getUserDisplayName = useMemo(() => {
+  // Memoized user display name value
+  const userDisplayName = useMemo(() => {
     if (!user?.email) return "User";
     try {
       return user.email.split("@")[0] || "User";
@@ -46,8 +46,8 @@ const SidebarFooter: React.FC<SidebarFooterProps> = ({
     }
   }, [user?.email]);
 
-  // Helper function to safely get user email - memoized
-  const getUserEmail = useMemo(() => {
+  // Memoized user email value
+  const userEmail = useMemo(() => {
     if (!user?.email) return "";
     return String(user.email);
   }, [user?.email]);
@@ -76,7 +76,7 @@ const SidebarFooter: React.FC<SidebarFooterProps> = ({
               <div
                 className={`px-2 py-1.5 text-sm ${themeClasses.TEXT_TERTIARY}`}
               >
-                {getUserEmail}
+                {userEmail}
               </div>
               <DropdownMenuSeparator className={themeClasses.BORDER} />
               <DropdownMenuItem asChild>
@@ -123,7 +123,7 @@ const SidebarFooter: React.FC<SidebarFooterProps> = ({
           >
             <User className={`h-4 w-4 ${themeClasses.TEXT_SECONDARY}`} />
             <span className={`text-sm ${themeClasses.TEXT_SECONDARY}`}>
-              {getUserDisplayName}
+              {userDisplayName}
             </span>
           </DropdownMenuTrigger>
           <DropdownMenuContent
@@ -133,7 +133,7 @@ const SidebarFooter: React.FC<SidebarFooterProps> = ({
             <div
               className={`px-2 py-1.5 text-sm ${themeClasses.TEXT_TERTIARY}`}
             >
-              {getUserEmail}
+              {userEmail}
             </div>
             <DropdownMenuSeparator className={themeClasses.BORDER} />
             <DropdownMenuItem asChild>

@@ -45,7 +45,9 @@ export const FantasyPointsResultModal: React.FC<
         className={`w-full max-w-2xl max-h-[90vh] overflow-y-auto ${themeClasses.BG_CARD} border ${themeClasses.BORDER} shadow-2xl`}
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-slate-700">
+        <div
+          className={`flex items-center justify-between p-6 border-b ${themeClasses.BORDER}`}
+        >
           <h2 className={`text-xl font-bold ${themeClasses.TEXT_PRIMARY}`}>
             Fantasy Points Result
           </h2>
@@ -151,7 +153,7 @@ export const FantasyPointsResultModal: React.FC<
         </div>
 
         {/* Footer */}
-        <div className="flex justify-end p-6 border-t border-slate-700">
+        <div className={`flex justify-end p-6 border-t ${themeClasses.BORDER}`}>
           <Button onClick={onClose} variant="outline">
             Close
           </Button>

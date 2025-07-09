@@ -140,6 +140,7 @@ const Signup: React.FC = () => {
               {/* Email */}
               <div>
                 <label
+                  htmlFor="email"
                   className={`block text-sm font-medium mb-2 ${themeClasses.TEXT_SECONDARY}`}
                 >
                   Email Address
@@ -149,6 +150,7 @@ const Signup: React.FC = () => {
                     className={`absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 ${themeClasses.TEXT_TERTIARY}`}
                   />
                   <input
+                    id="email"
                     type="email"
                     value={email}
                     onChange={(e) => handleEmailChange(e.target.value)}
