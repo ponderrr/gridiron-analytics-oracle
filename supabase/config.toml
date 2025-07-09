@@ -68,3 +68,6 @@ verify_jwt = true
 
 [functions.rankings-default]
 verify_jwt = true
+
+[functions.weekly_refresh]
+verify_jwt = false
