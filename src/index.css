@@ -1,8 +1,5 @@
-/* stylelint-disable-next-line */
 @tailwind base;
-/* stylelint-disable-next-line */
 @tailwind components;
-/* stylelint-disable-next-line */
 @tailwind utilities;
 
 /* Fantasy Football Guru Theme System */
@@ -146,7 +143,6 @@
 
 @layer base {
   * {
-    /* stylelint-disable-next-line */
     @apply border-border;
   }
 
