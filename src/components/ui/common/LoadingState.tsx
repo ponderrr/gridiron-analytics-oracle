@@ -23,8 +23,6 @@ export interface LoadingStateProps {
   loading?: boolean;
 }
 
-const skeletonBase = "bg-slate-700/50 rounded animate-pulse mb-2 last:mb-0";
-
 // Spinner size classes
 const spinnerSizes = {
   sm: "w-4 h-4",
@@ -87,7 +85,7 @@ export const LoadingState: React.FC<LoadingStateProps> = ({
                   width: skeletonWidth,
                   height: skeletonHeight,
                 };
-          return <div key={i} className={skeletonBase} style={shapeStyle} />;
+          return <div key={i} className="skeleton" style={shapeStyle} />;
         })}
         {message && (
           <div className="mt-2 text-slate-400 text-sm">{message}</div>

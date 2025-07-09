@@ -7,6 +7,7 @@ import { GripVertical, Plus, X } from "lucide-react";
 import { useTheme } from "@/contexts/ThemeContext";
 import { getThemeClasses } from "@/lib/constants";
 import { LoadingState } from "@/components/ui/common/LoadingState";
+import "./PlayerCard.css"; // Import the CSS for micro-interactions
 
 export interface PlayerCardProps {
   player: {
@@ -286,34 +287,28 @@ const PlayerCard: React.FC<PlayerCardProps> = (props) => {
 
   if (loading) {
     return (
-      <Card
-        className={cn("p-4 flex items-center gap-4 min-h-[72px]", className)}
+      <div
+        className="interactive-card skeleton-card"
+        tabIndex={0}
+        aria-busy="true"
+        aria-label="Loading player card"
       >
-        <LoadingState
-          type="skeleton"
-          skeletonCount={1}
-          skeletonHeight={56}
-          skeletonWidth="100%"
-        />
-      </Card>
+        <LoadingState />
+      </div>
     );
   }
 
   return (
-    <Card
+    <div
       className={cn(
-        "p-3 transition-all duration-200",
-        isDragging
-          ? `${themeClasses.BG_TERTIARY} border-primary/50 ${themeClasses.SHADOW}`
-          : `${themeClasses.BG_CARD} border ${themeClasses.BORDER} ${themeClasses.BG_HOVER}`,
-        kbdDragActive && `${themeClasses.RING} ${themeClasses.BG_ACTIVE}`,
-        className
+        "interactive-card",
+        props.className,
+        props.isDragging && "dragging",
+        props.kbdDragActive && "kbd-drag-active"
       )}
-      role="group"
-      aria-label={`Player card for ${player.name}`}
-      aria-describedby={`player-card-desc-${player.name}`}
-      tabIndex={tabIndex}
-      aria-selected={ariaSelected}
+      tabIndex={props.tabIndex ?? 0}
+      aria-selected={props["aria-selected"]}
+      style={{ transition: "all 0.2s ease" }}
     >
       {/* ARIA live region for announcements */}
       <div
@@ -355,7 +350,7 @@ const PlayerCard: React.FC<PlayerCardProps> = (props) => {
           themeClasses={themeClasses}
         />
       </div>
-    </Card>
+    </div>
   );
 };
 

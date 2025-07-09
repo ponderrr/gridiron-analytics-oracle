@@ -5,7 +5,7 @@ import Layout from "@/components/Layout";
 import LoadingSpinner from "../components/LoadingSpinner";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/contexts/ThemeContext";
-import { getThemeClasses } from "@/lib/constants";
+import { getThemeClasses, SPACING_SCALE } from "@/lib/constants";
 import {
   validateEmail,
   validatePassword,
@@ -43,7 +43,6 @@ const Signup: React.FC = () => {
     clearError();
     setSuccess("");
 
-    // Sanitize inputs before validation and use
     const sanitizedEmail = DOMPurify.sanitize(email);
     const sanitizedPassword = DOMPurify.sanitize(password);
     const sanitizedConfirmPassword = DOMPurify.sanitize(confirmPassword);
@@ -84,9 +83,6 @@ const Signup: React.FC = () => {
     }
   };
 
-  const passwordStrength = getPasswordStrength(password);
-
-  // Real-time email validation
   const handleEmailChange = (value: string) => {
     const sanitized = DOMPurify.sanitize(value);
     setEmail(sanitized);
@@ -94,7 +90,6 @@ const Signup: React.FC = () => {
     setEmailFeedback(result.errors);
   };
 
-  // Real-time password validation
   const handlePasswordChange = (value: string) => {
     const sanitized = DOMPurify.sanitize(value);
     setPassword(sanitized);
@@ -104,10 +99,15 @@ const Signup: React.FC = () => {
     setPasswordLabel(passwordStrengthLabel(score));
   };
 
+  const passwordStrength = getPasswordStrength(password);
+
   return (
     <Layout>
-      <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-        <div className="max-w-md w-full space-y-8">
+      <div
+        className="min-h-screen flex items-center justify-center"
+        style={{ padding: `${SPACING_SCALE["2xl"]} ${SPACING_SCALE.md}` }}
+      >
+        <div className="max-w-md w-full flex flex-col gap-12">
           {/* Header */}
           <div className="text-center">
             <h2 className={`text-3xl font-bold mb-2 ${themeClasses.TEXT_PRIMARY}`}>
@@ -119,16 +119,15 @@ const Signup: React.FC = () => {
           </div>
 
           {/* Form */}
-          <div className="card-gradient rounded-xl p-8">
-            <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="card-gradient rounded-xl" style={{ padding: SPACING_SCALE.xl }}>
+            <form onSubmit={handleSubmit} className="flex flex-col gap-6">
               {error && (
-                <div className="bg-red-500/10 border border-red-500/20 text-red-400 px-4 py-3 rounded-lg text-sm">
+                <div className="bg-red-500/10 border border-red-500/20 text-red-400 rounded-lg text-sm p-3">
                   {error}
                 </div>
               )}
-
               {success && (
-                <div className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-4 py-3 rounded-lg text-sm">
+                <div className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-lg text-sm p-3">
                   {success}
                 </div>
               )}
@@ -150,7 +149,7 @@ const Signup: React.FC = () => {
                   />
                 </div>
                 {email && emailFeedback.length > 0 && (
-                  <ul className="mt-1 text-xs text-red-400 space-y-0.5">
+                  <ul className="text-xs text-red-400 mt-1 space-y-1">
                     {emailFeedback.map((msg, i) => (
                       <li key={i}>{msg}</li>
                     ))}
@@ -178,107 +177,46 @@ const Signup: React.FC = () => {
                     onClick={() => setShowPassword(!showPassword)}
                     className={`absolute right-3 top-1/2 transform -translate-y-1/2 ${themeClasses.TEXT_TERTIARY} hover:${themeClasses.TEXT_SECONDARY} transition-colors`}
                   >
-                    {showPassword ? (
-                      <EyeOff className="h-5 w-5" />
-                    ) : (
-                      <Eye className="h-5 w-5" />
-                    )}
+                    {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                   </button>
                 </div>
 
                 {/* Password Requirements */}
-                {password && (
-                  <div className="mt-2 space-y-1">
-                    <div
-                      className={`text-xs flex items-center ${
-                        passwordStrength.minLength
-                          ? "text-emerald-400"
-                          : themeClasses.TEXT_TERTIARY
-                      }`}
-                    >
-                      <div
-                        className={`w-1.5 h-1.5 rounded-full mr-2 ${
-                          passwordStrength.minLength
-                            ? "bg-emerald-400"
-                            : themeClasses.BG_TERTIARY
-                        }`}
-                      />
-                      At least 8 characters
-                    </div>
-                    <div
-                      className={`text-xs flex items-center ${
-                        passwordStrength.hasUpper
-                          ? "text-emerald-400"
-                          : themeClasses.TEXT_TERTIARY
-                      }`}
-                    >
-                      <div
-                        className={`w-1.5 h-1.5 rounded-full mr-2 ${
-                          passwordStrength.hasUpper
-                            ? "bg-emerald-400"
-                            : themeClasses.BG_TERTIARY
-                        }`}
-                      />
-                      One uppercase letter
-                    </div>
-                    <div
-                      className={`text-xs flex items-center ${
-                        passwordStrength.hasLower
-                          ? "text-emerald-400"
-                          : themeClasses.TEXT_TERTIARY
-                      }`}
-                    >
-                      <div
-                        className={`w-1.5 h-1.5 rounded-full mr-2 ${
-                          passwordStrength.hasLower
-                            ? "bg-emerald-400"
-                            : themeClasses.BG_TERTIARY
-                        }`}
-                      />
-                      One lowercase letter
-                    </div>
-                    <div
-                      className={`text-xs flex items-center ${
-                        passwordStrength.hasNumber
-                          ? "text-emerald-400"
-                          : themeClasses.TEXT_TERTIARY
-                      }`}
-                    >
-                      <div
-                        className={`w-1.5 h-1.5 rounded-full mr-2 ${
-                          passwordStrength.hasNumber
-                            ? "bg-emerald-400"
-                            : themeClasses.BG_TERTIARY
-                        }`}
-                      />
-                      One number
-                    </div>
-                  </div>
-                )}
+                <ul className="mt-2 space-y-1 text-xs">
+                  {[
+                    { label: "At least 8 characters", valid: passwordStrength.minLength },
+                    { label: "One uppercase letter", valid: passwordStrength.hasUpper },
+                    { label: "One lowercase letter", valid: passwordStrength.hasLower },
+                    { label: "One number", valid: passwordStrength.hasNumber },
+                  ].map(({ label, valid }, i) => (
+                    <li key={i} className={`flex items-center ${valid ? "text-emerald-400" : themeClasses.TEXT_TERTIARY}`}>
+                      <div className={`w-2 h-2 rounded-full mr-2 ${valid ? "bg-emerald-400" : themeClasses.BG_TERTIARY}`} />
+                      {label}
+                    </li>
+                  ))}
+                </ul>
 
-                {/* Password Strength */}
-                {password && (
-                  <div className="mt-2">
-                    <div className="flex items-center justify-between text-xs mb-1">
-                      <span className={themeClasses.TEXT_TERTIARY}>Strength:</span>
-                      <span className="text-emerald-400">{passwordLabel}</span>
-                    </div>
-                    <div className="w-full bg-slate-700 rounded-full h-2">
-                      <div
-                        className={`h-2 rounded-full transition-all duration-300 ${
-                          passwordScore <= 1
-                            ? "bg-red-500"
-                            : passwordScore <= 2
-                            ? "bg-yellow-500"
-                            : passwordScore <= 3
-                            ? "bg-blue-500"
-                            : "bg-emerald-500"
-                        }`}
-                        style={{ width: `${(passwordScore / 4) * 100}%` }}
-                      />
-                    </div>
+                {/* Password Strength Bar */}
+                <div className="mt-2">
+                  <div className="flex justify-between text-xs mb-1">
+                    <span className={themeClasses.TEXT_TERTIARY}>Strength:</span>
+                    <span className="text-emerald-400">{passwordLabel}</span>
                   </div>
-                )}
+                  <div className="w-full bg-slate-700 rounded-full h-2">
+                    <div
+                      className={`h-2 rounded-full ${
+                        passwordScore <= 1
+                          ? "bg-red-500"
+                          : passwordScore <= 2
+                          ? "bg-yellow-500"
+                          : passwordScore <= 3
+                          ? "bg-blue-500"
+                          : "bg-emerald-500"
+                      }`}
+                      style={{ width: `${(passwordScore / 4) * 100}%` }}
+                    />
+                  </div>
+                </div>
 
                 {password && passwordFeedback.length > 0 && (
                   <ul className="mt-1 text-xs text-red-400 space-y-0.5">
@@ -299,9 +237,7 @@ const Signup: React.FC = () => {
                   <input
                     type={showConfirmPassword ? "text" : "password"}
                     value={confirmPassword}
-                    onChange={(e) =>
-                      setConfirmPassword(DOMPurify.sanitize(e.target.value))
-                    }
+                    onChange={(e) => setConfirmPassword(DOMPurify.sanitize(e.target.value))}
                     className={`w-full pl-10 pr-12 py-3 ${themeClasses.BG_TERTIARY} border ${themeClasses.BORDER} rounded-lg ${themeClasses.TEXT_PRIMARY} placeholder-${themeClasses.TEXT_TERTIARY} focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all`}
                     placeholder="Confirm your password"
                     required
@@ -311,16 +247,12 @@ const Signup: React.FC = () => {
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                     className={`absolute right-3 top-1/2 transform -translate-y-1/2 ${themeClasses.TEXT_TERTIARY} hover:${themeClasses.TEXT_SECONDARY} transition-colors`}
                   >
-                    {showConfirmPassword ? (
-                      <EyeOff className="h-5 w-5" />
-                    ) : (
-                      <Eye className="h-5 w-5" />
-                    )}
+                    {showConfirmPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                   </button>
                 </div>
               </div>
 
-              {/* Submit Button */}
+              {/* Submit */}
               <button
                 type="submit"
                 disabled={isLoading}
@@ -337,7 +269,7 @@ const Signup: React.FC = () => {
               </button>
             </form>
 
-            {/* Sign In Link */}
+            {/* Redirect to Login */}
             <div className="mt-6 text-center">
               <p className={themeClasses.TEXT_TERTIARY}>
                 Already have an account?{" "}

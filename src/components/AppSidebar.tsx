@@ -14,6 +14,7 @@ import { useTheme } from "@/contexts/ThemeContext";
 import Logo from "@/components/ui/Logo";
 import SidebarFooter from "@/components/SidebarFooter";
 import { SIDEBAR_SECTIONS_CONFIG } from "@/components/layout/SidebarLinks";
+import { SPACING_SCALE } from "@/lib/constants";
 
 interface NavItemProps {
   href: string;
@@ -30,6 +31,11 @@ interface NavSectionProps {
   defaultOpen?: boolean;
   icon?: React.ComponentType<{ className?: string }>;
   sectionId: string;
+}
+
+interface AppSidebarProps {
+  isMobileOpen?: boolean;
+  setIsMobileOpen?: (open: boolean) => void;
 }
 
 const NavItem: React.FC<NavItemProps> = React.memo(
@@ -158,7 +164,10 @@ const NavSection: React.FC<NavSectionProps> = React.memo(
 );
 NavSection.displayName = "NavSection";
 
-const AppSidebar: React.FC = () => {
+const AppSidebar: React.FC<AppSidebarProps> = ({
+  isMobileOpen = false,
+  setIsMobileOpen,
+}) => {
   const { effectiveTheme } = useTheme();
   const themeClasses = getThemeClasses(effectiveTheme);
   const [isCollapsed, setIsCollapsed] = useLocalStorage(
@@ -176,66 +185,105 @@ const AppSidebar: React.FC = () => {
   const toggleSidebar = () => setIsCollapsed((v: boolean) => !v);
   const navSections = SIDEBAR_SECTIONS_CONFIG;
 
+  // Responsive sidebar logic
+  // Show as overlay on mobile, collapsible on tablet, expanded on desktop
   return (
-    <nav
-      className={cn(
-        `${themeClasses.BG_SIDEBAR} border-r ${themeClasses.BORDER} transition-all duration-300 flex flex-col h-screen flex-shrink-0 relative fixed left-0 top-0 z-30`,
-        isCollapsed ? "w-20" : "w-72"
+    <>
+      {/* Overlay for mobile */}
+      {isMobileOpen && (
+        <div
+          className="fixed inset-0 bg-black/40 z-40 md:hidden animate-fade-in"
+          onClick={() => setIsMobileOpen && setIsMobileOpen(false)}
+          aria-label="Close sidebar overlay"
+        />
       )}
-      role="navigation"
-      aria-label="Main sidebar navigation"
-    >
-      {/* Decorative gradient overlay */}
-      <div
-        className={`absolute inset-0 ${effectiveTheme === "dark" ? "bg-gradient-to-br from-emerald-500/5 via-transparent to-blue-500/5" : "bg-gradient-to-br from-emerald-500/2 via-transparent to-blue-500/2"} pointer-events-none`}
-      />
-      {/* Header Section */}
-      <div
-        className={`flex items-center justify-between px-4 py-4 border-b ${themeClasses.BORDER} relative z-10`}
+      <nav
+        className={cn(
+          `${themeClasses.BG_SIDEBAR} border-r ${themeClasses.BORDER} transition-all duration-300 flex flex-col h-screen flex-shrink-0 relative fixed left-0 top-0 z-50`,
+          isCollapsed ? "w-20" : "w-72",
+          isMobileOpen ? "block" : "hidden md:block"
+        )}
+        role="navigation"
+        aria-label="Main sidebar navigation"
+        style={{ maxWidth: 320 }}
       >
-        {isCollapsed ? <Logo size="md" showText={false} /> : <Logo size="md" />}
+        {/* Close button for mobile */}
         <button
-          onClick={toggleSidebar}
-          aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-          aria-expanded={!isCollapsed}
-          className={`p-2 rounded-lg ${themeClasses.BG_HOVER} transition-all duration-200 ${themeClasses.TEXT_TERTIARY} hover:${themeClasses.TEXT_PRIMARY} flex-shrink-0 focus:ring-2 focus:ring-emerald-400 focus:outline-none`}
-          tabIndex={0}
+          className="absolute top-4 right-4 md:hidden bg-emerald-500 text-white rounded-full shadow-lg touch-target"
+          style={{ minWidth: 44, minHeight: 44, padding: 12 }}
+          onClick={() => setIsMobileOpen && setIsMobileOpen(false)}
+          aria-label="Close menu"
+        >
+          <svg
+            width="24"
+            height="24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
+        {/* Decorative gradient overlay */}
+        <div
+          className={`absolute inset-0 ${effectiveTheme === "dark" ? "bg-gradient-to-br from-emerald-500/5 via-transparent to-blue-500/5" : "bg-gradient-to-br from-emerald-500/2 via-transparent to-blue-500/2"} pointer-events-none`}
+        />
+        {/* Header Section */}
+        <div
+          className={`flex items-center justify-between border-b ${themeClasses.BORDER} relative z-10`}
+          style={{ padding: `${SPACING_SCALE.md} ${SPACING_SCALE.md}` }}
         >
           {isCollapsed ? (
-            <ChevronRight className="h-5 w-5" />
+            <Logo size="md" showText={false} />
           ) : (
-            <ChevronLeft className="h-5 w-5" />
+            <Logo size="md" />
           )}
-        </button>
-      </div>
-      {/* Navigation */}
-      <ul className="flex-1 px-4 py-6 space-y-6 overflow-y-auto relative z-10 sidebar-list">
-        {navSections.map((section, sectionIdx) => {
-          const sectionId = `sidebar-section-${sectionIdx}`;
-          return (
-            <li key={section.title}>
-              <NavSection
-                title={section.title}
-                icon={section.icon}
-                isCollapsed={isCollapsed}
-                defaultOpen={true}
-                sectionId={sectionId}
-              >
-                <ul className="sidebar-nested-list">
-                  {section.items.map((item) => (
-                    <li key={item.href}>
-                      <NavItem {...item} isCollapsed={isCollapsed} />
-                    </li>
-                  ))}
-                </ul>
-              </NavSection>
-            </li>
-          );
-        })}
-      </ul>
-      {/* Footer Section */}
-      <SidebarFooter isCollapsed={isCollapsed} />
-    </nav>
+          <button
+            onClick={toggleSidebar}
+            aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+            aria-expanded={!isCollapsed}
+            className={`ml-2 p-2 rounded transition-colors duration-200 ${themeClasses.BG_HOVER} hover:${themeClasses.BG_ACTIVE}`}
+            style={{ marginLeft: SPACING_SCALE.xs }}
+          >
+            {isCollapsed ? (
+              <ChevronRight className="h-5 w-5" />
+            ) : (
+              <ChevronLeft className="h-5 w-5" />
+            )}
+          </button>
+        </div>
+        {/* Navigation */}
+        <ul className="flex-1 px-4 py-6 space-y-6 overflow-y-auto relative z-10 sidebar-list">
+          {navSections.map((section, sectionIdx) => {
+            const sectionId = `sidebar-section-${sectionIdx}`;
+            return (
+              <li key={section.title}>
+                <NavSection
+                  title={section.title}
+                  icon={section.icon}
+                  isCollapsed={isCollapsed}
+                  defaultOpen={true}
+                  sectionId={sectionId}
+                >
+                  <ul className="sidebar-nested-list">
+                    {section.items.map((item) => (
+                      <li key={item.href}>
+                        <NavItem {...item} isCollapsed={isCollapsed} />
+                      </li>
+                    ))}
+                  </ul>
+                </NavSection>
+              </li>
+            );
+          })}
+        </ul>
+        {/* Footer Section */}
+        <SidebarFooter isCollapsed={isCollapsed} />
+      </nav>
+    </>
   );
 };
 
