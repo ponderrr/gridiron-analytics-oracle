@@ -5,9 +5,7 @@
 -- BACKUP EXISTING DATA (optional)
 -- =============================
 
--- Create a backup of the existing draft_picks table
-CREATE TABLE IF NOT EXISTS draft_picks_backup AS 
-SELECT * FROM draft_picks;
+-- Note: No backup needed since draft_picks table doesn't exist yet
 
 -- =============================
 -- DROP AND RECREATE DRAFT_PICKS TABLE
@@ -71,9 +69,9 @@ INSERT INTO draft_picks (year, pick_type, display_name, description) VALUES
 -- ADD INDEXES
 -- =============================
 
-CREATE INDEX idx_draft_picks_year ON draft_picks(year);
-CREATE INDEX idx_draft_picks_active ON draft_picks(is_active) WHERE is_active = true;
-CREATE INDEX idx_draft_picks_year_active ON draft_picks(year, is_active) WHERE is_active = true;
+CREATE INDEX IF NOT EXISTS idx_draft_picks_year ON draft_picks(year);
+CREATE INDEX IF NOT EXISTS idx_draft_picks_active ON draft_picks(is_active) WHERE is_active = true;
+CREATE INDEX IF NOT EXISTS idx_draft_picks_year_active ON draft_picks(year, is_active) WHERE is_active = true;
 
 -- =============================
 -- ROW LEVEL SECURITY

@@ -6,7 +6,7 @@
 -- =============================
 
 -- Shared global player pool for Top 200 players
-CREATE TABLE top_players_pool (
+CREATE TABLE IF NOT EXISTS top_players_pool (
   id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
   week integer NOT NULL,
   season integer NOT NULL,
@@ -20,9 +20,9 @@ CREATE TABLE top_players_pool (
 );
 
 -- Add indexes for performance
-CREATE INDEX idx_top_players_pool_format_season_week ON top_players_pool(format, season, week);
-CREATE INDEX idx_top_players_pool_active ON top_players_pool(is_active) WHERE is_active = true;
-CREATE INDEX idx_top_players_pool_rank ON top_players_pool(consensus_rank);
+CREATE INDEX IF NOT EXISTS idx_top_players_pool_format_season_week ON top_players_pool(format, season, week);
+CREATE INDEX IF NOT EXISTS idx_top_players_pool_active ON top_players_pool(is_active) WHERE is_active = true;
+CREATE INDEX IF NOT EXISTS idx_top_players_pool_rank ON top_players_pool(consensus_rank);
 
 -- =============================
 -- DRAFT PICKS MANAGEMENT
@@ -36,12 +36,18 @@ CREATE INDEX idx_top_players_pool_rank ON top_players_pool(consensus_rank);
 -- =============================
 
 -- Add pool reference columns to user rankings
-ALTER TABLE user_rankings_players 
-ADD COLUMN pool_week integer,
-ADD COLUMN pool_season integer;
+DO $$ 
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'user_rankings_players' AND column_name = 'pool_week') THEN
+    ALTER TABLE user_rankings_players ADD COLUMN pool_week integer;
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'user_rankings_players' AND column_name = 'pool_season') THEN
+    ALTER TABLE user_rankings_players ADD COLUMN pool_season integer;
+  END IF;
+END $$;
 
 -- Add index for pool lookups
-CREATE INDEX idx_user_rankings_pool_ref ON user_rankings_players(pool_week, pool_season);
+CREATE INDEX IF NOT EXISTS idx_user_rankings_pool_ref ON user_rankings_players(pool_week, pool_season);
 
 -- =============================
 -- HELPER FUNCTIONS
