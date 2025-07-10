@@ -1,7 +1,6 @@
 import { renderHook, act } from "@testing-library/react";
 import { useTradeAnalysis } from "./useTradeAnalysis";
 
-// Helper function to create valid Player objects for testing
 const createTestPlayer = (
   id: string,
   name: string,

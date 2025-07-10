@@ -10,11 +10,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Player as DatabasePlayer, DraftPick } from "@/lib/database";
 
-// Re-export for compatibility
 export type { Player } from "@/lib/database";
 export type { DraftPick } from "@/lib/database";
 
-// Legacy interface for backward compatibility
 export interface RankedPlayer {
   player_id: string;
   overall_rank: number;

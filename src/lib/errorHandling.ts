@@ -77,7 +77,6 @@ export function formatErrorMessage(error: unknown): string {
 }
 
 export function getErrorType(error: AppError | AnyAppError): AppErrorType {
-  // Check for explicit type property first
   if (
     typeof error === "object" &&
     error &&

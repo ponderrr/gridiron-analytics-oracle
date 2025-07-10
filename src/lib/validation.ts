@@ -1,6 +1,4 @@
 import isEmail from "validator/lib/isEmail";
-// import isRFC5322 from "email-validator"; // Removed unused import
-import { formatErrorMessage } from "./errorHandling";
 
 // Email validation constants
 export const COMMON_EMAIL_DOMAINS = [

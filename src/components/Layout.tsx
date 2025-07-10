@@ -1,13 +1,11 @@
-import React, { useMemo, useCallback } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { Trophy } from "lucide-react";
+import React from "react";
+import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/contexts/ThemeContext";
 import AppSidebar from "@/components/AppSidebar";
 import ErrorBoundary from "./ErrorBoundary";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import { MESSAGE_CONSTANTS, getThemeClasses } from "@/lib/constants";
-import { THEME_CONSTANTS } from "@/lib/constants";
 import ThemeToggle from "@/components/ui/ThemeToggle";
 
 interface LayoutProps {

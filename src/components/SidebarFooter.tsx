@@ -1,4 +1,4 @@
-import React, { useMemo, useCallback } from "react";
+]import React, { useMemo, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { User, LogOut } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
@@ -11,8 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { MESSAGE_CONSTANTS, getThemeClasses } from "@/lib/constants";
-import { THEME_CONSTANTS } from "@/lib/constants";
+import { getThemeClasses } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
 interface SidebarFooterProps {
@@ -36,8 +35,7 @@ const SidebarFooter: React.FC<SidebarFooterProps> = ({
     }
   }, [logout, navigate]);
 
-  // Helper function to safely get user display name - memoized
-  const getUserDisplayName = useMemo(() => {
+  const userDisplayName = useMemo(() => {
     if (!user?.email) return "User";
     try {
       return user.email.split("@")[0] || "User";
@@ -47,8 +45,7 @@ const SidebarFooter: React.FC<SidebarFooterProps> = ({
     }
   }, [user?.email]);
 
-  // Helper function to safely get user email - memoized
-  const getUserEmail = useMemo(() => {
+  const userEmail = useMemo(() => {
     if (!user?.email) return "";
     return String(user.email);
   }, [user?.email]);
@@ -64,7 +61,6 @@ const SidebarFooter: React.FC<SidebarFooterProps> = ({
         )}
       >
         <div className="flex flex-col items-center space-y-3">
-          {/* Enhanced Theme Toggle */}
           <div className="relative group">
             <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/20 to-purple-500/20 rounded-lg blur opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
             <div className="relative">
@@ -72,7 +68,6 @@ const SidebarFooter: React.FC<SidebarFooterProps> = ({
             </div>
           </div>
 
-          {/* Enhanced Profile Icon */}
           <DropdownMenu>
             <DropdownMenuTrigger
               className={cn(
@@ -83,7 +78,6 @@ const SidebarFooter: React.FC<SidebarFooterProps> = ({
               )}
               aria-label="User menu"
             >
-              {/* Hover gradient effect */}
               <div
                 className={cn(
                   "absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300",
@@ -109,7 +103,7 @@ const SidebarFooter: React.FC<SidebarFooterProps> = ({
                   effectiveTheme === "dark" ? "text-slate-400" : "text-slate-500"
                 )}
               >
-                {getUserEmail}
+                {userEmail}
               </div>
               <DropdownMenuSeparator 
                 className={effectiveTheme === "dark" ? "bg-slate-700/50" : "bg-slate-200/50"} 
@@ -172,7 +166,6 @@ const SidebarFooter: React.FC<SidebarFooterProps> = ({
       )}
     >
       <div className="flex items-center justify-between">
-        {/* Enhanced Theme Toggle */}
         <div className="relative group">
           <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/20 to-purple-500/20 rounded-lg blur opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
           <div className="relative">
@@ -180,7 +173,6 @@ const SidebarFooter: React.FC<SidebarFooterProps> = ({
           </div>
         </div>
 
-        {/* Enhanced Profile Menu */}
         <DropdownMenu>
           <DropdownMenuTrigger
             className={cn(
@@ -190,7 +182,6 @@ const SidebarFooter: React.FC<SidebarFooterProps> = ({
                 : "bg-slate-100/50 hover:bg-slate-200/50 text-slate-600 hover:text-slate-900"
             )}
           >
-            {/* Hover gradient effect */}
             <div
               className={cn(
                 "absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300",
@@ -204,7 +195,7 @@ const SidebarFooter: React.FC<SidebarFooterProps> = ({
               "text-sm font-medium relative z-10",
               effectiveTheme === "dark" ? "text-slate-300" : "text-slate-600"
             )}>
-              {getUserDisplayName}
+              {userDisplayName}
             </span>
           </DropdownMenuTrigger>
           <DropdownMenuContent
@@ -222,7 +213,7 @@ const SidebarFooter: React.FC<SidebarFooterProps> = ({
                 effectiveTheme === "dark" ? "text-slate-400" : "text-slate-500"
               )}
             >
-              {getUserEmail}
+              {userEmail}
             </div>
             <DropdownMenuSeparator 
               className={effectiveTheme === "dark" ? "bg-slate-700/50" : "bg-slate-200/50"} 

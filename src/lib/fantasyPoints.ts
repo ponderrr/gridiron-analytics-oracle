@@ -114,11 +114,6 @@ export async function calculateFantasyPoints(
   }
 }
 
-/**
- * Synchronous calculation of fantasy points for a single player's weekly stats.
- * Calculates fantasy points locally without API calls. Can be used in any synchronous scenario (e.g., UI previews, tests, or local calculations).
- * Validates input and scoring settings to ensure robust error handling.
- */
 export function calculateFantasyPointsSync(
   stats: Partial<WeeklyStatsInput>,
   scoringSettings: ScoringSettings = DEFAULT_SCORING_SETTINGS.standard
