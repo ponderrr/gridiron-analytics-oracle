@@ -24,6 +24,7 @@ import { LoadingState } from "@/components/ui/common";
 import SyncStatusDashboard from "@/components/ui/monitoring/SyncStatusDashboard";
 import DataQualityMetrics from "@/components/ui/monitoring/DataQualityMetrics";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 const { ICON_SIZES } = THEME_CONSTANTS;
 
@@ -41,6 +42,8 @@ const Admin: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string>(ADMIN_TABS.DATA_SYNC);
   const [selectedWeek, setSelectedWeek] = useState<string>("1");
   const [selectedSeason, setSelectedSeason] = useState<string>("2024");
+  const [etlLoading, setEtlLoading] = useState(false);
+  const [etlResult, setEtlResult] = useState<string | null>(null);
 
   // Sync data hook
   const { playerSync, statsSync, syncPlayers, syncWeeklyStats } = useSyncData();
@@ -67,6 +70,26 @@ const Admin: React.FC = () => {
       toast.error("Stats sync failed. Please try again.");
       console.error(MESSAGE_CONSTANTS.ERROR_STATS_SYNC, error);
     }
+  };
+
+  // Handler for running the full weekly ETL
+  const handleRunWeeklyETL = async () => {
+    setEtlLoading(true);
+    setEtlResult(null);
+    try {
+      const { data, error } = await supabase.functions.invoke("weekly_refresh");
+      if (error) {
+        toast.error("Weekly ETL failed: " + error.message);
+        setEtlResult("Error: " + error.message);
+      } else {
+        toast.success("Weekly ETL started successfully!");
+        setEtlResult("Success! Weekly ETL started.");
+      }
+    } catch (err: any) {
+      toast.error("Weekly ETL failed: " + err.message);
+      setEtlResult("Error: " + err.message);
+    }
+    setEtlLoading(false);
   };
 
   const tabs = ADMIN_TABS_CONFIG;
@@ -288,6 +311,41 @@ const Admin: React.FC = () => {
                     </p>
                   </div>
                 )}
+              </div>
+
+              {/* Weekly Refresh ETL Section */}
+              <div className="bg-slate-900/50 rounded-lg p-6 border border-slate-700/50">
+                <h3 className="text-lg font-bold text-white mb-4 flex items-center">
+                  <RefreshCw
+                    className={`${ICON_SIZES.MD} mr-2 text-emerald-400`}
+                  />
+                  Run Full Weekly ETL
+                </h3>
+                <p className="text-slate-400 text-sm mb-4">
+                  This will run the full weekly ETL process (ADP, stats,
+                  players) and refresh all analytics data. Only use if you want
+                  to force a full refresh now.
+                </p>
+                <Button
+                  onClick={handleRunWeeklyETL}
+                  disabled={etlLoading}
+                  className="bg-emerald-700 hover:bg-emerald-800 text-white"
+                >
+                  {etlLoading ? (
+                    <>
+                      <span className="mr-2">
+                        <LoadingState size="sm" type="spinner" />
+                      </span>
+                      Running Weekly ETL...
+                    </>
+                  ) : (
+                    <>
+                      <RefreshCw className={`${ICON_SIZES.SM} mr-2`} />
+                      Run Weekly ETL
+                    </>
+                  )}
+                </Button>
+                {etlResult && <div className="mt-4 text-sm">{etlResult}</div>}
               </div>
             </div>
           )}
