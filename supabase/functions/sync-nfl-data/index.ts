@@ -19,10 +19,15 @@ class NFLDataSync extends ETLBase {
       }
 
       return run;
-    } catch (error) {
+    } catch (error: unknown) {
       run.status = "error";
-      run.error_message = error.message;
-      await this.handleErrors(error, "nfl-data-sync");
+      if (error instanceof Error) {
+        run.error_message = error.message;
+        await this.handleErrors(error, "nfl-data-sync");
+      } else {
+        run.error_message = String(error);
+        await this.handleErrors(new Error(String(error)), "nfl-data-sync");
+      }
       throw error;
     }
   }
@@ -43,7 +48,7 @@ class NFLDataSync extends ETLBase {
     const start = Date.now();
     const { error } = await this.supabase
       .from("sleeper_players_cache")
-      .upsert(playersData, { onConflict: ["player_id"] });
+      .upsert(playersData, { onConflict: "player_id" });
     const end = Date.now();
     const execution_time_ms = end - start;
 
@@ -58,8 +63,8 @@ class NFLDataSync extends ETLBase {
   }
 }
 
-// Main handler
-serve(async (req) => {
+
+serve(async () => {
   try {
     // Get environment variables
     const supabaseUrl = Deno.env.get("SUPABASE_URL");
@@ -92,7 +97,7 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({
         success: false,
-        error: error.message,
+        error: error instanceof Error ? error.message : String(error),
         timestamp: new Date().toISOString(),
       }),
       {

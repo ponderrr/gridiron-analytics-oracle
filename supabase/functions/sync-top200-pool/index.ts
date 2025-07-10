@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { ETLBase, SleeperAPI } from "../_shared/etl-utils.ts";
+import { ETLBase, SleeperAPI, SleeperPlayer } from "../_shared/etl-utils.ts";
 
 interface Top200Player {
   player_id: string;
@@ -47,7 +47,7 @@ class Top200PoolSync extends ETLBase {
       await this.deactivateOldPools(format);
 
       // Fetch Top 200 players from Sleeper API
-      const top200Players = await this.fetchTop200Players(format, currentWeek, currentSeason);
+      const top200Players = await this.fetchTop200Players(format);
 
       // Store in top_players_pool table
       await this.storeTop200Pool(top200Players, format, currentWeek, currentSeason);
@@ -59,12 +59,17 @@ class Top200PoolSync extends ETLBase {
     } catch (error) {
       console.error(`Error syncing Top 200 pool for ${format}:`, error);
       run.status = "error";
-      run.error_message = error.message;
+      if (error instanceof Error) {
+        run.error_message = error.message;
+      } else {
+        run.error_message = String(error);
+      }
       throw error;
     }
   }
 
-  private async fetchTop200Players(format: 'dynasty' | 'redraft', week: number, season: number): Promise<Top200Player[]> {
+  // Remove unused parameters 'week' and 'season'
+  private async fetchTop200Players(format: 'dynasty' | 'redraft'): Promise<Top200Player[]> {
     const players: Top200Player[] = [];
 
     try {
@@ -73,20 +78,20 @@ class Top200PoolSync extends ETLBase {
       
       // Filter active players only
       const activePlayers = Object.values(allPlayers).filter(
-        (player: any) => player.active && player.position && player.position !== 'DEF'
+        (player: SleeperPlayer) => player && player.position && player.position !== 'DEF'
       );
 
       // Sort by ADP (Average Draft Position) - this is a simplified approach
       // In a real implementation, you'd want to use actual ADP data from Sleeper
-      const sortedPlayers = activePlayers.sort((a: any, b: any) => {
+      const sortedPlayers = activePlayers.sort((a: SleeperPlayer, b: SleeperPlayer) => {
         // For now, use a simple heuristic based on position and team
         // This should be replaced with actual ADP data
-        const positionOrder = { 'QB': 1, 'RB': 2, 'WR': 3, 'TE': 4, 'K': 5 };
-        const aPos = positionOrder[a.position] || 6;
-        const bPos = positionOrder[b.position] || 6;
-        
+        const positionOrder: Record<string, number> = { 'QB': 1, 'RB': 2, 'WR': 3, 'TE': 4, 'K': 5 };
+        const aPos = positionOrder[String(a.position)] ?? 6;
+        const bPos = positionOrder[String(b.position)] ?? 6;
+
         if (aPos !== bPos) return aPos - bPos;
-        return a.name.localeCompare(b.name);
+        return String(a.full_name).localeCompare(String(b.full_name));
       });
 
       // Take top 200 players
@@ -143,7 +148,7 @@ class Top200PoolSync extends ETLBase {
       }
 
       // Transform draft picks to Top200Player format
-      data?.forEach((pick: any) => {
+      data?.forEach((pick: { id: string; display_name: string; year: number; pick_type: string; description: string }) => {
         picks.push({
           player_id: `draft_pick_${pick.id}`,
           name: pick.display_name,
@@ -239,7 +244,6 @@ serve(async (req) => {
     // Initialize and run sync
     const sync = new Top200PoolSync(supabaseUrl, supabaseServiceKey);
     const result = await sync.syncTop200Pool(format as 'dynasty' | 'redraft', week, season);
-    await sync.logTop200ETLRun(result);
 
     return new Response(
       JSON.stringify({
@@ -262,7 +266,7 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({
         success: false,
-        error: error.message,
+        error: error instanceof Error ? error.message : String(error),
         timestamp: new Date().toISOString(),
       }),
       {
