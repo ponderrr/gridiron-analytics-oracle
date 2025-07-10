@@ -1,4 +1,4 @@
-]import React, { useMemo, useCallback } from "react";
+import React, { useMemo, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { User, LogOut } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
