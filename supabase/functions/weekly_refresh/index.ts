@@ -1,5 +1,5 @@
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createHash } from "https://deno.land/std@0.168.0/hash/mod.ts";
+import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
+import { createHash } from "https://deno.land/std@0.224.0/crypto/mod.ts";
 import {
   ETLBase,
   ETLRun,
