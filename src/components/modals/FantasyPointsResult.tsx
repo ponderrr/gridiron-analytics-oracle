@@ -4,7 +4,6 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { type FantasyPointsResult } from "@/lib/fantasyPoints";
-import { getThemeClasses } from "@/lib/constants";
 import { useTheme } from "@/contexts/ThemeContext";
 
 interface FantasyPointsResultModalProps {
@@ -18,7 +17,6 @@ export const FantasyPointsResultModal: React.FC<
   FantasyPointsResultModalProps
 > = ({ isOpen, onClose, result, scoringFormat }) => {
   const { effectiveTheme } = useTheme();
-  const themeClasses = getThemeClasses(effectiveTheme);
 
   if (!isOpen || !result) return null;
 
@@ -42,13 +40,13 @@ export const FantasyPointsResultModal: React.FC<
       tabIndex={-1}
     >
       <Card
-        className={`w-full max-w-2xl max-h-[90vh] overflow-y-auto ${themeClasses.BG_CARD} border ${themeClasses.BORDER} shadow-2xl`}
+        className={`w-full max-w-2xl max-h-[90vh] overflow-y-auto bg-[var(--color-bg-card)] border border-[var(--color-border)] shadow-2xl`}
       >
         {/* Header */}
         <div
-          className={`flex items-center justify-between p-6 border-b ${themeClasses.BORDER}`}
+          className={`flex items-center justify-between p-6 border-b border-[var(--color-border)]`}
         >
-          <h2 className={`text-xl font-bold ${themeClasses.TEXT_PRIMARY}`}>
+          <h2 className={`text-xl font-bold text-[var(--color-text-primary)]`}>
             Fantasy Points Result
           </h2>
           <Button
@@ -65,59 +63,67 @@ export const FantasyPointsResultModal: React.FC<
         <div className="p-6 space-y-6">
           {/* Total Points */}
           <div
-            className={`text-center p-8 ${themeClasses.BG_SECONDARY} rounded-xl`}
+            className={`text-center p-8 bg-[var(--color-bg-secondary)] rounded-xl`}
           >
             <div className="text-5xl font-bold text-emerald-400 mb-2">
               {result.total_points}
             </div>
-            <p className={themeClasses.TEXT_TERTIARY}>
+            <p className={`text-[var(--color-text-tertiary)]`}>
               Total Fantasy Points ({result.scoring_format})
             </p>
           </div>
 
-          <Separator className={themeClasses.BORDER} />
+          <Separator className={`border-[var(--color-border)]`} />
 
           {/* Points Breakdown */}
           <div className="space-y-4">
             <h3
-              className={`text-lg font-semibold ${themeClasses.TEXT_PRIMARY}`}
+              className={`text-lg font-semibold text-[var(--color-text-primary)]`}
             >
               Points Breakdown
             </h3>
 
             <div className="grid grid-cols-2 gap-4">
-              <div className={`${themeClasses.BG_SECONDARY} p-4 rounded-lg`}>
+              <div className={`bg-[var(--color-bg-secondary)] p-4 rounded-lg`}>
                 <div className="flex justify-between items-center">
-                  <span className={themeClasses.TEXT_TERTIARY}>Passing</span>
+                  <span className={`text-[var(--color-text-tertiary)]`}>
+                    Passing
+                  </span>
                   <span className="text-emerald-400 font-medium text-lg">
                     {result.breakdown.passing_points}
                   </span>
                 </div>
               </div>
-              <div className={`${themeClasses.BG_SECONDARY} p-4 rounded-lg`}>
+              <div className={`bg-[var(--color-bg-secondary)] p-4 rounded-lg`}>
                 <div className="flex justify-between items-center">
-                  <span className={themeClasses.TEXT_TERTIARY}>Rushing</span>
+                  <span className={`text-[var(--color-text-tertiary)]`}>
+                    Rushing
+                  </span>
                   <span className="text-blue-400 font-medium text-lg">
                     {result.breakdown.rushing_points}
                   </span>
                 </div>
               </div>
-              <div className={`${themeClasses.BG_SECONDARY} p-4 rounded-lg`}>
+              <div className={`bg-[var(--color-bg-secondary)] p-4 rounded-lg`}>
                 <div className="flex justify-between items-center">
-                  <span className={themeClasses.TEXT_TERTIARY}>Receiving</span>
+                  <span className={`text-[var(--color-text-tertiary)]`}>
+                    Receiving
+                  </span>
                   <span className="text-purple-400 font-medium text-lg">
                     {result.breakdown.receiving_points}
                   </span>
                 </div>
               </div>
-              <div className={`${themeClasses.BG_SECONDARY} p-4 rounded-lg`}>
+              <div className={`bg-[var(--color-bg-secondary)] p-4 rounded-lg`}>
                 <div className="flex justify-between items-center">
-                  <span className={themeClasses.TEXT_TERTIARY}>Penalties</span>
+                  <span className={`text-[var(--color-text-tertiary)]`}>
+                    Penalties
+                  </span>
                   <span
                     className={`font-medium text-lg ${
                       result.breakdown.penalty_points < 0
                         ? "text-red-400"
-                        : themeClasses.TEXT_PRIMARY
+                        : "text-[var(--color-text-primary)]"
                     }`}
                   >
                     {result.breakdown.penalty_points}
@@ -127,16 +133,20 @@ export const FantasyPointsResultModal: React.FC<
             </div>
           </div>
 
-          <Separator className={themeClasses.BORDER} />
+          <Separator className={`border-[var(--color-border)]`} />
 
           {/* Scoring Rules */}
           <div
-            className={`space-y-3 ${themeClasses.BG_SECONDARY} p-4 rounded-lg`}
+            className={`space-y-3 bg-[var(--color-bg-secondary)] p-4 rounded-lg`}
           >
-            <p className={`text-sm font-semibold ${themeClasses.TEXT_PRIMARY}`}>
+            <p
+              className={`text-sm font-semibold text-[var(--color-text-primary)]`}
+            >
               Scoring Rules:
             </p>
-            <div className={`space-y-2 text-xs ${themeClasses.TEXT_TERTIARY}`}>
+            <div
+              className={`space-y-2 text-xs text-[var(--color-text-tertiary)]`}
+            >
               <p>• Passing: 1 pt/25 yds, 6 pts/TD, -2 pts/INT</p>
               <p>• Rushing/Receiving: 1 pt/10 yds, 6 pts/TD</p>
               <p>
@@ -153,7 +163,9 @@ export const FantasyPointsResultModal: React.FC<
         </div>
 
         {/* Footer */}
-        <div className={`flex justify-end p-6 border-t ${themeClasses.BORDER}`}>
+        <div
+          className={`flex justify-end p-6 border-t border-[var(--color-border)]`}
+        >
           <Button onClick={onClose} variant="outline">
             Close
           </Button>

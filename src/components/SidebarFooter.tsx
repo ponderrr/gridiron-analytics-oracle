@@ -11,7 +11,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { getThemeClasses } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
 interface SidebarFooterProps {
@@ -24,7 +23,6 @@ const SidebarFooter: React.FC<SidebarFooterProps> = ({
   const { user, logout } = useAuth();
   const { effectiveTheme } = useTheme();
   const navigate = useNavigate();
-  const themeClasses = getThemeClasses(effectiveTheme);
 
   const handleLogout = useCallback(async () => {
     try {
@@ -100,13 +98,19 @@ const SidebarFooter: React.FC<SidebarFooterProps> = ({
               <div
                 className={cn(
                   "px-2 py-1.5 text-sm",
-                  effectiveTheme === "dark" ? "text-slate-400" : "text-slate-500"
+                  effectiveTheme === "dark"
+                    ? "text-slate-400"
+                    : "text-slate-500"
                 )}
               >
                 {userEmail}
               </div>
-              <DropdownMenuSeparator 
-                className={effectiveTheme === "dark" ? "bg-slate-700/50" : "bg-slate-200/50"} 
+              <DropdownMenuSeparator
+                className={
+                  effectiveTheme === "dark"
+                    ? "bg-slate-700/50"
+                    : "bg-slate-200/50"
+                }
               />
               <DropdownMenuItem asChild>
                 <Link
@@ -134,8 +138,12 @@ const SidebarFooter: React.FC<SidebarFooterProps> = ({
                   Settings
                 </Link>
               </DropdownMenuItem>
-              <DropdownMenuSeparator 
-                className={effectiveTheme === "dark" ? "bg-slate-700/50" : "bg-slate-200/50"} 
+              <DropdownMenuSeparator
+                className={
+                  effectiveTheme === "dark"
+                    ? "bg-slate-700/50"
+                    : "bg-slate-200/50"
+                }
               />
               <DropdownMenuItem
                 onClick={handleLogout}
@@ -190,11 +198,15 @@ const SidebarFooter: React.FC<SidebarFooterProps> = ({
                   : "bg-gradient-to-r from-slate-200/80 via-slate-100/80 to-slate-200/80"
               )}
             />
-            <User className={`h-4 w-4 relative z-10 ${effectiveTheme === "dark" ? "text-slate-300" : "text-slate-600"}`} />
-            <span className={cn(
-              "text-sm font-medium relative z-10",
-              effectiveTheme === "dark" ? "text-slate-300" : "text-slate-600"
-            )}>
+            <User
+              className={`h-4 w-4 relative z-10 ${effectiveTheme === "dark" ? "text-slate-300" : "text-slate-600"}`}
+            />
+            <span
+              className={cn(
+                "text-sm font-medium relative z-10",
+                effectiveTheme === "dark" ? "text-slate-300" : "text-slate-600"
+              )}
+            >
               {userDisplayName}
             </span>
           </DropdownMenuTrigger>
@@ -215,8 +227,12 @@ const SidebarFooter: React.FC<SidebarFooterProps> = ({
             >
               {userEmail}
             </div>
-            <DropdownMenuSeparator 
-              className={effectiveTheme === "dark" ? "bg-slate-700/50" : "bg-slate-200/50"} 
+            <DropdownMenuSeparator
+              className={
+                effectiveTheme === "dark"
+                  ? "bg-slate-700/50"
+                  : "bg-slate-200/50"
+              }
             />
             <DropdownMenuItem asChild>
               <Link
@@ -244,8 +260,12 @@ const SidebarFooter: React.FC<SidebarFooterProps> = ({
                 Settings
               </Link>
             </DropdownMenuItem>
-            <DropdownMenuSeparator 
-              className={effectiveTheme === "dark" ? "bg-slate-700/50" : "bg-slate-200/50"} 
+            <DropdownMenuSeparator
+              className={
+                effectiveTheme === "dark"
+                  ? "bg-slate-700/50"
+                  : "bg-slate-200/50"
+              }
             />
             <DropdownMenuItem
               onClick={handleLogout}

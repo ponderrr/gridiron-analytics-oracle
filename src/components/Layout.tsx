@@ -5,7 +5,6 @@ import { useTheme } from "@/contexts/ThemeContext";
 import AppSidebar from "@/components/AppSidebar";
 import ErrorBoundary from "./ErrorBoundary";
 import LoadingSpinner from "@/components/LoadingSpinner";
-import { MESSAGE_CONSTANTS, getThemeClasses } from "@/lib/constants";
 import ThemeToggle from "@/components/ui/ThemeToggle";
 
 interface LayoutProps {
@@ -15,26 +14,25 @@ interface LayoutProps {
 // Sidebar skeleton loader - moved outside to prevent recreation on every render
 const SidebarSkeleton = React.memo(() => {
   const { effectiveTheme } = useTheme();
-  const themeClasses = getThemeClasses(effectiveTheme);
 
   return (
     <div
-      className={`${themeClasses.BG_SIDEBAR} border-r ${themeClasses.BORDER} w-64 flex flex-col h-screen animate-pulse fixed left-0 top-0 z-30`}
+      className={`bg-[var(--color-bg-sidebar)] border-r border-[var(--color-border)] w-64 flex flex-col h-screen animate-pulse fixed left-0 top-0 z-30`}
     >
       <div className="flex items-center justify-between px-4 py-3">
         <div className="bg-emerald-500 p-2 rounded-md w-10 h-10" />
-        <div className={`rounded-md ${themeClasses.BG_TERTIARY} w-8 h-8`} />
+        <div className={`rounded-md bg-[var(--color-bg-tertiary)] w-8 h-8`} />
       </div>
       <div className="flex-1 px-4 py-4 space-y-4">
         {[...Array(7)].map((_, i) => (
           <div
             key={i}
-            className={`h-8 ${themeClasses.BG_TERTIARY} rounded-md w-full`}
+            className={`h-8 bg-[var(--color-bg-tertiary)] rounded-md w-full`}
           />
         ))}
       </div>
-      <div className={`px-4 py-3 border-t ${themeClasses.BORDER}`}>
-        <div className={`h-4 ${themeClasses.BG_TERTIARY} rounded w-1/2`} />
+      <div className={`px-4 py-3 border-t border-[var(--color-border)`}>
+        <div className={`h-4 bg-[var(--color-bg-tertiary)] rounded w-1/2`} />
       </div>
     </div>
   );
@@ -45,28 +43,27 @@ SidebarSkeleton.displayName = "SidebarSkeleton";
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   const { user, isLoading, authError } = useAuth();
   const { effectiveTheme } = useTheme();
-  const themeClasses = getThemeClasses(effectiveTheme);
 
   // Error state for auth failures
   if (authError) {
     return (
       <div
-        className={`min-h-screen flex items-center justify-center ${themeClasses.BG_PRIMARY}`}
+        className={`min-h-screen flex items-center justify-center bg-[var(--color-bg-primary)]`}
       >
         <div
-          className={`${themeClasses.BG_CARD} border ${themeClasses.BORDER} rounded-lg p-8 flex flex-col items-center`}
+          className={`bg-[var(--color-bg-card)] border border-[var(--color-border)] rounded-lg p-8 flex flex-col items-center`}
         >
           <div className="text-red-400 font-bold text-lg mb-2">
-            {MESSAGE_CONSTANTS.ERROR_AUTH}
+            Authentication Error
           </div>
-          <div className={`${themeClasses.TEXT_TERTIARY} mb-4`}>
+          <div className={`text-[var(--color-text-tertiary)] mb-4`}>
             {authError?.message || "An authentication error occurred"}
           </div>
           <button
             className="btn-primary px-6 py-2 rounded font-semibold"
             onClick={() => window.location.reload()}
           >
-            {MESSAGE_CONSTANTS.RETRY_LABEL}
+            Retry
           </button>
         </div>
       </div>
@@ -76,7 +73,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   // Loading state for auth initialization
   if (isLoading) {
     return (
-      <div className={`min-h-screen flex w-full ${themeClasses.BG_PRIMARY}`}>
+      <div className={`min-h-screen flex w-full bg-[var(--color-bg-primary)]`}>
         <SidebarSkeleton />
         <div
           className="flex-1 flex items-center justify-center"
@@ -91,7 +88,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   if (!!user) {
     return (
       <ErrorBoundary>
-        <div className={`min-h-screen ${themeClasses.BG_PRIMARY}`}>
+        <div className={`min-h-screen bg-[var(--color-bg-primary)]`}>
           <AppSidebar />
 
           {/* Main content area with margin to account for fixed sidebar */}
@@ -106,10 +103,10 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
             {/* Site-wide Footer */}
             <footer
-              className={`${themeClasses.BG_SECONDARY} border-t ${themeClasses.BORDER} py-4 px-4 sm:px-6 lg:px-8`}
+              className={`bg-[var(--color-bg-secondary)] border-t border-[var(--color-border)] py-4 px-4 sm:px-6 lg:px-8`}
             >
               <div className="text-center">
-                <p className={`${themeClasses.TEXT_TERTIARY} text-sm`}>
+                <p className={`text-[var(--color-text-tertiary)] text-sm`}>
                   © 2025 FF Meta — All rights reserved.
                 </p>
               </div>
@@ -122,7 +119,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
 
   // Public layout for non-authenticated users
   return (
-    <div className={`min-h-screen ${themeClasses.BG_PRIMARY}`}>
+    <div className={`min-h-screen bg-[var(--color-bg-primary)]`}>
       {/* Transparent Navbar */}
       <header className="sticky top-0 z-50 w-full">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -133,15 +130,21 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
                 <img src="/logo.svg" alt="FF Meta Logo" className="h-6 w-6" />
               </div>
               <div>
-                <h1 className={`text-xl font-bold ${themeClasses.TEXT_PRIMARY}`}>{MESSAGE_CONSTANTS.APP_NAME}</h1>
-                <p className="text-xs text-indigo-400 -mt-1">{MESSAGE_CONSTANTS.APP_TAGLINE}</p>
+                <h1
+                  className={`text-xl font-bold text-[var(--color-text-primary)]`}
+                >
+                  FF Meta
+                </h1>
+                <p className="text-xs text-indigo-400 -mt-1">
+                  Your digital garden.
+                </p>
               </div>
             </Link>
             {/* Navigation */}
             <nav className="flex items-center space-x-4">
               <Link
                 to="/auth"
-                className={`${themeClasses.TEXT_SECONDARY} hover:${themeClasses.TEXT_PRIMARY} px-4 py-2 rounded-full text-sm font-medium transition-colors hover:${themeClasses.BG_HOVER}`}
+                className={`text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] px-4 py-2 rounded-full text-sm font-medium transition-colors hover:bg-[var(--color-bg-hover)]`}
               >
                 Sign In
               </Link>
@@ -157,7 +160,9 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
       {/* Simple Footer (no pill/rounded) */}
       <footer className={`w-full py-6 mt-auto bg-transparent`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-center items-center text-sm">
-          <span className={`${themeClasses.TEXT_TERTIARY}`}>© 2025 FF Meta</span>
+          <span className={`text-[var(--color-text-tertiary)]`}>
+            © 2025 FF Meta
+          </span>
         </div>
       </footer>
     </div>

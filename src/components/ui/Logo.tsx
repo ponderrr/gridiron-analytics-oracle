@@ -1,7 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { useTheme } from "@/contexts/ThemeContext";
-import { getThemeClasses } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
 interface LogoProps {
@@ -16,7 +15,6 @@ const Logo: React.FC<LogoProps> = ({
   size = "md",
 }) => {
   const { effectiveTheme } = useTheme();
-  const themeClasses = getThemeClasses(effectiveTheme);
 
   const sizeClasses = {
     sm: "w-6 h-6",
@@ -31,7 +29,9 @@ const Logo: React.FC<LogoProps> = ({
   };
 
   const logoContent = (
-    <div className={cn("flex items-center space-x-3 relative group", className)}>
+    <div
+      className={cn("flex items-center space-x-3 relative group", className)}
+    >
       {/* Enhanced logo container with gradient effect */}
       <div className="relative">
         {/* Gradient background for logo */}
@@ -43,7 +43,7 @@ const Logo: React.FC<LogoProps> = ({
               : "bg-gradient-to-br from-indigo-500/10 to-purple-500/10"
           )}
         />
-        
+
         {/* External SVG Logo */}
         <img
           src="/logo.svg"
@@ -72,7 +72,7 @@ const Logo: React.FC<LogoProps> = ({
           >
             FF META
           </span>
-          
+
           {/* Subtle glow effect on hover */}
           <div
             className={cn(
@@ -95,9 +95,9 @@ const Logo: React.FC<LogoProps> = ({
 
   // Return with link to home
   return (
-    <Link 
-      to="/" 
-      className="group transition-all duration-300 hover:scale-105" 
+    <Link
+      to="/"
+      className="group transition-all duration-300 hover:scale-105"
       aria-label="Go to dashboard home"
     >
       {logoContent}

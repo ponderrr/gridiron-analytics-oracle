@@ -11,7 +11,6 @@ import {
   Wrench,
   Layout,
 } from "lucide-react";
-import { MESSAGE_CONSTANTS } from "@/lib/constants";
 
 export interface SidebarItem {
   href: string;
@@ -28,61 +27,61 @@ export interface SidebarSection {
 
 export const SIDEBAR_SECTIONS_CONFIG: SidebarSection[] = [
   {
-    title: MESSAGE_CONSTANTS.NAV_SECTIONS.MAIN,
+    title: "Main",
     icon: Layout,
     items: [
       {
-        href: MESSAGE_CONSTANTS.NAV_PATHS.DASHBOARD,
+        href: "/dashboard",
         icon: Home,
-        label: MESSAGE_CONSTANTS.NAV_ITEMS.DASHBOARD,
+        label: "Dashboard",
       },
     ],
   },
   {
-    title: MESSAGE_CONSTANTS.NAV_SECTIONS.ANALYSIS,
+    title: "Analysis",
     icon: BarChart3,
     items: [
       {
-        href: MESSAGE_CONSTANTS.NAV_PATHS.PLAYERS,
+        href: "/players",
         icon: Users,
-        label: MESSAGE_CONSTANTS.NAV_ITEMS.PLAYERS,
+        label: "Players",
       },
       {
-        href: MESSAGE_CONSTANTS.NAV_PATHS.ANALYTICS,
+        href: "/analytics",
         icon: TrendingUp,
-        label: MESSAGE_CONSTANTS.NAV_ITEMS.ANALYTICS,
+        label: "Analytics",
       },
       {
-        href: MESSAGE_CONSTANTS.NAV_PATHS.TRADE_ANALYZER,
+        href: "/trade-analyzer",
         icon: ArrowLeftRight,
-        label: MESSAGE_CONSTANTS.NAV_ITEMS.TRADE_ANALYZER,
+        label: "Trade Analyzer",
       },
     ],
   },
   {
-    title: MESSAGE_CONSTANTS.NAV_SECTIONS.MANAGEMENT,
+    title: "Management",
     icon: Target,
     items: [
       {
-        href: MESSAGE_CONSTANTS.NAV_PATHS.ADMIN,
+        href: "/admin",
         icon: Shield,
-        label: MESSAGE_CONSTANTS.NAV_ITEMS.ADMIN_PANEL,
+        label: "Admin Panel",
       },
     ],
   },
   {
-    title: MESSAGE_CONSTANTS.NAV_SECTIONS.TOOLS,
+    title: "Tools",
     icon: Wrench,
     items: [
       {
-        href: MESSAGE_CONSTANTS.NAV_PATHS.FANTASY_POINTS_TEST,
+        href: "/fantasy-points-test",
         icon: Calculator,
-        label: MESSAGE_CONSTANTS.NAV_ITEMS.POINTS_CALCULATOR,
+        label: "Points Calculator",
       },
       {
-        href: MESSAGE_CONSTANTS.NAV_PATHS.SETTINGS,
+        href: "/settings",
         icon: Settings,
-        label: MESSAGE_CONSTANTS.NAV_ITEMS.SETTINGS,
+        label: "Settings",
       },
     ],
   },

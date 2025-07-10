@@ -7,14 +7,11 @@ import {
   ChevronUp,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { MESSAGE_CONSTANTS, getThemeClasses } from "@/lib/constants";
 import useLocalStorage from "@/hooks/useLocalStorage";
-import { THEME_CONSTANTS } from "@/lib/constants";
 import { useTheme } from "@/contexts/ThemeContext";
 import Logo from "@/components/ui/Logo";
 import SidebarFooter from "@/components/SidebarFooter";
 import { SIDEBAR_SECTIONS_CONFIG } from "@/components/layout/SidebarLinks";
-import { SPACING_SCALE } from "@/lib/constants";
 
 interface NavItemProps {
   href: string;
@@ -42,7 +39,6 @@ const NavItem: React.FC<NavItemProps> = React.memo(
   ({ href, icon: Icon, label, comingSoon, isCollapsed }) => {
     const { pathname } = useLocation();
     const { effectiveTheme } = useTheme();
-    const themeClasses = getThemeClasses(effectiveTheme);
     const isActive = pathname === href;
 
     if (isCollapsed) {
@@ -53,7 +49,7 @@ const NavItem: React.FC<NavItemProps> = React.memo(
             "flex items-center justify-center p-3 rounded-xl transition-all duration-300 group relative overflow-hidden",
             isActive
               ? "bg-gradient-to-br from-indigo-500/20 to-purple-500/20 border border-indigo-500/30 text-indigo-400 shadow-lg shadow-indigo-500/25"
-              : `${themeClasses.TEXT_TERTIARY} hover:text-white hover:bg-gradient-to-br hover:from-slate-700/50 hover:to-slate-600/50`
+              : `text-[var(--color-text-tertiary)] hover:text-white hover:bg-gradient-to-br hover:from-slate-700/50 hover:to-slate-600/50`
           )}
           title={label}
           aria-label={label}
@@ -64,9 +60,9 @@ const NavItem: React.FC<NavItemProps> = React.memo(
           {isActive && (
             <div className="absolute inset-0 bg-gradient-to-br from-indigo-400/20 to-purple-400/20 animate-pulse rounded-xl" />
           )}
-          
+
           <Icon className="h-5 w-5 relative z-10" />
-          
+
           {comingSoon && (
             <div className="absolute -top-1 -right-1 w-2 h-2 bg-yellow-400 rounded-full animate-pulse" />
           )}
@@ -81,7 +77,7 @@ const NavItem: React.FC<NavItemProps> = React.memo(
           "flex items-center px-4 py-3 rounded-xl text-sm font-medium transition-all duration-300 group relative overflow-hidden",
           isActive
             ? "bg-gradient-to-r from-indigo-500/15 via-purple-500/10 to-violet-500/15 border border-indigo-500/30 text-indigo-400 shadow-lg shadow-indigo-500/20"
-            : `${themeClasses.TEXT_TERTIARY} hover:text-white hover:bg-gradient-to-r hover:from-slate-700/40 hover:via-slate-600/40 hover:to-slate-700/40`
+            : `text-[var(--color-text-tertiary)] hover:text-white hover:bg-gradient-to-r hover:from-slate-700/40 hover:via-slate-600/40 hover:to-slate-700/40`
         )}
         aria-label={label}
         aria-current={isActive ? "page" : undefined}
@@ -91,7 +87,7 @@ const NavItem: React.FC<NavItemProps> = React.memo(
         <div
           className={cn(
             "absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300",
-            effectiveTheme === "dark" 
+            effectiveTheme === "dark"
               ? "bg-gradient-to-r from-slate-700/60 via-slate-600/60 to-slate-700/60"
               : "bg-gradient-to-r from-slate-100/80 via-slate-50/80 to-slate-100/80"
           )}
@@ -104,10 +100,10 @@ const NavItem: React.FC<NavItemProps> = React.memo(
 
         <Icon className="h-5 w-5 mr-3 flex-shrink-0 relative z-10" />
         <span className="truncate relative z-10 font-medium">{label}</span>
-        
+
         {comingSoon && (
           <span className="ml-auto text-xs bg-yellow-500/20 text-yellow-400 px-2 py-1 rounded-full flex-shrink-0 relative z-10 border border-yellow-500/30">
-            {MESSAGE_CONSTANTS.SOON_LABEL}
+            SOON
           </span>
         )}
       </Link>
@@ -127,7 +123,6 @@ const NavSection: React.FC<NavSectionProps> = React.memo(
   }) => {
     const [isOpen, setIsOpen] = useState(defaultOpen);
     const { effectiveTheme } = useTheme();
-    const themeClasses = getThemeClasses(effectiveTheme);
     const handleToggle = () => setIsOpen((open) => !open);
 
     if (isCollapsed) {
@@ -135,7 +130,7 @@ const NavSection: React.FC<NavSectionProps> = React.memo(
         <div className="space-y-2">
           {Icon && (
             <div
-              className={`flex items-center justify-center p-2 ${themeClasses.TEXT_MUTED} opacity-60`}
+              className={`flex items-center justify-center p-2 text-[var(--color-text-muted)] opacity-60`}
             >
               <Icon className="h-4 w-4" />
             </div>
@@ -149,25 +144,34 @@ const NavSection: React.FC<NavSectionProps> = React.memo(
       <div className="space-y-2">
         <button
           onClick={handleToggle}
-          className={`flex items-center justify-between w-full px-3 py-2 text-xs font-bold ${themeClasses.TEXT_MUTED} uppercase tracking-wider hover:${themeClasses.TEXT_TERTIARY} transition-all duration-200 group`}
+          className={`flex items-center justify-between w-full px-3 py-2 text-xs font-bold text-[var(--color-text-muted)] uppercase tracking-wider hover:text-[var(--color-text-tertiary)] transition-all duration-200 group`}
           aria-controls={sectionId}
           aria-expanded={isOpen}
         >
           <div className="flex items-center">
             {Icon && (
-              <Icon className={`h-4 w-4 mr-2 transition-colors duration-200 group-hover:text-indigo-400 ${isOpen ? 'text-indigo-400' : ''}`} />
+              <Icon
+                className={cn(
+                  "h-4 w-4 mr-2 transition-colors duration-200 group-hover:text-indigo-400",
+                  isOpen ? "text-indigo-400" : ""
+                )}
+              />
             )}
-            <span className={cn(
-              "transition-colors duration-200",
-              isOpen ? "text-indigo-400" : ""
-            )}>
+            <span
+              className={cn(
+                "transition-colors duration-200",
+                isOpen ? "text-indigo-400" : ""
+              )}
+            >
               {title}
             </span>
           </div>
-          <div className={cn(
-            "transition-transform duration-200",
-            isOpen ? "rotate-180" : ""
-          )}>
+          <div
+            className={cn(
+              "transition-transform duration-200",
+              isOpen ? "rotate-180" : ""
+            )}
+          >
             <ChevronDown className="h-3 w-3" />
           </div>
         </button>
@@ -190,21 +194,20 @@ const AppSidebar: React.FC<AppSidebarProps> = ({
   setIsMobileOpen,
 }) => {
   const { effectiveTheme } = useTheme();
-  const themeClasses = getThemeClasses(effectiveTheme);
   const [isCollapsed, setIsCollapsed] = useLocalStorage(
     "sidebar-collapsed",
     false
   );
-  
+
   useEffect(() => {
     document.documentElement.style.setProperty(
       "--sidebar-width",
       isCollapsed
-        ? THEME_CONSTANTS.SIDEBAR_COLLAPSED_WIDTH_CSS_PX
-        : THEME_CONSTANTS.SIDEBAR_EXPANDED_WIDTH_PX
+        ? "288px" // Tailwind class
+        : "288px" // Tailwind class
     );
   }, [isCollapsed]);
-  
+
   const toggleSidebar = () => setIsCollapsed((v: boolean) => !v);
   const navSections = SIDEBAR_SECTIONS_CONFIG;
 
@@ -218,7 +221,7 @@ const AppSidebar: React.FC<AppSidebarProps> = ({
           aria-label="Close sidebar overlay"
         />
       )}
-      
+
       {/*
         Sidebar structure:
         <nav class="flex flex-col h-screen">
@@ -274,11 +277,11 @@ const AppSidebar: React.FC<AppSidebarProps> = ({
         <div
           className={cn(
             "flex items-center justify-between relative z-10",
-            effectiveTheme === "dark" 
+            effectiveTheme === "dark"
               ? "border-b border-slate-700/50 bg-slate-800/30 backdrop-blur-sm"
               : "border-b border-slate-200/50 bg-white/50 backdrop-blur-sm"
           )}
-          style={{ padding: `${SPACING_SCALE.md} ${SPACING_SCALE.md}` }}
+          style={{ padding: "0.75rem 0.75rem" }}
         >
           {isCollapsed ? (
             <Logo size="md" showText={false} />
@@ -295,7 +298,7 @@ const AppSidebar: React.FC<AppSidebarProps> = ({
                 ? "bg-slate-700/50 hover:bg-slate-600/50 text-slate-300 hover:text-white"
                 : "bg-slate-100/50 hover:bg-slate-200/50 text-slate-600 hover:text-slate-900"
             )}
-            style={{ marginLeft: SPACING_SCALE.xs }}
+            style={{ marginLeft: "0.25rem" }}
           >
             {isCollapsed ? (
               <ChevronRight className="h-5 w-5" />

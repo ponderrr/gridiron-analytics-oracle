@@ -5,6 +5,7 @@ import React, {
   useEffect,
   ReactNode,
 } from "react";
+import { getThemeVariables } from "../lib/constants";
 
 export type Theme = "light" | "dark" | "system";
 
@@ -50,92 +51,11 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
       document.documentElement.classList.remove("light", "dark");
       document.documentElement.classList.add(newEffectiveTheme);
 
-      // Update CSS custom properties
-      if (newEffectiveTheme === "light") {
-        document.documentElement.style.setProperty(
-          "--theme-bg-primary",
-          "#ffffff"
-        );
-        document.documentElement.style.setProperty(
-          "--theme-bg-secondary",
-          "#f8fafc"
-        );
-        document.documentElement.style.setProperty(
-          "--theme-bg-tertiary",
-          "#f1f5f9"
-        );
-        document.documentElement.style.setProperty(
-          "--theme-bg-card",
-          "#ffffff"
-        );
-        document.documentElement.style.setProperty(
-          "--theme-bg-sidebar",
-          "#f8fafc"
-        );
-        document.documentElement.style.setProperty(
-          "--theme-text-primary",
-          "#0f172a"
-        );
-        document.documentElement.style.setProperty(
-          "--theme-text-secondary",
-          "#475569"
-        );
-        document.documentElement.style.setProperty(
-          "--theme-text-tertiary",
-          "#64748b"
-        );
-        document.documentElement.style.setProperty("--theme-border", "#e2e8f0");
-        document.documentElement.style.setProperty(
-          "--theme-border-hover",
-          "#cbd5e1"
-        );
-        document.documentElement.style.setProperty(
-          "--theme-shadow",
-          "0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)"
-        );
-      } else {
-        document.documentElement.style.setProperty(
-          "--theme-bg-primary",
-          "#0f172a"
-        );
-        document.documentElement.style.setProperty(
-          "--theme-bg-secondary",
-          "#1e293b"
-        );
-        document.documentElement.style.setProperty(
-          "--theme-bg-tertiary",
-          "#334155"
-        );
-        document.documentElement.style.setProperty(
-          "--theme-bg-card",
-          "#1e293b"
-        );
-        document.documentElement.style.setProperty(
-          "--theme-bg-sidebar",
-          "#0f172a"
-        );
-        document.documentElement.style.setProperty(
-          "--theme-text-primary",
-          "#f8fafc"
-        );
-        document.documentElement.style.setProperty(
-          "--theme-text-secondary",
-          "#cbd5e1"
-        );
-        document.documentElement.style.setProperty(
-          "--theme-text-tertiary",
-          "#94a3b8"
-        );
-        document.documentElement.style.setProperty("--theme-border", "#334155");
-        document.documentElement.style.setProperty(
-          "--theme-border-hover",
-          "#475569"
-        );
-        document.documentElement.style.setProperty(
-          "--theme-shadow",
-          "0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1)"
-        );
-      }
+      // Apply enhanced theme variables
+      const themeVars = getThemeVariables(newEffectiveTheme);
+      Object.entries(themeVars).forEach(([property, value]) => {
+        document.documentElement.style.setProperty(property, value);
+      });
     };
 
     updateEffectiveTheme();

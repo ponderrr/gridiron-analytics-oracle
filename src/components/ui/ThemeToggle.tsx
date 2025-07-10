@@ -8,7 +8,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
-import { getThemeClasses } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
 interface ThemeToggleProps {
@@ -23,7 +22,6 @@ export const ThemeToggle: React.FC<ThemeToggleProps> = ({
   className = "",
 }) => {
   const { theme, setTheme, effectiveTheme } = useTheme();
-  const themeClasses = getThemeClasses(effectiveTheme);
 
   const getIconSize = () => {
     switch (size) {
@@ -38,9 +36,7 @@ export const ThemeToggle: React.FC<ThemeToggleProps> = ({
 
   const getCurrentIcon = () => {
     if (theme === "system") {
-      return (
-        <Monitor className={cn(getIconSize(), "text-indigo-400")} />
-      );
+      return <Monitor className={cn(getIconSize(), "text-indigo-400")} />;
     }
     return effectiveTheme === "dark" ? (
       <Moon className={cn(getIconSize(), "text-purple-400")} />
@@ -78,9 +74,7 @@ export const ThemeToggle: React.FC<ThemeToggleProps> = ({
               : "bg-gradient-to-r from-slate-100/80 to-slate-50/80"
           )}
         />
-        <div className="relative z-10">
-          {getCurrentIcon()}
-        </div>
+        <div className="relative z-10">{getCurrentIcon()}</div>
         <span className="sr-only">Toggle theme</span>
       </Button>
     );
@@ -108,9 +102,7 @@ export const ThemeToggle: React.FC<ThemeToggleProps> = ({
               : "bg-gradient-to-br from-slate-200/80 to-slate-100/80"
           )}
         />
-        <div className="relative z-10">
-          {getCurrentIcon()}
-        </div>
+        <div className="relative z-10">{getCurrentIcon()}</div>
         <span className="sr-only">Toggle theme</span>
       </button>
     );
@@ -141,9 +133,7 @@ export const ThemeToggle: React.FC<ThemeToggleProps> = ({
                 : "bg-gradient-to-r from-slate-100/80 to-slate-50/80"
             )}
           />
-          <div className="relative z-10">
-            {getCurrentIcon()}
-          </div>
+          <div className="relative z-10">{getCurrentIcon()}</div>
           <span className="sr-only">Toggle theme</span>
         </Button>
       </DropdownMenuTrigger>

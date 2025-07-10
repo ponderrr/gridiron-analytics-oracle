@@ -1,64 +1,78 @@
 import React from "react";
-import { useTheme } from "@/contexts/ThemeContext";
-import { getThemeClasses } from "@/lib/constants";
 import { cn } from "@/lib/utils";
 
 interface PlaceholderMessageProps {
   icon?: React.ReactNode;
-  headline?: string;
-  subtext?: string;
-  actionLabel?: string;
-  onAction?: () => void;
-  message?: string; // fallback for legacy usage
+  title?: string;
+  description?: string;
+  action?: {
+    label: string;
+    onClick: () => void;
+  };
   className?: string;
+  variant?: "default" | "coming-soon" | "empty";
 }
 
 const PlaceholderMessage: React.FC<PlaceholderMessageProps> = ({
   icon,
-  headline,
-  subtext,
-  actionLabel,
-  onAction,
-  message,
+  title,
+  description,
+  action,
   className,
+  variant = "default",
 }) => {
-  const { effectiveTheme } = useTheme();
-  const themeClasses = getThemeClasses(effectiveTheme);
+  const baseStyles =
+    "flex flex-col items-center justify-center text-center space-y-6 p-12";
+
+  const variantStyles = {
+    default: "min-h-[300px]",
+    "coming-soon": "coming-soon-card",
+    empty:
+      "min-h-[200px] bg-theme-secondary rounded-theme-lg border border-theme-primary",
+  };
 
   return (
-    <div
-      className={cn(
-        "flex flex-col items-center justify-center min-h-[200px] p-8 gap-4",
-        className
-      )}
-      role="status"
-      aria-live="polite"
-    >
-      {icon && <div className="mb-2 text-4xl opacity-70">{icon}</div>}
-      {headline && (
-        <h2
-          className={`text-xl font-semibold mb-1 ${themeClasses.TEXT_PRIMARY}`}
+    <div className={cn(baseStyles, variantStyles[variant], className)}>
+      {icon && (
+        <div
+          className={
+            variant === "coming-soon"
+              ? "coming-soon-icon"
+              : "w-16 h-16 text-theme-muted"
+          }
         >
-          {headline}
+          {icon}
+        </div>
+      )}
+
+      {title && (
+        <h2
+          className={
+            variant === "coming-soon"
+              ? "coming-soon-title"
+              : "text-2xl font-semibold text-theme-primary"
+          }
+        >
+          {title}
         </h2>
       )}
-      {subtext && (
-        <p className={`text-base mb-2 ${themeClasses.TEXT_TERTIARY}`}>
-          {subtext}
-        </p>
-      )}
-      {actionLabel && onAction && (
-        <button className="btn-primary mt-2" onClick={onAction}>
-          {actionLabel}
-        </button>
-      )}
-      {/* Fallback for legacy usage */}
-      {!headline && message && (
+
+      {description && (
         <p
-          className={`text-lg ${themeClasses.TEXT_MUTED} font-medium tracking-wide`}
+          className={
+            variant === "coming-soon"
+              ? "coming-soon-description"
+              : "text-theme-secondary max-w-md"
+          }
         >
-          {message}
+          {description}
         </p>
+      )}
+
+      {action && (
+        <button onClick={action.onClick} className="btn-enhanced btn-primary">
+          {action.label}
+        </button>
       )}
     </div>
   );

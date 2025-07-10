@@ -19,7 +19,6 @@ import {
 } from "@/lib/fantasyPoints";
 import { DEFAULT_SCORING_SETTINGS } from "@/lib/fantasyPoints.constants";
 import LoadingSpinner from "@/components/LoadingSpinner";
-import { MESSAGE_CONSTANTS, getThemeClasses } from "@/lib/constants";
 import { useTheme } from "@/contexts/ThemeContext";
 import { FantasyPointsResultModal } from "@/components/modals/FantasyPointsResult";
 
@@ -37,7 +36,6 @@ interface WeeklyStatsFormInput {
 
 const FantasyPointsTest: React.FC = () => {
   const { effectiveTheme } = useTheme();
-  const themeClasses = getThemeClasses(effectiveTheme);
 
   const [stats, setStats] = useState<WeeklyStatsFormInput>({
     passing_yards: "",
@@ -115,7 +113,7 @@ const FantasyPointsTest: React.FC = () => {
       setResult(calculatedResult);
       setIsModalOpen(true);
     } catch (err) {
-      console.error(MESSAGE_CONSTANTS.ERROR_FANTASY_POINTS, err);
+      console.error("Error calculating fantasy points:", err);
       setError(err instanceof Error ? err.message : "An error occurred");
     } finally {
       setIsCalculating(false);
@@ -154,12 +152,18 @@ const FantasyPointsTest: React.FC = () => {
         {/* Header */}
         <motion.div variants={itemVariants}>
           <h1
-            className={`text-4xl font-bold ${themeClasses.TEXT_PRIMARY} flex items-center`}
+            className={`text-4xl font-bold ${
+              effectiveTheme === "dark" ? "text-white" : "text-gray-900"
+            } flex items-center`}
           >
             <Calculator className="h-8 w-8 mr-3 text-emerald-400" />
             Fantasy Points Calculator
           </h1>
-          <p className={`${themeClasses.TEXT_TERTIARY} mt-1`}>
+          <p
+            className={`${
+              effectiveTheme === "dark" ? "text-gray-400" : "text-gray-600"
+            } mt-1`}
+          >
             Calculate fantasy points with our advanced scoring engine
           </p>
         </motion.div>
@@ -168,14 +172,24 @@ const FantasyPointsTest: React.FC = () => {
         <motion.div variants={itemVariants}>
           {/* Player Statistics Card */}
           <Card
-            className={`${themeClasses.BG_CARD} border ${themeClasses.BORDER} ${effectiveTheme === "dark" ? "bg-gradient-to-br from-blue-900/30 to-slate-800/50 border-blue-500/30" : "bg-gradient-to-br from-blue-50/30 to-slate-50/50 border-blue-200/30"}`}
+            className={`${
+              effectiveTheme === "dark"
+                ? "bg-gradient-to-br from-blue-900/30 to-slate-800/50 border-blue-500/30"
+                : "bg-gradient-to-br from-blue-50/30 to-slate-50/50 border-blue-200/30"
+            } border ${
+              effectiveTheme === "dark"
+                ? "border-blue-500/30"
+                : "border-blue-200/30"
+            }`}
           >
             {/* Card Header */}
             <div className="p-6 border-b border-slate-700">
               <div className="flex items-center space-x-3">
                 <Brain className="h-6 w-6 text-emerald-400" />
                 <h3
-                  className={`text-lg font-semibold ${themeClasses.TEXT_PRIMARY}`}
+                  className={`text-lg font-semibold ${
+                    effectiveTheme === "dark" ? "text-white" : "text-gray-900"
+                  }`}
                 >
                   Player Statistics
                 </h3>
@@ -194,7 +208,11 @@ const FantasyPointsTest: React.FC = () => {
                   <div className="space-y-2">
                     <Label
                       htmlFor="passing_yards"
-                      className={themeClasses.TEXT_SECONDARY}
+                      className={`${
+                        effectiveTheme === "dark"
+                          ? "text-gray-400"
+                          : "text-gray-600"
+                      }`}
                     >
                       Passing Yards
                     </Label>
@@ -205,13 +223,21 @@ const FantasyPointsTest: React.FC = () => {
                       onChange={(e) =>
                         handleStatChange("passing_yards", e.target.value)
                       }
-                      className={`${themeClasses.BG_SECONDARY} border ${themeClasses.BORDER} ${themeClasses.TEXT_PRIMARY}`}
+                      className={`${
+                        effectiveTheme === "dark"
+                          ? "bg-gray-800 border-gray-700 text-white"
+                          : "bg-white border-gray-300 text-gray-900"
+                      }`}
                     />
                   </div>
                   <div className="space-y-2">
                     <Label
                       htmlFor="passing_tds"
-                      className={themeClasses.TEXT_SECONDARY}
+                      className={`${
+                        effectiveTheme === "dark"
+                          ? "text-gray-400"
+                          : "text-gray-600"
+                      }`}
                     >
                       Passing TDs
                     </Label>
@@ -222,13 +248,21 @@ const FantasyPointsTest: React.FC = () => {
                       onChange={(e) =>
                         handleStatChange("passing_tds", e.target.value)
                       }
-                      className={`${themeClasses.BG_SECONDARY} border ${themeClasses.BORDER} ${themeClasses.TEXT_PRIMARY}`}
+                      className={`${
+                        effectiveTheme === "dark"
+                          ? "bg-gray-800 border-gray-700 text-white"
+                          : "bg-white border-gray-300 text-gray-900"
+                      }`}
                     />
                   </div>
                   <div className="col-span-2 space-y-2">
                     <Label
                       htmlFor="passing_interceptions"
-                      className={themeClasses.TEXT_SECONDARY}
+                      className={`${
+                        effectiveTheme === "dark"
+                          ? "text-gray-400"
+                          : "text-gray-600"
+                      }`}
                     >
                       Interceptions
                     </Label>
@@ -242,7 +276,11 @@ const FantasyPointsTest: React.FC = () => {
                           e.target.value
                         )
                       }
-                      className={`${themeClasses.BG_SECONDARY} border ${themeClasses.BORDER} ${themeClasses.TEXT_PRIMARY}`}
+                      className={`${
+                        effectiveTheme === "dark"
+                          ? "bg-gray-800 border-gray-700 text-white"
+                          : "bg-white border-gray-300 text-gray-900"
+                      }`}
                     />
                   </div>
                 </div>
@@ -258,7 +296,11 @@ const FantasyPointsTest: React.FC = () => {
                   <div className="space-y-2">
                     <Label
                       htmlFor="rushing_yards"
-                      className={themeClasses.TEXT_SECONDARY}
+                      className={`${
+                        effectiveTheme === "dark"
+                          ? "text-gray-400"
+                          : "text-gray-600"
+                      }`}
                     >
                       Rushing Yards
                     </Label>
@@ -269,13 +311,21 @@ const FantasyPointsTest: React.FC = () => {
                       onChange={(e) =>
                         handleStatChange("rushing_yards", e.target.value)
                       }
-                      className={`${themeClasses.BG_SECONDARY} border ${themeClasses.BORDER} ${themeClasses.TEXT_PRIMARY}`}
+                      className={`${
+                        effectiveTheme === "dark"
+                          ? "bg-gray-800 border-gray-700 text-white"
+                          : "bg-white border-gray-300 text-gray-900"
+                      }`}
                     />
                   </div>
                   <div className="space-y-2">
                     <Label
                       htmlFor="rushing_tds"
-                      className={themeClasses.TEXT_SECONDARY}
+                      className={`${
+                        effectiveTheme === "dark"
+                          ? "text-gray-400"
+                          : "text-gray-600"
+                      }`}
                     >
                       Rushing TDs
                     </Label>
@@ -286,7 +336,11 @@ const FantasyPointsTest: React.FC = () => {
                       onChange={(e) =>
                         handleStatChange("rushing_tds", e.target.value)
                       }
-                      className={`${themeClasses.BG_SECONDARY} border ${themeClasses.BORDER} ${themeClasses.TEXT_PRIMARY}`}
+                      className={`${
+                        effectiveTheme === "dark"
+                          ? "bg-gray-800 border-gray-700 text-white"
+                          : "bg-white border-gray-300 text-gray-900"
+                      }`}
                     />
                   </div>
                 </div>
@@ -302,7 +356,11 @@ const FantasyPointsTest: React.FC = () => {
                   <div className="space-y-2">
                     <Label
                       htmlFor="receiving_yards"
-                      className={themeClasses.TEXT_SECONDARY}
+                      className={`${
+                        effectiveTheme === "dark"
+                          ? "text-gray-400"
+                          : "text-gray-600"
+                      }`}
                     >
                       Receiving Yards
                     </Label>
@@ -313,13 +371,21 @@ const FantasyPointsTest: React.FC = () => {
                       onChange={(e) =>
                         handleStatChange("receiving_yards", e.target.value)
                       }
-                      className={`${themeClasses.BG_SECONDARY} border ${themeClasses.BORDER} ${themeClasses.TEXT_PRIMARY}`}
+                      className={`${
+                        effectiveTheme === "dark"
+                          ? "bg-gray-800 border-gray-700 text-white"
+                          : "bg-white border-gray-300 text-gray-900"
+                      }`}
                     />
                   </div>
                   <div className="space-y-2">
                     <Label
                       htmlFor="receiving_tds"
-                      className={themeClasses.TEXT_SECONDARY}
+                      className={`${
+                        effectiveTheme === "dark"
+                          ? "text-gray-400"
+                          : "text-gray-600"
+                      }`}
                     >
                       Receiving TDs
                     </Label>
@@ -330,13 +396,21 @@ const FantasyPointsTest: React.FC = () => {
                       onChange={(e) =>
                         handleStatChange("receiving_tds", e.target.value)
                       }
-                      className={`${themeClasses.BG_SECONDARY} border ${themeClasses.BORDER} ${themeClasses.TEXT_PRIMARY}`}
+                      className={`${
+                        effectiveTheme === "dark"
+                          ? "bg-gray-800 border-gray-700 text-white"
+                          : "bg-white border-gray-300 text-gray-900"
+                      }`}
                     />
                   </div>
                   <div className="space-y-2">
                     <Label
                       htmlFor="receptions"
-                      className={themeClasses.TEXT_SECONDARY}
+                      className={`${
+                        effectiveTheme === "dark"
+                          ? "text-gray-400"
+                          : "text-gray-600"
+                      }`}
                     >
                       Receptions
                     </Label>
@@ -347,13 +421,21 @@ const FantasyPointsTest: React.FC = () => {
                       onChange={(e) =>
                         handleStatChange("receptions", e.target.value)
                       }
-                      className={`${themeClasses.BG_SECONDARY} border ${themeClasses.BORDER} ${themeClasses.TEXT_PRIMARY}`}
+                      className={`${
+                        effectiveTheme === "dark"
+                          ? "bg-gray-800 border-gray-700 text-white"
+                          : "bg-white border-gray-300 text-gray-900"
+                      }`}
                     />
                   </div>
                   <div className="space-y-2">
                     <Label
                       htmlFor="fumbles_lost"
-                      className={themeClasses.TEXT_SECONDARY}
+                      className={`${
+                        effectiveTheme === "dark"
+                          ? "text-gray-400"
+                          : "text-gray-600"
+                      }`}
                     >
                       Fumbles Lost
                     </Label>
@@ -364,7 +446,11 @@ const FantasyPointsTest: React.FC = () => {
                       onChange={(e) =>
                         handleStatChange("fumbles_lost", e.target.value)
                       }
-                      className={`${themeClasses.BG_SECONDARY} border ${themeClasses.BORDER} ${themeClasses.TEXT_PRIMARY}`}
+                      className={`${
+                        effectiveTheme === "dark"
+                          ? "bg-gray-800 border-gray-700 text-white"
+                          : "bg-white border-gray-300 text-gray-900"
+                      }`}
                     />
                   </div>
                 </div>
@@ -372,7 +458,13 @@ const FantasyPointsTest: React.FC = () => {
 
               {/* Scoring Format */}
               <div className="space-y-3">
-                <Label className={themeClasses.TEXT_SECONDARY}>
+                <Label
+                  className={`${
+                    effectiveTheme === "dark"
+                      ? "text-gray-400"
+                      : "text-gray-600"
+                  }`}
+                >
                   Scoring Format
                 </Label>
                 <Select
@@ -382,12 +474,20 @@ const FantasyPointsTest: React.FC = () => {
                   }
                 >
                   <SelectTrigger
-                    className={`${themeClasses.BG_SECONDARY} border ${themeClasses.BORDER} ${themeClasses.TEXT_PRIMARY}`}
+                    className={`${
+                      effectiveTheme === "dark"
+                        ? "bg-gray-800 border-gray-700 text-white"
+                        : "bg-white border-gray-300 text-gray-900"
+                    }`}
                   >
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent
-                    className={`${themeClasses.BG_CARD} border ${themeClasses.BORDER}`}
+                    className={`${
+                      effectiveTheme === "dark"
+                        ? "bg-gray-800 border-gray-700 text-white"
+                        : "bg-white border-gray-300 text-gray-900"
+                    }`}
                   >
                     <SelectItem value="standard">Standard</SelectItem>
                     <SelectItem value="ppr">

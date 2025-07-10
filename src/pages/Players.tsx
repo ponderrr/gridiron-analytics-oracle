@@ -9,13 +9,10 @@ import {
   RankedPlayersList,
 } from "../components/PlayerRankings";
 import { useTheme } from "@/contexts/ThemeContext";
-import { getThemeClasses } from "@/lib/constants";
-import { SPACING_SCALE } from "@/lib/constants";
 
 function PlayersContent() {
   const { state, dispatch, saveRankings } = useRankings();
   const { effectiveTheme } = useTheme();
-  const themeClasses = getThemeClasses(effectiveTheme);
 
   const handleDragEnd = async (result: DropResult) => {
     const { destination, source, draggableId } = result;
@@ -77,7 +74,7 @@ function PlayersContent() {
         style={{
           display: "flex",
           flexDirection: "column",
-          gap: SPACING_SCALE.xl,
+          gap: "1.5rem",
         }}
       >
         <RankingsHeader />
@@ -85,20 +82,20 @@ function PlayersContent() {
         <DragDropContext onDragEnd={handleDragEnd}>
           <div
             className="grid grid-cols-1 lg:grid-cols-2 h-[calc(100vh-200px)]"
-            style={{ gap: SPACING_SCALE.xl }}
+            style={{ gap: "1.5rem" }}
           >
             {/* Left Panel - Available Players */}
             <div
-              className={`${themeClasses.BG_CARD} border ${themeClasses.BORDER} rounded-xl`}
-              style={{ padding: SPACING_SCALE.xl }}
+              className="bg-[var(--color-bg-card)] border border-[var(--color-border)] rounded-xl"
+              style={{ padding: "1.5rem" }}
             >
               <AvailablePlayersList />
             </div>
 
             {/* Right Panel - Ranked Players */}
             <div
-              className={`${themeClasses.BG_CARD} border ${themeClasses.BORDER} rounded-xl`}
-              style={{ padding: SPACING_SCALE.xl }}
+              className="bg-[var(--color-bg-card)] border border-[var(--color-border)] rounded-xl"
+              style={{ padding: "1.5rem" }}
             >
               <RankedPlayersList />
             </div>
@@ -107,23 +104,23 @@ function PlayersContent() {
 
         {/* Keyboard Shortcuts Help */}
         <div
-          className={`${themeClasses.BG_CARD} border ${themeClasses.BORDER} rounded-xl`}
-          style={{ padding: SPACING_SCALE.lg }}
+          className="bg-[var(--color-bg-card)] border border-[var(--color-border)] rounded-xl"
+          style={{ padding: "1rem" }}
         >
           <h3
-            className={`text-sm font-medium ${themeClasses.TEXT_PRIMARY}`}
-            style={{ marginBottom: SPACING_SCALE.sm }}
+            className="text-sm font-medium text-[var(--color-text-primary)]"
+            style={{ marginBottom: "0.5rem" }}
           >
             Keyboard Shortcuts
           </h3>
           <div
-            className={`grid grid-cols-2 md:grid-cols-4 text-xs ${themeClasses.TEXT_TERTIARY}`}
-            style={{ gap: SPACING_SCALE.md }}
+            className="grid grid-cols-2 md:grid-cols-4 text-xs text-[var(--color-text-tertiary)]"
+            style={{ gap: "1rem" }}
           >
             <div>
               <kbd
-                className={`${themeClasses.BG_TERTIARY} rounded`}
-                style={{ padding: `0 ${SPACING_SCALE.xs}` }}
+                className="bg-[var(--color-bg-tertiary)] rounded"
+                style={{ padding: `0 0.25rem` }}
               >
                 Ctrl+Z
               </kbd>{" "}
@@ -131,8 +128,8 @@ function PlayersContent() {
             </div>
             <div>
               <kbd
-                className={`${themeClasses.BG_TERTIARY} rounded`}
-                style={{ padding: `0 ${SPACING_SCALE.xs}` }}
+                className="bg-[var(--color-bg-tertiary)] rounded"
+                style={{ padding: `0 0.25rem` }}
               >
                 Ctrl+Y
               </kbd>{" "}
@@ -140,8 +137,8 @@ function PlayersContent() {
             </div>
             <div>
               <kbd
-                className={`${themeClasses.BG_TERTIARY} rounded`}
-                style={{ padding: `0 ${SPACING_SCALE.xs}` }}
+                className="bg-[var(--color-bg-tertiary)] rounded"
+                style={{ padding: `0 0.25rem` }}
               >
                 Ctrl+S
               </kbd>{" "}
@@ -149,8 +146,8 @@ function PlayersContent() {
             </div>
             <div>
               <kbd
-                className={`${themeClasses.BG_TERTIARY} rounded`}
-                style={{ padding: `0 ${SPACING_SCALE.xs}` }}
+                className="bg-[var(--color-bg-tertiary)] rounded"
+                style={{ padding: `0 0.25rem` }}
               >
                 Del
               </kbd>{" "}

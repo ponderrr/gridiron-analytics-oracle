@@ -4,7 +4,6 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { GripVertical, Plus, X } from "lucide-react";
 import { useTheme } from "@/contexts/ThemeContext";
-import { getThemeClasses } from "@/lib/constants";
 import { LoadingState } from "@/components/ui/common/LoadingState";
 import "./PlayerCard.css"; // Import the CSS for micro-interactions
 
@@ -253,7 +252,6 @@ const RankingControls: React.FC<{
 // Main PlayerCard
 const PlayerCard: React.FC<PlayerCardProps> = (props) => {
   const { effectiveTheme } = useTheme();
-  const themeClasses = getThemeClasses(effectiveTheme);
   const liveRegionRef = useRef<HTMLDivElement>(null);
   const announce = (msg: string) => {
     if (liveRegionRef.current) {
@@ -331,14 +329,41 @@ const PlayerCard: React.FC<PlayerCardProps> = (props) => {
             onKbdDragCancel={onKbdDragCancel}
             tabIndex={tabIndex}
             aria-selected={ariaSelected}
-            themeClasses={themeClasses}
+            themeClasses={{
+              RING: "ring-2 ring-primary/20",
+              BG_ACTIVE: "bg-primary/20",
+              TEXT_MUTED: "text-muted-foreground",
+              TEXT_PRIMARY: "text-primary",
+              BG_ACCENT_DANGER: "bg-red-500/20 text-red-400 border-red-400",
+              BG_ACCENT_PRIMARY:
+                "bg-emerald-500/20 text-emerald-400 border-emerald-400",
+              BG_ACCENT_SECONDARY:
+                "bg-blue-500/20 text-blue-400 border-blue-400",
+              BG_ACCENT_WARNING:
+                "bg-yellow-500/20 text-yellow-400 border-yellow-400",
+              BG_ACCENT_TERTIARY:
+                "bg-purple-500/20 text-purple-400 border-purple-400",
+              BG_TERTIARY: "bg-slate-200 text-slate-600 border-slate-400",
+            }}
           />
         )}
         <PlayerDisplay
           player={player}
           rank={isRanked ? rank : undefined}
           tier={tier}
-          themeClasses={themeClasses}
+          themeClasses={{
+            TEXT_PRIMARY: "text-primary",
+            TEXT_MUTED: "text-muted-foreground",
+            BG_ACCENT_DANGER: "bg-red-500/20 text-red-400 border-red-400",
+            BG_ACCENT_PRIMARY:
+              "bg-emerald-500/20 text-emerald-400 border-emerald-400",
+            BG_ACCENT_SECONDARY: "bg-blue-500/20 text-blue-400 border-blue-400",
+            BG_ACCENT_WARNING:
+              "bg-yellow-500/20 text-yellow-400 border-yellow-400",
+            BG_ACCENT_TERTIARY:
+              "bg-purple-500/20 text-purple-400 border-purple-400",
+            BG_TERTIARY: "bg-slate-200 text-slate-600 border-slate-400",
+          }}
         />
         <RankingControls
           isRanked={isRanked}
@@ -346,7 +371,13 @@ const PlayerCard: React.FC<PlayerCardProps> = (props) => {
           onAddToRankings={onAddToRankings}
           onRemoveFromRankings={onRemoveFromRankings}
           announce={announce}
-          themeClasses={themeClasses}
+          themeClasses={{
+            TEXT_ACCENT_DANGER: "text-red-400",
+            BG_ACCENT_DANGER: "bg-red-500/20",
+            TEXT_ACCENT_PRIMARY: "text-primary",
+            BG_ACCENT_PRIMARY: "bg-emerald-500/20",
+            RING: "ring-2 ring-primary/20",
+          }}
         />
       </div>
     </div>
