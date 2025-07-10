@@ -1,7 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { RefreshCw, Users, BarChart3 } from "lucide-react";
 import Layout from "@/components/Layout";
-import { MESSAGE_CONSTANTS } from "@/lib/constants";
+import { MESSAGE_CONSTANTS, UI_CONSTANTS } from "@/lib/constants";
 import { useSyncData } from "@/hooks/useSyncData";
 import { Button } from "@/components/ui/button";
 import {
@@ -19,31 +19,36 @@ import {
   ADMIN_TAB_LABELS,
   SYNC_SECTIONS,
   SYNC_DESCRIPTIONS,
-} from "@/lib/adminConstants";
+} from "../lib/adminConstants";
 import { LoadingState } from "@/components/ui/common";
 import SyncStatusDashboard from "@/components/ui/monitoring/SyncStatusDashboard";
 import DataQualityMetrics from "@/components/ui/monitoring/DataQualityMetrics";
 import { toast } from "sonner";
-import { supabase } from "@/integrations/supabase/client";
 
 const { ICON_SIZES } = THEME_CONSTANTS;
+const { HEIGHT } = UI_CONSTANTS;
 
-// Define tabs outside component to avoid re-creation on every render
-const ADMIN_TABS_CONFIG = [
-  {
-    id: ADMIN_TABS.DATA_SYNC,
-    label: ADMIN_TAB_LABELS.DATA_SYNC,
-    icon: RefreshCw,
-    count: 0,
-  },
-];
+// Query key factory for better cache management
+const adminQueryKeys = {
+  players: () => ["players"],
+  weeklyStats: (week?: number) => ["weeklyStats", week],
+  projections: () => ["projections"],
+  tradeValues: () => ["tradeValues"],
+};
+
+// Memoized AdminTable import
+const AdminTable = React.lazy(() =>
+  import("../components/ui/table/AdminTable").then((mod) => ({
+    default: mod.AdminTable,
+  }))
+) as unknown as <T>(
+  props: import("../components/ui/table/AdminTable").AdminTableProps<T>
+) => JSX.Element;
 
 const Admin: React.FC = () => {
   const [activeTab, setActiveTab] = useState<string>(ADMIN_TABS.DATA_SYNC);
   const [selectedWeek, setSelectedWeek] = useState<string>("1");
   const [selectedSeason, setSelectedSeason] = useState<string>("2024");
-  const [etlLoading, setEtlLoading] = useState(false);
-  const [etlResult, setEtlResult] = useState<string | null>(null);
 
   // Sync data hook
   const { playerSync, statsSync, syncPlayers, syncWeeklyStats } = useSyncData();
@@ -61,10 +66,7 @@ const Admin: React.FC = () => {
 
   const handleStatsSync = async () => {
     try {
-      await syncWeeklyStats(
-        parseInt(selectedWeek, 10),
-        parseInt(selectedSeason, 10)
-      );
+      await syncWeeklyStats(parseInt(selectedWeek), parseInt(selectedSeason));
       toast.success("Stats sync completed successfully!");
     } catch (error) {
       toast.error("Stats sync failed. Please try again.");
@@ -72,27 +74,17 @@ const Admin: React.FC = () => {
     }
   };
 
-  // Handler for running the full weekly ETL
-  const handleRunWeeklyETL = async () => {
-    setEtlLoading(true);
-    setEtlResult(null);
-    try {
-      const { data, error } = await supabase.functions.invoke("weekly_refresh");
-      if (error) {
-        toast.error("Weekly ETL failed: " + error.message);
-        setEtlResult("Error: " + error.message);
-      } else {
-        toast.success("Weekly ETL started successfully!");
-        setEtlResult("Success! Weekly ETL started.");
-      }
-    } catch (err: any) {
-      toast.error("Weekly ETL failed: " + err.message);
-      setEtlResult("Error: " + err.message);
-    }
-    setEtlLoading(false);
-  };
-
-  const tabs = ADMIN_TABS_CONFIG;
+  const tabs = useMemo(
+    () => [
+      {
+        id: ADMIN_TABS.DATA_SYNC,
+        label: ADMIN_TAB_LABELS.DATA_SYNC,
+        icon: RefreshCw,
+        count: 0,
+      },
+    ],
+    []
+  );
 
   return (
     <Layout>
@@ -311,41 +303,6 @@ const Admin: React.FC = () => {
                     </p>
                   </div>
                 )}
-              </div>
-
-              {/* Weekly Refresh ETL Section */}
-              <div className="bg-slate-900/50 rounded-lg p-6 border border-slate-700/50">
-                <h3 className="text-lg font-bold text-white mb-4 flex items-center">
-                  <RefreshCw
-                    className={`${ICON_SIZES.MD} mr-2 text-emerald-400`}
-                  />
-                  Run Full Weekly ETL
-                </h3>
-                <p className="text-slate-400 text-sm mb-4">
-                  This will run the full weekly ETL process (ADP, stats,
-                  players) and refresh all analytics data. Only use if you want
-                  to force a full refresh now.
-                </p>
-                <Button
-                  onClick={handleRunWeeklyETL}
-                  disabled={etlLoading}
-                  className="bg-emerald-700 hover:bg-emerald-800 text-white"
-                >
-                  {etlLoading ? (
-                    <>
-                      <span className="mr-2">
-                        <LoadingState size="sm" type="spinner" />
-                      </span>
-                      Running Weekly ETL...
-                    </>
-                  ) : (
-                    <>
-                      <RefreshCw className={`${ICON_SIZES.SM} mr-2`} />
-                      Run Weekly ETL
-                    </>
-                  )}
-                </Button>
-                {etlResult && <div className="mt-4 text-sm">{etlResult}</div>}
               </div>
             </div>
           )}
