@@ -68,6 +68,8 @@ export interface UserRankingsPlayer {
   player_id: string;
   ranking_set_id: string;
   tier: number | null;
+  pool_week?: number;
+  pool_season?: number;
 }
 
 export interface UserRankingsSet {
@@ -78,4 +80,26 @@ export interface UserRankingsSet {
   name: string;
   updated_at: string;
   user_id: string;
+}
+
+export interface DraftPick {
+  id: string;
+  year: number;
+  pick_type: string;
+  display_name: string;
+  description: string | null;
+  is_active: boolean;
+  created_at: string;
+}
+
+export interface TopPlayersPool {
+  id: string;
+  week: number;
+  season: number;
+  format: 'dynasty' | 'redraft';
+  player_data: Record<string, unknown>;
+  consensus_rank: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
 }

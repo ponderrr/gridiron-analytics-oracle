@@ -1,4 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import type { SupabaseClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 // Common types for ETL operations
 export interface ETLRun {
@@ -89,7 +90,7 @@ export class SleeperAPI {
     return response.json();
   }
 
-  async getMockDrafts(
+  getMockDrafts(
     type: "redraft" | "dynasty",
     limit = 50,
     offset = 0
@@ -100,11 +101,11 @@ export class SleeperAPI {
     );
   }
 
-  async getDraftPicks(draftId: string): Promise<SleeperPick[]> {
+  getDraftPicks(draftId: string): Promise<SleeperPick[]> {
     return this.request<SleeperPick[]>(`/draft/${draftId}/picks`);
   }
 
-  async getWeeklyStats(
+  getWeeklyStats(
     season: number,
     week: number
   ): Promise<Record<string, SleeperStats>> {
@@ -113,18 +114,18 @@ export class SleeperAPI {
     );
   }
 
-  async getPlayers(): Promise<Record<string, SleeperPlayer>> {
+  getPlayers(): Promise<Record<string, SleeperPlayer>> {
     return this.request<Record<string, SleeperPlayer>>("/players/nfl");
   }
 
-  async getNFLState(): Promise<SleeperState> {
+  getNFLState(): Promise<SleeperState> {
     return this.request<SleeperState>("/state/nfl");
   }
 }
 
 // Base ETL class with common functionality
 export class ETLBase {
-  protected supabase: any;
+  protected supabase: SupabaseClient;
   protected api: SleeperAPI;
 
   constructor(supabaseUrl: string, serviceKey: string) {
@@ -132,7 +133,7 @@ export class ETLBase {
     this.api = new SleeperAPI();
   }
 
-  protected async logETLRun(run: ETLRun): Promise<void> {
+  public async logETLRun(run: ETLRun): Promise<void> {
     const { error } = await this.supabase.from("etl_metadata").insert({
       run_type: run.run_type,
       last_created_timestamp: run.last_created_timestamp,

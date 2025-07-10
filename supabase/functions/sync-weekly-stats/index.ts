@@ -19,8 +19,8 @@ class WeeklyStatsSync extends ETLBase {
       return run;
     } catch (error) {
       run.status = "error";
-      run.error_message = error.message;
-      await this.handleErrors(error, "weekly-stats-sync");
+      run.error_message = error instanceof Error ? error.message : String(error);
+      await this.handleErrors(error instanceof Error ? error : new Error(String(error)), "weekly-stats-sync");
       throw error;
     }
   }
@@ -47,7 +47,7 @@ class WeeklyStatsSync extends ETLBase {
     const start = Date.now();
     const { error } = await this.supabase
       .from("sleeper_stats")
-      .upsert(statsData, { onConflict: ["season", "week", "player_id"] });
+      .upsert(statsData, { onConflict: "season,week,player_id" });
     const end = Date.now();
     const execution_time_ms = end - start;
 
@@ -114,7 +114,7 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({
         success: false,
-        error: error.message,
+        error: error instanceof Error ? error.message : String(error),
         timestamp: new Date().toISOString(),
       }),
       {
