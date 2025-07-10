@@ -43,7 +43,7 @@ class NFLDataSync extends ETLBase {
     const start = Date.now();
     const { error } = await this.supabase
       .from("sleeper_players_cache")
-      .upsert(playersData, { onConflict: "player_id" });
+      .upsert(playersData, { onConflict: ["player_id"] });
     const end = Date.now();
     const execution_time_ms = end - start;
 

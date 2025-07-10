@@ -47,7 +47,7 @@ class WeeklyStatsSync extends ETLBase {
     const start = Date.now();
     const { error } = await this.supabase
       .from("sleeper_stats")
-      .upsert(statsData, { onConflict: "season,week,player_id" });
+      .upsert(statsData, { onConflict: ["season", "week", "player_id"] });
     const end = Date.now();
     const execution_time_ms = end - start;
 

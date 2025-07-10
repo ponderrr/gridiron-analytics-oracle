@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createHash } from "https://deno.land/std@0.168.0/hash/mod.ts";
 import {
   ETLBase,
   ETLRun,
@@ -10,6 +11,11 @@ import {
 
 // Database operations class using shared base
 class DatabaseOps extends ETLBase {
+  computeQueryHash(queryType: string, params: unknown): string {
+    const serialized = JSON.stringify({ queryType, params });
+    return createHash("md5").update(serialized).toString();
+  }
+
   async insertDraft(draft: SleeperDraft): Promise<void> {
     const start = Date.now();
     const { error } = await this.supabase
@@ -21,7 +27,7 @@ class DatabaseOps extends ETLBase {
       query_type: "upsert_sleeper_drafts",
       execution_time_ms,
       rows_affected: 1,
-      query_hash: undefined,
+      query_hash: this.computeQueryHash("upsert_sleeper_drafts", draft),
     });
     if (error) throw error;
   }
@@ -43,7 +49,7 @@ class DatabaseOps extends ETLBase {
       query_type: "upsert_sleeper_picks",
       execution_time_ms,
       rows_affected: picksData.length,
-      query_hash: undefined,
+      query_hash: this.computeQueryHash("upsert_sleeper_picks", picksData),
     });
     if (error) throw error;
   }
@@ -75,7 +81,7 @@ class DatabaseOps extends ETLBase {
       query_type: "upsert_sleeper_stats",
       execution_time_ms,
       rows_affected: statsData.length,
-      query_hash: undefined,
+      query_hash: this.computeQueryHash("upsert_sleeper_stats", statsData),
     });
     if (error) throw error;
   }
@@ -99,7 +105,10 @@ class DatabaseOps extends ETLBase {
       query_type: "upsert_sleeper_players_cache",
       execution_time_ms,
       rows_affected: playersData.length,
-      query_hash: undefined,
+      query_hash: this.computeQueryHash(
+        "upsert_sleeper_players_cache",
+        playersData
+      ),
     });
     if (error) throw error;
   }
@@ -114,6 +123,58 @@ class ETLProcessor extends ETLBase {
     this.db = new DatabaseOps(supabaseUrl, supabaseServiceKey);
   }
 
+  // Add the new private method for processing a draft type
+  private async processDraftType(
+    type: "redraft" | "dynasty",
+    lastRefresh: number
+  ): Promise<{
+    totalDrafts: number;
+    totalPicks: number;
+    lastCreatedTimestamp?: number;
+  }> {
+    let totalDrafts = 0;
+    let totalPicks = 0;
+    let lastCreatedTimestamp: number | undefined = undefined;
+    let offset = 0;
+    const limit = 50;
+
+    while (true) {
+      const drafts = await this.api.getMockDrafts(type, limit, offset);
+      if (drafts.length === 0) break;
+
+      // Filter drafts created after last refresh
+      const newDrafts = drafts.filter((draft) => draft.created > lastRefresh);
+      if (newDrafts.length === 0) break;
+
+      for (const draft of newDrafts) {
+        try {
+          // Insert draft metadata
+          await this.db.insertDraft(draft);
+          totalDrafts++;
+
+          // Fetch and insert picks
+          const picks = await this.api.getDraftPicks(draft.draft_id);
+          await this.db.insertPicks(draft.draft_id, picks);
+          totalPicks += picks.length;
+
+          // Update last created timestamp
+          if (draft.created > (lastCreatedTimestamp || 0)) {
+            lastCreatedTimestamp = draft.created;
+          }
+        } catch (error) {
+          console.error(`Error processing draft ${draft.draft_id}:`, error);
+          // Continue with other drafts
+        }
+      }
+
+      offset += limit;
+      // Stop if we got fewer results than requested (end of data)
+      if (drafts.length < limit) break;
+    }
+
+    return { totalDrafts, totalPicks, lastCreatedTimestamp };
+  }
+
   async processADP(): Promise<ETLRun> {
     const run: ETLRun = {
       run_type: "adp",
@@ -125,53 +186,25 @@ class ETLProcessor extends ETLBase {
       const lastRefresh = await this.getLastRefresh("adp");
       let totalDrafts = 0;
       let totalPicks = 0;
+      let lastCreatedTimestamp: number | undefined = undefined;
 
-      // Process both redraft and dynasty drafts
+      // Process both redraft and dynasty drafts using the new method
       for (const type of ["redraft", "dynasty"] as const) {
-        let offset = 0;
-        const limit = 50;
-
-        while (true) {
-          const drafts = await this.api.getMockDrafts(type, limit, offset);
-
-          if (drafts.length === 0) break;
-
-          // Filter drafts created after last refresh
-          const newDrafts = drafts.filter(
-            (draft) => draft.created > lastRefresh
-          );
-
-          if (newDrafts.length === 0) break;
-
-          for (const draft of newDrafts) {
-            try {
-              // Insert draft metadata
-              await this.db.insertDraft(draft);
-              totalDrafts++;
-
-              // Fetch and insert picks
-              const picks = await this.api.getDraftPicks(draft.draft_id);
-              await this.db.insertPicks(draft.draft_id, picks);
-              totalPicks += picks.length;
-
-              // Update last created timestamp
-              if (draft.created > (run.last_created_timestamp || 0)) {
-                run.last_created_timestamp = draft.created;
-              }
-            } catch (error) {
-              console.error(`Error processing draft ${draft.draft_id}:`, error);
-              // Continue with other drafts
-            }
-          }
-
-          offset += limit;
-
-          // Stop if we got fewer results than requested (end of data)
-          if (drafts.length < limit) break;
+        const result = await this.processDraftType(type, lastRefresh);
+        totalDrafts += result.totalDrafts;
+        totalPicks += result.totalPicks;
+        if (
+          result.lastCreatedTimestamp &&
+          result.lastCreatedTimestamp > (lastCreatedTimestamp || 0)
+        ) {
+          lastCreatedTimestamp = result.lastCreatedTimestamp;
         }
       }
 
       run.records_processed = totalDrafts + totalPicks;
+      if (lastCreatedTimestamp) {
+        run.last_created_timestamp = lastCreatedTimestamp;
+      }
       return run;
     } catch (error) {
       run.status = "error";

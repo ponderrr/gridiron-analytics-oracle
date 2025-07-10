@@ -51,7 +51,11 @@ export interface SleeperState {
 // Rate limiting helper
 export class RateLimiter {
   private lastRequest = 0;
-  private minInterval = 500; // 0.5 seconds
+  private minInterval: number;
+
+  constructor(minInterval: number = 500) {
+    this.minInterval = minInterval;
+  }
 
   async throttle(): Promise<void> {
     const now = Date.now();

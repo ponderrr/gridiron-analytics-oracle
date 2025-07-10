@@ -88,7 +88,7 @@ CREATE TABLE user_rankings_sets (
   is_active boolean DEFAULT false,
   created_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL,
   updated_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL,
-  CONSTRAINT unique_active_per_user_format UNIQUE (user_id, format, is_active) DEFERRABLE INITIALLY DEFERRED
+  CONSTRAINT unique_active_per_user_format UNIQUE (user_id, format, is_active)
 );
 
 CREATE TABLE user_rankings_players (
@@ -99,7 +99,7 @@ CREATE TABLE user_rankings_players (
   notes text,
   created_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL,
   PRIMARY KEY (ranking_set_id, player_id),
-  CONSTRAINT unique_rank_per_set UNIQUE (ranking_set_id, overall_rank) DEFERRABLE INITIALLY DEFERRED
+  CONSTRAINT unique_rank_per_set UNIQUE (ranking_set_id, overall_rank)
 );
 
 -- =============================
