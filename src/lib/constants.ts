@@ -1,204 +1,207 @@
-export const UI_CONSTANTS = {
-  HEIGHT: {
-    MIN_400: "min-h-[400px]",
-    H_64: "h-64",
-  },
-  WIDTH: {
-    MIN_8: "min-w-[8rem]",
-    W_16: "w-16",
-    H_16: "h-16",
-  },
-  SIDEBAR: {
-    WIDTH_PX: "280px",
-    COLLAPSED_WIDTH_PX: "80px",
-    EXPANDED_WIDTH_PX: "288px",
-    COLLAPSED_WIDTH_CSS_PX: "80px",
-  },
-  MIN_HEIGHT_400: "400px",
-  MIN_HEIGHT_64: "64px",
-  GRID_COLUMNS: {
-    ONE: "grid-cols-1",
-    TWO: "grid-cols-2",
-    FOUR: "grid-cols-4",
-    RESPONSIVE_TWO: "grid-cols-1 lg:grid-cols-2",
-    RESPONSIVE_FOUR: "grid-cols-1 md:grid-cols-4",
-  },
-};
-
-export const THEME_CONSTANTS = {
-  ICON_SIZES: {
-    XS: "h-3 w-3",
-    SM: "h-4 w-4",
-    MD: "h-5 w-5",
-    LG: "h-6 w-6",
-    XL: "h-8 w-8",
-    XXL: "h-12 w-12",
-  },
-  TEXT_SIZES: {
-    XS: "text-xs",
-    SM: "text-sm",
-    BASE: "text-base",
-    LG: "text-lg",
-    XL: "text-xl",
-    TWO_XL: "text-2xl",
-    THREE_XL: "text-3xl",
-    FOUR_XL: "text-4xl",
-  },
+export const ENHANCED_THEME_SYSTEM = {
+  // Consistent spacing scale
   SPACING: {
-    XS: "2", 
-    SM: "3", 
-    MD: "4", 
-    LG: "6", 
-    XL: "8", 
+    xs: "0.25rem", // 4px
+    sm: "0.5rem", // 8px
+    md: "1rem", // 16px
+    lg: "1.5rem", // 24px
+    xl: "2rem", // 32px
+    "2xl": "3rem", // 48px
+    "3xl": "4rem", // 64px
   },
-  PADDING: {
-    SM: "p-2", 
-    MD: "p-3", 
-    LG: "p-4", 
-    XL: "p-6", 
-    XXL: "p-8", 
+
+  // Typography system
+  TYPOGRAPHY: {
+    FONT_FAMILIES: {
+      primary: '"Inter", system-ui, sans-serif',
+      mono: '"JetBrains Mono", "Monaco", monospace',
+    },
+    FONT_WEIGHTS: {
+      light: "300",
+      normal: "400",
+      medium: "500",
+      semibold: "600",
+      bold: "700",
+    },
+    FONT_SIZES: {
+      xs: "0.75rem", // 12px
+      sm: "0.875rem", // 14px
+      base: "1rem", // 16px
+      lg: "1.125rem", // 18px
+      xl: "1.25rem", // 20px
+      "2xl": "1.5rem", // 24px
+      "3xl": "1.875rem", // 30px
+      "4xl": "2.25rem", // 36px
+    },
+    LINE_HEIGHTS: {
+      tight: "1.25",
+      normal: "1.5",
+      relaxed: "1.75",
+    },
   },
-  MARGIN: {
-    SM: "m-2", 
-    MD: "m-3", 
-    LG: "m-4", 
-    XL: "m-6", 
-  },
-  GAP: {
-    SM: "gap-2", 
-    MD: "gap-4", 
-    LG: "gap-6", 
-    XL: "gap-8", 
-  },
-  SIDEBAR_EXPANDED_WIDTH_PX: UI_CONSTANTS.SIDEBAR.EXPANDED_WIDTH_PX,
-  SIDEBAR_COLLAPSED_WIDTH_CSS_PX: UI_CONSTANTS.SIDEBAR.COLLAPSED_WIDTH_CSS_PX,
-  THEME: {
+
+  // Enhanced color system
+  COLORS: {
     LIGHT: {
-      BG_PRIMARY: "bg-white",
-      BG_SECONDARY: "bg-slate-50",
-      BG_TERTIARY: "bg-slate-100",
-      BG_CARD: "bg-white",
-      BG_SIDEBAR: "bg-slate-50",
-      BG_HEADER: "bg-white/80",
-      BG_HOVER: "hover:bg-slate-100",
-      BG_ACTIVE: "bg-emerald-50",
-      TEXT_PRIMARY: "text-slate-900",
-      TEXT_SECONDARY: "text-slate-700",
-      TEXT_TERTIARY: "text-slate-500",
-      TEXT_MUTED: "text-slate-400",
-      BORDER: "border-slate-200",
-      BORDER_HOVER: "border-slate-300",
-      SHADOW: "shadow-sm",
-      RING: "ring-slate-200",
+      // Primary backgrounds
+      bg_primary: "#ffffff",
+      bg_secondary: "#f8fafc",
+      bg_tertiary: "#f1f5f9",
+      bg_card: "#ffffff",
+      bg_accent: "#f0f9ff",
+
+      // Text colors
+      text_primary: "#0f172a",
+      text_secondary: "#475569",
+      text_tertiary: "#64748b",
+      text_muted: "#94a3b8",
+
+      // Borders and dividers
+      border_primary: "#e2e8f0",
+      border_secondary: "#cbd5e1",
+      border_accent: "#3b82f6",
+
+      // Interactive states
+      hover_bg: "#f1f5f9",
+      focus_ring: "#3b82f6",
+      active_bg: "#e0f2fe",
     },
     DARK: {
-      BG_PRIMARY: "bg-slate-900",
-      BG_SECONDARY: "bg-slate-800",
-      BG_TERTIARY: "bg-slate-700",
-      BG_CARD: "bg-slate-800/50",
-      BG_SIDEBAR: "bg-slate-800",
-      BG_HEADER: "bg-slate-800/80",
-      BG_HOVER: "hover:bg-slate-700/50",
-      BG_ACTIVE: "bg-slate-700",
-      TEXT_PRIMARY: "text-white",
-      TEXT_SECONDARY: "text-slate-300",
-      TEXT_TERTIARY: "text-slate-400",
-      TEXT_MUTED: "text-slate-500",
-      BORDER: "border-slate-700",
-      BORDER_HOVER: "border-slate-600",
-      SHADOW: "shadow-lg",
-      RING: "ring-slate-700",
+      // Primary backgrounds
+      bg_primary: "#0f172a",
+      bg_secondary: "#1e293b",
+      bg_tertiary: "#334155",
+      bg_card: "#1e293b",
+      bg_accent: "#1e293b",
+
+      // Text colors
+      text_primary: "#f8fafc",
+      text_secondary: "#cbd5e1",
+      text_tertiary: "#94a3b8",
+      text_muted: "#64748b",
+
+      // Borders and dividers
+      border_primary: "#334155",
+      border_secondary: "#475569",
+      border_accent: "#3b82f6",
+
+      // Interactive states
+      hover_bg: "#334155",
+      focus_ring: "#3b82f6",
+      active_bg: "#1e40af",
     },
-    COMMON: {
-      ACCENT_PRIMARY: "text-emerald-400",
-      ACCENT_SECONDARY: "text-blue-400",
-      ACCENT_TERTIARY: "text-purple-400",
-      ACCENT_WARNING: "text-yellow-400",
-      ACCENT_DANGER: "text-red-400",
-      BG_ACCENT_PRIMARY: "bg-emerald-500",
-      BG_ACCENT_SECONDARY: "bg-blue-500",
-      BG_ACCENT_TERTIARY: "bg-purple-500",
-      BG_ACCENT_WARNING: "bg-yellow-500",
-      BG_ACCENT_DANGER: "bg-red-500",
-      HOVER_ACCENT_PRIMARY: "hover:bg-emerald-600",
-      HOVER_ACCENT_SECONDARY: "hover:bg-blue-600",
-      HOVER_ACCENT_TERTIARY: "hover:bg-purple-600",
-      HOVER_ACCENT_WARNING: "hover:bg-yellow-600",
-      HOVER_ACCENT_DANGER: "hover:bg-red-600",
+
+    // Semantic colors (theme-agnostic)
+    SEMANTIC: {
+      success: "#10b981",
+      warning: "#f59e0b",
+      error: "#ef4444",
+      info: "#3b82f6",
+
+      success_bg: "rgba(16, 185, 129, 0.1)",
+      warning_bg: "rgba(245, 158, 11, 0.1)",
+      error_bg: "rgba(239, 68, 68, 0.1)",
+      info_bg: "rgba(59, 130, 246, 0.1)",
+    },
+  },
+
+  // Shadow system
+  SHADOWS: {
+    sm: "0 1px 2px 0 rgba(0, 0, 0, 0.05)",
+    md: "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
+    lg: "0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)",
+    xl: "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)",
+  },
+
+  // Border radius system
+  RADIUS: {
+    sm: "0.25rem",
+    md: "0.5rem",
+    lg: "0.75rem",
+    xl: "1rem",
+    "2xl": "1.5rem",
+    full: "9999px",
+  },
+
+  // Component-specific variables
+  COMPONENTS: {
+    BUTTON: {
+      height_sm: "2rem",
+      height_md: "2.5rem",
+      height_lg: "3rem",
+      padding_x_sm: "0.75rem",
+      padding_x_md: "1rem",
+      padding_x_lg: "1.5rem",
+    },
+    CARD: {
+      padding_sm: "1rem",
+      padding_md: "1.5rem",
+      padding_lg: "2rem",
+      border_radius: "0.75rem",
+    },
+    INPUT: {
+      height: "2.5rem",
+      padding_x: "0.75rem",
+      border_radius: "0.5rem",
     },
   },
 };
 
-export const SPACING_SCALE = {
-  xs: "0.25rem", // 4px
-  sm: "0.5rem", // 8px
-  md: "1rem", // 16px
-  lg: "1.5rem", // 24px
-  xl: "2rem", // 32px
-  "2xl": "3rem", // 48px
-  "3xl": "4rem", // 64px
-} as const;
+// Helper function to get theme-aware CSS variables
+export const getThemeVariables = (theme: "light" | "dark") => {
+  const colors =
+    ENHANCED_THEME_SYSTEM.COLORS[theme.toUpperCase() as "LIGHT" | "DARK"];
 
-export const MESSAGE_CONSTANTS = {
-  APP_NAME: "FF META",
-  APP_TAGLINE: "",
-  COPYRIGHT: `© ${new Date().getFullYear()} FF META`,
-  LOADING: "Loading your experience...",
-  ERROR_GENERIC: "An unknown error occurred.",
-  ERROR_AUTH: "Authentication Error",
-  ERROR_404: "404 Error: User attempted to access non-existent route:",
-  ERROR_PLAYER_SYNC: "Player sync failed:",
-  ERROR_STATS_SYNC: "Stats sync failed:",
-  ERROR_FANTASY_POINTS: "Error calculating fantasy points:",
-  RETRY_LABEL: "Retry",
-  LOGIN_LABEL: "Login",
-  SIGNUP_LABEL: "Sign Up",
-  SYNC_PLAYERS_LABEL: "Sync NFL Players",
-  SYNC_STATS_LABEL: "Sync Weekly Stats",
-  SYNCING_PLAYERS_LABEL: "Syncing Players...",
-  SYNCING_STATS_LABEL: "Syncing Stats...",
-  UPGRADE_NOW_LABEL: "UPGRADE NOW",
-  SOON_LABEL: "SOON",
-  ACCOUNT_CREATED_SUCCESS:
-    "Account created successfully! Please check your email to confirm your account before signing in.",
-  PLAYER_SYNC_SUCCESS: "Player sync completed successfully! Added",
-  STATS_SYNC_SUCCESS: "Stats sync completed successfully! Added",
-  FAILED_TO_LOAD_DATA: "Failed to load data",
-  PLAYERS_ADDED: "Added:",
-  PLAYERS_PROCESSED: "Processed:",
-  PRO_TIER_TITLE: "PRO TIER",
-  PRO_TIER_DESCRIPTION: "Unlock advanced analytics and AI insights",
-  DOMINATE_LEAGUE: "DOMINATE YOUR LEAGUE",
-  NAV_SECTIONS: {
-    MAIN: "Main",
-    ANALYSIS: "Analysis",
-    MANAGEMENT: "Management",
-    TOOLS: "Tools",
-  },
-  NAV_ITEMS: {
-    DASHBOARD: "Dashboard",
-    PLAYERS: "Players",
-    ANALYTICS: "Analytics",
-    TRADE_ANALYZER: "Trade Analyzer",
-    LEAGUE: "League",
-    ADMIN_PANEL: "Admin Panel",
-    POINTS_CALCULATOR: "Points Calculator",
-    SETTINGS: "Settings",
-  },
-  NAV_PATHS: {
-    DASHBOARD: "/dashboard",
-    PLAYERS: "/players",
-    ANALYTICS: "/analytics",
-    TRADE_ANALYZER: "/trade-analyzer",
-    LEAGUE: "/league",
-    ADMIN: "/admin",
-    FANTASY_POINTS_TEST: "/fantasy-points-test",
-    SETTINGS: "/settings",
-  },
-};
+  return {
+    // CSS custom properties
+    "--color-bg-primary": colors.bg_primary,
+    "--color-bg-secondary": colors.bg_secondary,
+    "--color-bg-tertiary": colors.bg_tertiary,
+    "--color-bg-card": colors.bg_card,
+    "--color-bg-accent": colors.bg_accent,
 
-export const getThemeClasses = (theme: "light" | "dark") => {
-  return theme === "light"
-    ? THEME_CONSTANTS.THEME.LIGHT
-    : THEME_CONSTANTS.THEME.DARK;
+    "--color-text-primary": colors.text_primary,
+    "--color-text-secondary": colors.text_secondary,
+    "--color-text-tertiary": colors.text_tertiary,
+    "--color-text-muted": colors.text_muted,
+
+    "--color-border-primary": colors.border_primary,
+    "--color-border-secondary": colors.border_secondary,
+    "--color-border-accent": colors.border_accent,
+
+    "--color-hover-bg": colors.hover_bg,
+    "--color-focus-ring": colors.focus_ring,
+    "--color-active-bg": colors.active_bg,
+
+    // Spacing
+    ...Object.entries(ENHANCED_THEME_SYSTEM.SPACING).reduce(
+      (acc, [key, value]) => ({
+        ...acc,
+        [`--spacing-${key}`]: value,
+      }),
+      {}
+    ),
+
+    // Typography
+    "--font-primary": ENHANCED_THEME_SYSTEM.TYPOGRAPHY.FONT_FAMILIES.primary,
+    "--font-mono": ENHANCED_THEME_SYSTEM.TYPOGRAPHY.FONT_FAMILIES.mono,
+
+    // Shadows
+    ...Object.entries(ENHANCED_THEME_SYSTEM.SHADOWS).reduce(
+      (acc, [key, value]) => ({
+        ...acc,
+        [`--shadow-${key}`]: value,
+      }),
+      {}
+    ),
+
+    // Border radius
+    ...Object.entries(ENHANCED_THEME_SYSTEM.RADIUS).reduce(
+      (acc, [key, value]) => ({
+        ...acc,
+        [`--radius-${key}`]: value,
+      }),
+      {}
+    ),
+  };
 };

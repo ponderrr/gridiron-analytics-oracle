@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { RefreshCw, Users, BarChart3 } from "lucide-react";
 import Layout from "@/components/Layout";
-import { MESSAGE_CONSTANTS } from "@/lib/constants";
 import { useSyncData } from "@/hooks/useSyncData";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,7 +12,6 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { THEME_CONSTANTS } from "@/lib/constants";
 import {
   ADMIN_TABS,
   ADMIN_TAB_LABELS,
@@ -25,8 +23,6 @@ import SyncStatusDashboard from "@/components/ui/monitoring/SyncStatusDashboard"
 import DataQualityMetrics from "@/components/ui/monitoring/DataQualityMetrics";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-
-const { ICON_SIZES } = THEME_CONSTANTS;
 
 // Define tabs outside component to avoid re-creation on every render
 const ADMIN_TABS_CONFIG = [
@@ -55,7 +51,7 @@ const Admin: React.FC = () => {
       toast.success("Player sync completed successfully!");
     } catch (error) {
       toast.error("Player sync failed. Please try again.");
-      console.error(MESSAGE_CONSTANTS.ERROR_PLAYER_SYNC, error);
+      console.error("Player sync failed. Please try again.", error);
     }
   };
 
@@ -68,7 +64,7 @@ const Admin: React.FC = () => {
       toast.success("Stats sync completed successfully!");
     } catch (error) {
       toast.error("Stats sync failed. Please try again.");
-      console.error(MESSAGE_CONSTANTS.ERROR_STATS_SYNC, error);
+      console.error("Stats sync failed. Please try again.", error);
     }
   };
 
@@ -100,10 +96,13 @@ const Admin: React.FC = () => {
         {/* Header */}
         <div>
           <h1 className="text-3xl font-bold text-white flex items-center">
-            <Users className={`${ICON_SIZES.XL} mr-3 text-emerald-400`} />
-            {MESSAGE_CONSTANTS.APP_NAME}
+            <Users className={`${"text-emerald-400"} mr-3 text-emerald-400`} />
+            FF META
           </h1>
-          <p className="text-slate-400 mt-1">{MESSAGE_CONSTANTS.APP_TAGLINE}</p>
+          <p className="text-slate-400 mt-1">
+            Your one-stop shop for managing and monitoring your fantasy football
+            data.
+          </p>
         </div>
 
         {/* Tabs */}
@@ -121,7 +120,7 @@ const Admin: React.FC = () => {
                       : "border-transparent text-slate-400 hover:text-slate-300"
                   }`}
                 >
-                  <Icon className={ICON_SIZES.SM} />
+                  <Icon className={`${"text-emerald-400"} text-emerald-400`} />
                   <span>{tab.label}</span>
                   <span className="bg-slate-700 text-slate-300 px-2 py-1 rounded-full text-xs">
                     {tab.count}
@@ -145,7 +144,7 @@ const Admin: React.FC = () => {
               {/* Player Sync Section */}
               <div className="bg-slate-900/50 rounded-lg p-6 border border-slate-700/50">
                 <h3 className="text-lg font-bold text-white mb-4 flex items-center">
-                  <Users className={`${ICON_SIZES.MD} mr-2 text-emerald-400`} />
+                  <Users className={`${"text-emerald-400"} text-emerald-400`} />
                   {SYNC_SECTIONS.PLAYER_SYNC}
                 </h3>
                 <p className="text-slate-400 text-sm mb-4">
@@ -163,12 +162,14 @@ const Admin: React.FC = () => {
                         <span className="mr-2">
                           <LoadingState size="sm" type="spinner" />
                         </span>
-                        {MESSAGE_CONSTANTS.SYNCING_PLAYERS_LABEL}
+                        Syncing Players...
                       </>
                     ) : (
                       <>
-                        <RefreshCw className={`${ICON_SIZES.SM} mr-2`} />
-                        {MESSAGE_CONSTANTS.SYNC_PLAYERS_LABEL}
+                        <RefreshCw
+                          className={`${"text-emerald-400"} text-emerald-400`}
+                        />
+                        Sync Players
                       </>
                     )}
                   </Button>
@@ -176,12 +177,11 @@ const Admin: React.FC = () => {
                   {playerSync.result && (
                     <div className="text-sm">
                       <span className="text-emerald-400">
-                        {MESSAGE_CONSTANTS.PLAYERS_ADDED}{" "}
-                        {playerSync.result.players_added || 0}
+                        {playerSync.result.players_added || 0} players added
                       </span>
                       <span className="text-blue-400 ml-4">
-                        {MESSAGE_CONSTANTS.PLAYERS_PROCESSED}{" "}
-                        {playerSync.result.total_processed || 0}
+                        {playerSync.result.total_processed || 0} players
+                        processed
                       </span>
                     </div>
                   )}
@@ -198,7 +198,7 @@ const Admin: React.FC = () => {
                 {playerSync.result && playerSync.result.success && (
                   <div className="mt-4 p-3 bg-emerald-500/20 border border-emerald-500/30 rounded-lg">
                     <p className="text-emerald-400 text-sm">
-                      {MESSAGE_CONSTANTS.PLAYER_SYNC_SUCCESS}{" "}
+                      Player sync completed for{" "}
                       {playerSync.result.players_added} players.
                     </p>
                   </div>
@@ -208,9 +208,7 @@ const Admin: React.FC = () => {
               {/* Weekly Stats Sync Section */}
               <div className="bg-slate-900/50 rounded-lg p-6 border border-slate-700/50">
                 <h3 className="text-lg font-bold text-white mb-4 flex items-center">
-                  <BarChart3
-                    className={`${ICON_SIZES.MD} mr-2 text-blue-400`}
-                  />
+                  <BarChart3 className={`${"text-blue-400"} text-blue-400`} />
                   {SYNC_SECTIONS.STATS_SYNC}
                 </h3>
                 <p className="text-slate-400 text-sm mb-4">
@@ -272,12 +270,14 @@ const Admin: React.FC = () => {
                         <span className="mr-2">
                           <LoadingState size="sm" type="spinner" />
                         </span>
-                        {MESSAGE_CONSTANTS.SYNCING_STATS_LABEL}
+                        Syncing Stats...
                       </>
                     ) : (
                       <>
-                        <RefreshCw className={`${ICON_SIZES.SM} mr-2`} />
-                        {MESSAGE_CONSTANTS.SYNC_STATS_LABEL}
+                        <RefreshCw
+                          className={`${"text-blue-400"} text-blue-400`}
+                        />
+                        Sync Stats
                       </>
                     )}
                   </Button>
@@ -317,7 +317,7 @@ const Admin: React.FC = () => {
               <div className="bg-slate-900/50 rounded-lg p-6 border border-slate-700/50">
                 <h3 className="text-lg font-bold text-white mb-4 flex items-center">
                   <RefreshCw
-                    className={`${ICON_SIZES.MD} mr-2 text-emerald-400`}
+                    className={`${"text-emerald-400"} text-emerald-400`}
                   />
                   Run Full Weekly ETL
                 </h3>
@@ -340,7 +340,9 @@ const Admin: React.FC = () => {
                     </>
                   ) : (
                     <>
-                      <RefreshCw className={`${ICON_SIZES.SM} mr-2`} />
+                      <RefreshCw
+                        className={`${"text-emerald-400"} text-emerald-400`}
+                      />
                       Run Weekly ETL
                     </>
                   )}

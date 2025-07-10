@@ -2,7 +2,6 @@ import React, { ReactNode } from "react";
 import { AlertTriangle, RefreshCw, Home } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { createAppError, getErrorType } from "@/lib/errorHandling";
-import { getThemeClasses, THEME_CONSTANTS } from "@/lib/constants";
 import { ThemeContext } from "@/contexts/ThemeContext";
 
 /**
@@ -136,33 +135,30 @@ class ErrorBoundary extends React.Component<
       const { effectiveTheme } = this.context as {
         effectiveTheme: "light" | "dark";
       };
-      const themeClasses = getThemeClasses(effectiveTheme || "light");
 
       return (
         <div
-          className={`flex flex-col items-center justify-center min-h-[400px] text-center p-8 ${themeClasses.BG_PRIMARY}`}
+          className={`flex flex-col items-center justify-center min-h-[400px] text-center p-8 bg-[var(--color-bg-primary)]`}
         >
           <div className="max-w-md mx-auto">
             {/* Error Icon */}
             <div className="flex justify-center mb-6">
-              <div
-                className={`${THEME_CONSTANTS.THEME.COMMON.BG_ACCENT_DANGER} p-4 rounded-full`}
-              >
-                <AlertTriangle
-                  className={`${THEME_CONSTANTS.THEME.COMMON.ACCENT_DANGER} h-8 w-8`}
-                />
+              <div className={`bg-red-500/20 text-red-400 p-4 rounded-full`}>
+                <AlertTriangle className={`text-red-400 h-8 w-8`} />
               </div>
             </div>
 
             {/* Error Title */}
             <h2
-              className={`text-xl font-bold ${themeClasses.TEXT_PRIMARY} mb-3`}
+              className={`text-xl font-bold text-[var(--color-text-primary)] mb-3`}
             >
               {title}
             </h2>
 
             {/* Error Message */}
-            <p className={`${themeClasses.TEXT_TERTIARY} mb-6 leading-relaxed`}>
+            <p
+              className={`text-[var(--color-text-tertiary)] mb-6 leading-relaxed`}
+            >
               {message}
             </p>
 
@@ -170,12 +166,12 @@ class ErrorBoundary extends React.Component<
             {process.env.NODE_ENV === "development" && this.state.error && (
               <details className="mb-6 text-left">
                 <summary
-                  className={`text-sm ${themeClasses.TEXT_MUTED} cursor-pointer hover:${themeClasses.TEXT_TERTIARY} mb-2`}
+                  className={`text-sm text-[var(--color-text-muted)] cursor-pointer hover:text-[var(--color-text-tertiary)] mb-2`}
                 >
                   Error Details (Development)
                 </summary>
                 <div
-                  className={`${themeClasses.BG_CARD} border ${themeClasses.BORDER} rounded-lg p-4 text-xs ${themeClasses.TEXT_TERTIARY} font-mono overflow-auto`}
+                  className={`bg-[var(--color-bg-card)] border border-[var(--color-border)] rounded-lg p-4 text-xs text-[var(--color-text-tertiary)] font-mono overflow-auto`}
                 >
                   <div className="mb-2">
                     <strong>Error:</strong> {this.state.error.message}
@@ -204,7 +200,7 @@ class ErrorBoundary extends React.Component<
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <button
                 onClick={this.handleRetry}
-                className={`flex items-center justify-center space-x-2 ${THEME_CONSTANTS.THEME.COMMON.BG_ACCENT_PRIMARY} hover:${THEME_CONSTANTS.THEME.COMMON.HOVER_ACCENT_PRIMARY} ${THEME_CONSTANTS.THEME.COMMON.ACCENT_PRIMARY} px-6 py-3 rounded-lg font-medium transition-colors`}
+                className={`flex items-center justify-center space-x-2 bg-emerald-500/20 hover:bg-emerald-600 text-emerald-400 px-6 py-3 rounded-lg font-medium transition-colors`}
               >
                 <RefreshCw className="h-4 w-4" />
                 <span>Try Again</span>
