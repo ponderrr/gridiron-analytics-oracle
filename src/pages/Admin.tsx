@@ -36,6 +36,13 @@ const Admin: React.FC = () => {
     result: null,
     error: null,
   });
+  const [bulkWeeksSync, setBulkWeeksSync] = useState<SyncState>({
+    isLoading: false,
+    result: null,
+    error: null,
+  });
+  const [startWeek, setStartWeek] = useState<string>("15");
+  const [endWeek, setEndWeek] = useState<string>("18");
 
   // NFL Data Sync Handler
   const handleNFLDataSync = async () => {
@@ -56,7 +63,7 @@ const Admin: React.FC = () => {
     }
   };
 
-  // Weekly Stats Sync Handler
+  // Enhanced Weekly Stats Sync Handler (single week)
   const handleWeeklyStatsSync = async () => {
     setWeeklyStatsSync({ isLoading: true, result: null, error: null });
     try {
@@ -77,6 +84,89 @@ const Admin: React.FC = () => {
           : String(error);
       setWeeklyStatsSync({ isLoading: false, result: null, error: errorMsg });
       toast.error("Weekly stats sync failed: " + errorMsg);
+    }
+  };
+
+  // NEW: Bulk Weekly Stats Sync Handler (multiple weeks)
+  const handleBulkWeeklyStatsSync = async () => {
+    setBulkWeeksSync({ isLoading: true, result: null, error: null });
+
+    const start = parseInt(startWeek);
+    const end = parseInt(endWeek);
+    const season = parseInt(selectedSeason);
+
+    if (start > end) {
+      toast.error("Start week must be less than or equal to end week");
+      setBulkWeeksSync({
+        isLoading: false,
+        result: null,
+        error: "Invalid week range",
+      });
+      return;
+    }
+
+    try {
+      const results = [];
+      let successCount = 0;
+      let errorCount = 0;
+
+      for (let week = start; week <= end; week++) {
+        try {
+          toast.info(`Syncing week ${week}...`);
+          const { data, error } = await supabase.functions.invoke(
+            "sync-weekly-stats",
+            {
+              body: { week, season },
+            }
+          );
+
+          if (error) {
+            console.error(`Week ${week} failed:`, error);
+            errorCount++;
+            results.push(`❌ Week ${week}: ${error.message || "Failed"}`);
+          } else {
+            successCount++;
+            results.push(
+              `✅ Week ${week}: ${data?.stats_updated || 0} stats synced`
+            );
+          }
+
+          // Small delay between requests to be nice to the API
+          if (week < end) {
+            await new Promise((resolve) => setTimeout(resolve, 1000));
+          }
+        } catch (weekError: any) {
+          console.error(`Week ${week} error:`, weekError);
+          errorCount++;
+          results.push(
+            `❌ Week ${week}: ${weekError.message || "Unknown error"}`
+          );
+        }
+      }
+
+      const finalResult = {
+        summary: `Completed: ${successCount} successful, ${errorCount} failed`,
+        details: results.join("\n"),
+        successCount,
+        errorCount,
+      };
+
+      setBulkWeeksSync({ isLoading: false, result: finalResult, error: null });
+
+      if (errorCount === 0) {
+        toast.success(`All ${successCount} weeks synced successfully!`);
+      } else {
+        toast.warning(
+          `Sync completed with ${errorCount} errors out of ${successCount + errorCount} weeks`
+        );
+      }
+    } catch (error: any) {
+      const errorMsg =
+        typeof error === "object" && error && "message" in error
+          ? error.message
+          : String(error);
+      setBulkWeeksSync({ isLoading: false, result: null, error: errorMsg });
+      toast.error("Bulk sync failed: " + errorMsg);
     }
   };
 
@@ -250,36 +340,141 @@ const Admin: React.FC = () => {
               Sync weekly player statistics including passing, rushing,
               receiving, and defensive stats.
             </p>
-            <div className="flex space-x-4 mb-4">
-              <div>
-                <label className="block text-sm font-medium mb-1">Week</label>
-                <select
-                  className="border rounded px-2 py-1"
-                  value={selectedWeek}
-                  onChange={(e) => setSelectedWeek(e.target.value)}
-                >
-                  {Array.from({ length: 18 }, (_, i) => (
-                    <option key={i + 1} value={i + 1}>{`Week ${i + 1}`}</option>
-                  ))}
-                </select>
+            {/* Single Week Sync */}
+            <div className="mb-6 p-4 border rounded-lg">
+              <h4 className="font-medium mb-3">Single Week Sync</h4>
+              <div className="flex space-x-4 mb-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1">Week</label>
+                  <select
+                    className="border rounded px-2 py-1 text-gray-900 bg-white"
+                    value={selectedWeek}
+                    onChange={(e) => setSelectedWeek(e.target.value)}
+                  >
+                    {Array.from({ length: 18 }, (_, i) => (
+                      <option
+                        key={i + 1}
+                        value={i + 1}
+                        className="text-gray-900 bg-white"
+                      >{`Week ${i + 1}`}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">
+                    Season
+                  </label>
+                  <input
+                    className="border rounded px-2 py-1 text-gray-900 bg-white"
+                    type="text"
+                    value={selectedSeason}
+                    onChange={(e) => setSelectedSeason(e.target.value)}
+                  />
+                </div>
               </div>
-              <div>
-                <label className="block text-sm font-medium mb-1">Season</label>
-                <input
-                  className="border rounded px-2 py-1"
-                  type="text"
-                  value={selectedSeason}
-                  onChange={(e) => setSelectedSeason(e.target.value)}
-                />
-              </div>
+              <Button
+                onClick={handleWeeklyStatsSync}
+                disabled={weeklyStatsSync.isLoading}
+              >
+                <RefreshCw className="h-4 w-4 mr-2" />
+                {weeklyStatsSync.isLoading
+                  ? "Syncing Stats..."
+                  : "Sync Single Week"}
+              </Button>
+              {weeklyStatsSync.result && (
+                <div className="mt-3 p-2 bg-green-50 rounded text-sm">
+                  <strong>Result:</strong>{" "}
+                  {JSON.stringify(weeklyStatsSync.result)}
+                </div>
+              )}
+              {weeklyStatsSync.error && (
+                <div className="mt-3 p-2 bg-red-50 rounded text-sm text-red-700">
+                  <strong>Error:</strong> {weeklyStatsSync.error}
+                </div>
+              )}
             </div>
-            <Button
-              onClick={handleWeeklyStatsSync}
-              disabled={weeklyStatsSync.isLoading}
-            >
-              <RefreshCw className="h-4 w-4 mr-2" />
-              {weeklyStatsSync.isLoading ? "Syncing Stats..." : "Sync Stats"}
-            </Button>
+            {/* Bulk Week Sync */}
+            <div className="p-4 border rounded-lg bg-blue-50">
+              <h4 className="font-medium mb-3">Bulk Week Sync</h4>
+              <p className="text-sm text-gray-600 mb-3">
+                Sync multiple weeks at once. Recommended: Weeks 15-18 for end of
+                2024 season.
+              </p>
+              <div className="flex space-x-4 mb-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1">
+                    Start Week
+                  </label>
+                  <select
+                    className="border rounded px-2 py-1 text-gray-900 bg-white"
+                    value={startWeek}
+                    onChange={(e) => setStartWeek(e.target.value)}
+                  >
+                    {Array.from({ length: 18 }, (_, i) => (
+                      <option
+                        key={i + 1}
+                        value={i + 1}
+                        className="text-gray-900 bg-white"
+                      >{`Week ${i + 1}`}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">
+                    End Week
+                  </label>
+                  <select
+                    className="border rounded px-2 py-1 text-gray-900 bg-white"
+                    value={endWeek}
+                    onChange={(e) => setEndWeek(e.target.value)}
+                  >
+                    {Array.from({ length: 18 }, (_, i) => (
+                      <option
+                        key={i + 1}
+                        value={i + 1}
+                        className="text-gray-900 bg-white"
+                      >{`Week ${i + 1}`}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">
+                    Season
+                  </label>
+                  <input
+                    className="border rounded px-2 py-1 text-gray-900 bg-white"
+                    type="text"
+                    value={selectedSeason}
+                    onChange={(e) => setSelectedSeason(e.target.value)}
+                  />
+                </div>
+              </div>
+              <Button
+                onClick={handleBulkWeeklyStatsSync}
+                disabled={bulkWeeksSync.isLoading}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                <RefreshCw className="h-4 w-4 mr-2" />
+                {bulkWeeksSync.isLoading
+                  ? `Syncing Weeks ${startWeek}-${endWeek}...`
+                  : `Sync Weeks ${startWeek}-${endWeek}`}
+              </Button>
+              {bulkWeeksSync.result && (
+                <div className="mt-3 p-3 bg-white rounded border text-sm">
+                  <div className="font-medium mb-2">
+                    {bulkWeeksSync.result.summary}
+                  </div>
+                  <pre className="whitespace-pre-wrap text-xs bg-gray-50 p-2 rounded max-h-40 overflow-y-auto">
+                    {bulkWeeksSync.result.details}
+                  </pre>
+                </div>
+              )}
+              {bulkWeeksSync.error && (
+                <div className="mt-3 p-2 bg-red-50 rounded text-sm text-red-700">
+                  <strong>Error:</strong> {bulkWeeksSync.error}
+                </div>
+              )}
+            </div>
           </CardContent>
         </Card>
 
