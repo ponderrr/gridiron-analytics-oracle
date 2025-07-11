@@ -33,6 +33,8 @@ interface NavSectionProps {
 interface AppSidebarProps {
   isMobileOpen?: boolean;
   setIsMobileOpen?: (open: boolean) => void;
+  isCollapsed: boolean;
+  setIsCollapsed: (collapsed: boolean) => void;
 }
 
 const NavItem: React.FC<NavItemProps> = React.memo(
@@ -192,12 +194,15 @@ NavSection.displayName = "NavSection";
 const AppSidebar: React.FC<AppSidebarProps> = ({
   isMobileOpen = false,
   setIsMobileOpen,
+  isCollapsed,
+  setIsCollapsed
 }) => {
   const { effectiveTheme } = useTheme();
-  const [isCollapsed, setIsCollapsed] = useLocalStorage(
-    "sidebar-collapsed",
-    false
-  );
+  // Remove local isCollapsed state, use props instead
+  // const [isCollapsed, setIsCollapsed] = useLocalStorage(
+  //   "sidebar-collapsed",
+  //   false
+  // );
 
   useEffect(() => {
     document.documentElement.style.setProperty(
@@ -208,7 +213,8 @@ const AppSidebar: React.FC<AppSidebarProps> = ({
     );
   }, [isCollapsed]);
 
-  const toggleSidebar = () => setIsCollapsed((v: boolean) => !v);
+  // Fix toggleSidebar to use setIsCollapsed(!isCollapsed) instead of updater function
+  const toggleSidebar = () => setIsCollapsed(!isCollapsed);
   const navSections = SIDEBAR_SECTIONS_CONFIG;
 
   return (

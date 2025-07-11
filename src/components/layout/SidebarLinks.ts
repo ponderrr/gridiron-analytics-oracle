@@ -44,7 +44,7 @@ export const SIDEBAR_SECTIONS_CONFIG: SidebarSection[] = [
       {
         href: "/players",
         icon: Users,
-        label: "Players",
+        label: "Rankings",
       },
       {
         href: "/analytics",

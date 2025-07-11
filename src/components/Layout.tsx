@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/contexts/ThemeContext";
@@ -40,9 +40,15 @@ const SidebarSkeleton = React.memo(() => {
 
 SidebarSkeleton.displayName = "SidebarSkeleton";
 
+const SIDEBAR_WIDTH = "16rem"; // 256px
+const SIDEBAR_COLLAPSED_WIDTH = "4rem"; // 64px
+
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   const { user, isLoading, authError } = useAuth();
   const { effectiveTheme } = useTheme();
+
+  // Sidebar collapse state is now managed here
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
   // Error state for auth failures
   if (authError) {
@@ -89,15 +95,19 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     return (
       <ErrorBoundary>
         <div className={`min-h-screen bg-[var(--color-bg-primary)]`}>
-          <AppSidebar />
+          <AppSidebar isCollapsed={isSidebarCollapsed} setIsCollapsed={setIsSidebarCollapsed} />
 
-          {/* Main content area with margin to account for fixed sidebar */}
+          {/* Main content area with margin to account for fixed/collapsed sidebar */}
           <div
-            className="min-h-screen flex flex-col"
-            style={{ marginLeft: "var(--sidebar-width, 18rem)" }}
+            className="min-h-screen flex flex-col transition-all duration-300"
+            style={{
+              marginLeft: isSidebarCollapsed ? SIDEBAR_COLLAPSED_WIDTH : SIDEBAR_WIDTH,
+              width: `calc(100% - ${isSidebarCollapsed ? SIDEBAR_COLLAPSED_WIDTH : SIDEBAR_WIDTH})`,
+              maxWidth: "100%"
+            }}
           >
             {/* Main Content - this will scroll independently */}
-            <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto">
+            <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto w-full">
               {children}
             </main>
 

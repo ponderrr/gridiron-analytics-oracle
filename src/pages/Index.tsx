@@ -30,7 +30,7 @@ const Index: React.FC = () => {
           className="w-full max-w-3xl text-center mb-20"
         >
           <h1
-            className={`text-4xl md:text-6xl font-bold mb-6 ${effectiveTheme.TEXT_PRIMARY}`}
+            className={"text-4xl md:text-6xl font-bold mb-6 text-theme-primary"}
             style={{ letterSpacing: "-0.02em" }}
           >
             Make smarter decisions
@@ -61,12 +61,12 @@ const Index: React.FC = () => {
           >
             <BarChart3 className="h-12 w-12 text-indigo-400 mb-6" />
             <h3
-              className={`text-xl font-semibold mb-3 ${effectiveTheme.TEXT_PRIMARY}`}
+              className={"text-xl font-semibold mb-3 text-theme-primary"}
             >
               Rankings
             </h3>
             <p
-              className={`text-base text-center ${effectiveTheme.TEXT_TERTIARY}`}
+              className={"text-base text-center text-theme-tertiary"}
             >
               Dynamic, real-time rankings tailored to your league format.
             </p>
@@ -84,12 +84,12 @@ const Index: React.FC = () => {
           >
             <Users className="h-12 w-12 text-sky-400 mb-6" />
             <h3
-              className={`text-xl font-semibold mb-3 ${effectiveTheme.TEXT_PRIMARY}`}
+              className={"text-xl font-semibold mb-3 text-theme-primary"}
             >
               League Integration
             </h3>
             <p
-              className={`text-base text-center ${effectiveTheme.TEXT_TERTIARY}`}
+              className={"text-base text-center text-theme-tertiary"}
             >
               Connect all your leagues for unified management and insights.
             </p>
@@ -107,12 +107,12 @@ const Index: React.FC = () => {
           >
             <ArrowLeftRight className="h-12 w-12 text-purple-400 mb-6" />
             <h3
-              className={`text-xl font-semibold mb-3 ${effectiveTheme.TEXT_PRIMARY}`}
+              className={"text-xl font-semibold mb-3 text-theme-primary"}
             >
               Trade Tool
             </h3>
             <p
-              className={`text-base text-center ${effectiveTheme.TEXT_TERTIARY}`}
+              className={"text-base text-center text-theme-tertiary"}
             >
               AI-powered trade analytics using your rankings and insights.
             </p>

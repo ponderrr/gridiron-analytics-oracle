@@ -1,14 +1,5 @@
-import React from "react";
-import { motion } from "framer-motion";
-import Layout from "@/components/Layout";
-import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import React, { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowLeftRight,
   Plus,
@@ -17,30 +8,94 @@ import {
   ArrowRight,
   Crown,
   Target,
+  Search,
+  Filter,
+  Settings,
+  RefreshCw,
+  ThumbsUp,
+  ThumbsDown,
+  Minus,
+  Equal,
+  Zap,
+  Users,
+  BarChart3,
+  Star,
+  AlertTriangle,
+  CheckCircle,
+  Clock,
+  DollarSign,
+  TrendingDown,
+  Eye,
+  Share2,
+  Download,
+  Copy
 } from "lucide-react";
+import Layout from "@/components/Layout";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
+import { Separator } from "@/components/ui/separator";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { RankingsProvider, useRankings } from "@/components/PlayerRankings";
 import { useTradeAnalysis } from "@/hooks/useTradeAnalysis";
 import { useTheme } from "@/contexts/ThemeContext";
 import { toast } from "sonner";
 
-const { ICON_SIZES, TEXT_SIZES, PADDING, GAP } = {
-  ICON_SIZES: {
-    XL: "h-8 w-8",
-    MD: "h-6 w-6",
-    SM: "h-5 w-5",
-  },
-  TEXT_SIZES: {
-    FOUR_XL: "text-4xl",
-  },
-  PADDING: {
-    XL: "px-6 py-4",
-    LG: "px-4 py-3",
-    MD: "px-3 py-2",
-    SM: "px-2 py-1",
-  },
-  GAP: {
-    MD: "gap-3",
-  },
+// Mock data for live reactions
+const mockLiveReactions = [
+  { id: 1, type: "thumbs_up", count: 24, percentage: 60 },
+  { id: 2, type: "thumbs_down", count: 8, percentage: 20 },
+  { id: 3, type: "neutral", count: 8, percentage: 20 }
+];
+
+const getPositionColor = (position: string) => {
+  switch (position) {
+    case "QB": return "bg-blue-500";
+    case "RB": return "bg-green-500";
+    case "WR": return "bg-purple-500";
+    case "TE": return "bg-orange-500";
+    case "K": return "bg-yellow-500";
+    case "DEF": return "bg-red-500";
+    default: return "bg-gray-500";
+  }
+};
+
+const getTradeValueColor = (value: number) => {
+  if (value >= 80) return "text-green-500";
+  if (value >= 60) return "text-blue-500";
+  if (value >= 40) return "text-yellow-500";
+  return "text-red-500";
+};
+
+const getFairnessColor = (fairness: string) => {
+  switch (fairness.toLowerCase()) {
+    case "very fair": return "text-green-500";
+    case "fair": return "text-blue-500";
+    case "unfair": return "text-yellow-500";
+    case "very unfair": return "text-red-500";
+    default: return "text-gray-500";
+  }
+};
+
+const getFairnessIcon = (fairness: string) => {
+  switch (fairness.toLowerCase()) {
+    case "very fair": return CheckCircle;
+    case "fair": return ThumbsUp;
+    case "unfair": return ThumbsDown;
+    case "very unfair": return AlertTriangle;
+    default: return Minus;
+  }
 };
 
 function TradeAnalyzerContent() {
@@ -57,26 +112,18 @@ function TradeAnalyzerContent() {
     currentSet,
   } = useTradeAnalysis();
 
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1,
-      },
-    },
-  };
+  // Local state
+  const [searchTerm, setSearchTerm] = useState("");
+  const [positionFilter, setPositionFilter] = useState("all");
+  const [showLiveReactions, setShowLiveReactions] = useState(true);
+  const [selectedRankingType, setSelectedRankingType] = useState<"dynasty" | "redraft">("dynasty");
 
-  const itemVariants = {
-    hidden: { y: 20, opacity: 0 },
-    visible: {
-      y: 0,
-      opacity: 1,
-      transition: {
-        duration: 0.5,
-      },
-    },
-  };
+  // Filter available players based on search and position
+  const filteredPlayers = availablePlayers.filter(player => {
+    const matchesSearch = player.name.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesPosition = positionFilter === "all" || player.position === positionFilter;
+    return matchesSearch && matchesPosition;
+  });
 
   // Add player to trade
   const handleAddPlayer = (player: any, side: "your" | "target") => {
@@ -85,193 +132,277 @@ function TradeAnalyzerContent() {
       `${player.name} added to ${side === "your" ? "your" : "target"} side.`
     );
   };
+
   const handleRemovePlayer = (playerId: string, side: "your" | "target") => {
     removePlayerFromTrade(playerId, side);
     toast.success(
       `Player removed from ${side === "your" ? "your" : "target"} side.`
     );
   };
+
   const handleClearTrade = () => {
     clearTrade();
     toast.info("Trade cleared.");
   };
 
+  // Calculate trade summary
+  const yourSideValue = yourPlayers.reduce((sum, p) => sum + p.tradeValue, 0);
+  const targetSideValue = targetPlayers.reduce((sum, p) => sum + p.tradeValue, 0);
+  const valueDifference = targetSideValue - yourSideValue;
+  const valueRatio = yourSideValue > 0 ? targetSideValue / yourSideValue : 0;
+
   return (
     <Layout>
-      <motion.div
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
-        className="max-w-6xl mx-auto"
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          gap: "var(--spacing-xl)",
-        }}
-      >
-        {/* Header with Rankings Selector */}
-        <motion.div variants={itemVariants}>
-          <div
-            className="flex items-center justify-between"
-            style={{ marginBottom: "var(--spacing-lg)" }}
-          >
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-6">
+        {/* Header */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <div className="flex items-center justify-between">
             <div>
-              <h1
-                className={`${TEXT_SIZES.FOUR_XL} font-bold text-primary flex items-center`}
-              >
-                <ArrowLeftRight
-                  className={`${ICON_SIZES.XL} mr-3 text-emerald-400`}
-                />
-                Trade Analyzer
+              <h1 className="text-3xl font-bold text-[var(--color-text-primary)] flex items-center space-x-3">
+                <ArrowLeftRight className="h-8 w-8 text-primary" />
+                <span>Trade Analyzer</span>
               </h1>
-              <p
-                className="text-tertiary"
-                style={{ marginTop: "var(--spacing-xs)" }}
-              >
-                Analyze trades using your personal rankings
+              <p className="text-[var(--color-text-secondary)] mt-1">
+                Analyze trades using your personal rankings and get community insights
               </p>
             </div>
+            
+            <div className="flex items-center space-x-3">
+              <Button variant="outline" size="sm">
+                <Share2 className="h-4 w-4 mr-2" />
+                Share
+              </Button>
+              <Button variant="outline" size="sm">
+                <Download className="h-4 w-4 mr-2" />
+                Export
+              </Button>
+              <Button>
+                <RefreshCw className="h-4 w-4 mr-2" />
+                New Trade
+              </Button>
+            </div>
+          </div>
+        </motion.div>
 
-            {/* Rankings Set Selector */}
-            <div className="min-w-[200px]">
-              <Select
-                value={currentSet?.id || ""}
-                onValueChange={(value) => selectSet(value)}
-              >
-                <SelectTrigger className="bg-secondary border border-border">
-                  <SelectValue placeholder="Select Rankings" />
+        {/* Ranking Selection */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.1 }}
+          className="bg-[var(--color-bg-card)] border-[var(--color-border-primary)] rounded-xl shadow-lg p-6"
+        >
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between space-y-4 lg:space-y-0">
+            <div className="flex items-center space-x-4">
+              <div>
+                <Label className="text-sm font-medium text-[var(--color-text-primary)]">
+                  Ranking Type
+                </Label>
+                <div className="flex items-center space-x-2 mt-1">
+                  <Button
+                    variant={selectedRankingType === "dynasty" ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setSelectedRankingType("dynasty")}
+                  >
+                    <Crown className="h-4 w-4 mr-2" />
+                    Dynasty
+                  </Button>
+                  <Button
+                    variant={selectedRankingType === "redraft" ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setSelectedRankingType("redraft")}
+                  >
+                    <Target className="h-4 w-4 mr-2" />
+                    Redraft
+                  </Button>
+                </div>
+              </div>
+              
+              <Separator orientation="vertical" className="h-8" />
+              
+              <div className="min-w-[250px]">
+                <Label className="text-sm font-medium text-[var(--color-text-primary)]">
+                  Select Rankings
+                </Label>
+                <Select
+                  value={currentSet?.id || ""}
+                  onValueChange={(value) => selectSet(value)}
+                >
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="Choose your rankings" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {state.sets
+                      .filter(set => set.format === selectedRankingType)
+                      .map((set) => (
+                        <SelectItem key={set.id} value={set.id}>
+                          {set.name}
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {currentSet && (
+              <div className="flex items-center space-x-4 text-sm">
+                <Badge variant="outline" className="text-xs">
+                  {currentSet.format}
+                </Badge>
+                <span className="text-[var(--color-text-secondary)]">
+                  {state.rankedItems.length} ranked players
+                </span>
+                <span className="text-[var(--color-text-secondary)]">•</span>
+                <span className="text-[var(--color-text-secondary)]">
+                  Last updated: {new Date(currentSet.updated_at).toLocaleDateString()}
+                </span>
+              </div>
+            )}
+          </div>
+        </motion.div>
+
+        {/* Search and Filters */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+          className="bg-[var(--color-bg-card)] border-[var(--color-border-primary)] rounded-xl shadow-lg p-6"
+        >
+          <div className="flex flex-col sm:flex-row gap-4">
+            <div className="flex-1">
+              <Label className="text-sm font-medium text-[var(--color-text-primary)]">
+                Search Players
+              </Label>
+              <div className="relative mt-1">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-[var(--color-text-secondary)]" />
+                <Input
+                  placeholder="Search by player name..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+            </div>
+            
+            <div>
+              <Label className="text-sm font-medium text-[var(--color-text-primary)]">
+                Position
+              </Label>
+              <Select value={positionFilter} onValueChange={setPositionFilter}>
+                <SelectTrigger className="mt-1 w-[120px]">
+                  <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {state.sets.map((set) => (
-                    <SelectItem key={set.id} value={set.id}>
-                      {set.name} ({set.format})
-                    </SelectItem>
-                  ))}
+                  <SelectItem value="all">All</SelectItem>
+                  <SelectItem value="QB">QB</SelectItem>
+                  <SelectItem value="RB">RB</SelectItem>
+                  <SelectItem value="WR">WR</SelectItem>
+                  <SelectItem value="TE">TE</SelectItem>
                 </SelectContent>
               </Select>
             </div>
-          </div>
 
-          {currentSet && (
-            <div
-              className="bg-card border border-border rounded-lg"
-              style={{ padding: "var(--spacing-lg)" }}
-            >
-              <div className="flex items-center space-x-4 text-sm">
-                <span className="text-tertiary">Using:</span>
-                <span className="font-medium text-primary">
-                  {currentSet.name}
-                </span>
-                <span className="text-tertiary">•</span>
-                <span className="text-emerald-400">{currentSet.format}</span>
-                <span className="text-tertiary">•</span>
-                <span className="text-tertiary">
-                  {state.rankedItems.length} ranked players
-                </span>
+            <div className="flex items-end">
+              <div className="flex items-center space-x-2">
+                <Switch
+                  checked={showLiveReactions}
+                  onCheckedChange={setShowLiveReactions}
+                />
+                <Label className="text-sm text-[var(--color-text-primary)]">
+                  Live Reactions
+                </Label>
               </div>
             </div>
-          )}
+          </div>
         </motion.div>
 
         {/* Trade Builder */}
         <motion.div
-          variants={itemVariants}
-          style={{
-            display: "flex",
-            flexDirection: "column",
-            gap: "var(--spacing-xl)",
-          }}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.3 }}
+          className="grid grid-cols-1 lg:grid-cols-2 gap-6"
         >
-          <div
-            className="grid grid-cols-1 lg:grid-cols-2"
-            style={{ gap: "var(--spacing-xl)" }}
-          >
-            {/* Your Team */}
-            <div
-              className="rounded-2xl border border-border bg-card"
-              style={{ padding: "var(--spacing-xl)" }}
-            >
-              <h3
-                className="text-lg font-semibold text-primary flex items-center justify-between"
-                style={{ marginBottom: "var(--spacing-lg)" }}
-              >
-                <div className="flex items-center">
-                  <TrendingUp
-                    className={`${ICON_SIZES.MD} mr-2 text-emerald-400`}
-                  />
-                  Your Players
+          {/* Your Team */}
+          <Card className="bg-[var(--color-bg-card)] border-[var(--color-border-primary)]">
+            <CardHeader>
+              <CardTitle className="text-lg font-bold text-[var(--color-text-primary)] flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <TrendingUp className="h-5 w-5 text-green-500" />
+                  <span>Your Players</span>
                 </div>
                 {yourPlayers.length > 0 && (
-                  <div className="text-sm text-emerald-400 font-medium">
-                    Value:{" "}
-                    {yourPlayers
-                      .reduce((sum, p) => sum + p.tradeValue, 0)
-                      .toFixed(0)}
-                  </div>
+                  <Badge className="bg-green-500 text-white">
+                    {yourSideValue.toFixed(0)} pts
+                  </Badge>
                 )}
-              </h3>
-
-              <div
-                className="space-y-3"
-                style={{
-                  marginBottom: "var(--spacing-lg)",
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "var(--spacing-md)",
-                }}
-              >
-                {yourPlayers.length === 0 ? (
-                  <div
-                    className="bg-secondary border-2 border-dashed border-border rounded-lg text-center"
-                    style={{ padding: "var(--spacing-2xl)" }}
-                  >
-                    <Plus
-                      className={`${ICON_SIZES.XL} text-muted-foreground mx-auto`}
-                      style={{ marginBottom: "var(--spacing-sm)" }}
-                    />
-                    <p className="text-muted-foreground">
-                      Select players to trade away
-                    </p>
-                  </div>
-                ) : (
-                  yourPlayers.map((player) => (
-                    <div
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {yourPlayers.length === 0 ? (
+                <div className="border-2 border-dashed border-[var(--color-border-primary)] rounded-lg p-8 text-center">
+                  <Plus className="h-8 w-8 text-[var(--color-text-secondary)] mx-auto mb-2" />
+                  <p className="text-[var(--color-text-secondary)]">
+                    Select players to trade away
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {yourPlayers.map((player) => (
+                    <motion.div
                       key={player.id}
-                      className="flex items-center justify-between bg-secondary rounded-lg p-3"
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      className="flex items-center justify-between bg-[var(--color-bg-secondary)] rounded-lg p-3"
                     >
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-2">
-                          <span className="font-medium text-primary">
-                            {player.name}
-                          </span>
-                          {player.rank && (
-                            <span className="text-xs bg-emerald-500/20 text-emerald-400 px-2 py-1 rounded">
-                              #{player.rank}
+                      <div className="flex items-center space-x-3">
+                        <Avatar className="w-8 h-8">
+                          <AvatarFallback className="text-xs font-bold bg-gradient-to-br from-primary/20 to-primary/40">
+                            {player.name.split(' ').map(n => n[0]).join('')}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <div className="flex items-center space-x-2">
+                            <span className="font-medium text-[var(--color-text-primary)]">
+                              {player.name}
                             </span>
-                          )}
-                        </div>
-                        <div className="text-xs text-tertiary">
-                          {player.position} - {player.team} • Value:{" "}
-                          {player.tradeValue.toFixed(0)}
+                            <Badge className={`${getPositionColor(player.position)} text-white text-xs`}>
+                              {player.position}
+                            </Badge>
+                            {player.rank && (
+                              <Badge variant="outline" className="text-xs">
+                                #{player.rank}
+                              </Badge>
+                            )}
+                          </div>
+                          <div className="text-xs text-[var(--color-text-secondary)]">
+                            {player.team} • Value: <span className={getTradeValueColor(player.tradeValue)}>{player.tradeValue.toFixed(0)}</span>
+                          </div>
                         </div>
                       </div>
-                      <button
+                      <Button
+                        variant="ghost"
+                        size="sm"
                         onClick={() => handleRemovePlayer(player.id, "your")}
-                        className="text-tertiary hover:text-red-400 transition-colors"
+                        className="text-red-500 hover:text-red-700"
                       >
-                        <X className={ICON_SIZES.SM} />
-                      </button>
-                    </div>
-                  ))
-                )}
-              </div>
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </motion.div>
+                  ))}
+                </div>
+              )}
 
+              {/* Available Players */}
               <div className="space-y-2">
-                <h4 className="text-sm font-medium text-secondary">
+                <h4 className="text-sm font-medium text-[var(--color-text-primary)]">
                   Available Players
                 </h4>
-                <div className="grid grid-cols-1 gap-2 max-h-40 overflow-y-auto">
-                  {availablePlayers.slice(0, 20).map((player) => {
+                <div className="max-h-48 overflow-y-auto space-y-1">
+                  {filteredPlayers.slice(0, 10).map((player) => {
                     const rankedPlayer = state.rankedItems.find(
                       (rp: any) => rp.player_id === player.id
                     );
@@ -279,116 +410,109 @@ function TradeAnalyzerContent() {
                       <button
                         key={player.id}
                         onClick={() => handleAddPlayer(player, "your")}
-                        className="flex items-center justify-between bg-tertiary bg-hover rounded p-2 text-left transition-colors"
+                        className="w-full flex items-center justify-between bg-[var(--color-bg-secondary)] hover:bg-[var(--color-bg-card)] rounded p-2 text-left transition-colors"
                       >
-                        <div className="flex-1">
-                          <div className="flex items-center space-x-2">
-                            <span className="text-sm text-primary">
-                              {player.name}
-                            </span>
-                            {rankedPlayer && (
-                              <span className="text-xs bg-emerald-500/20 text-emerald-400 px-1 py-0.5 rounded">
-                                #{rankedPlayer.overall_rank}
-                              </span>
-                            )}
-                          </div>
-                          <span className="text-xs text-tertiary">
-                            {player.position} - {player.team}
+                        <div className="flex items-center space-x-2">
+                          <span className="text-sm font-medium text-[var(--color-text-primary)]">
+                            {player.name}
                           </span>
+                          <Badge className={`${getPositionColor(player.position)} text-white text-xs`}>
+                            {player.position}
+                          </Badge>
+                          {rankedPlayer && (
+                            <Badge variant="outline" className="text-xs">
+                              #{rankedPlayer.overall_rank}
+                            </Badge>
+                          )}
                         </div>
+                        <span className="text-xs text-[var(--color-text-secondary)]">
+                          {player.team}
+                        </span>
                       </button>
                     );
                   })}
                 </div>
               </div>
-            </div>
+            </CardContent>
+          </Card>
 
-            {/* Trade Target */}
-            <div
-              className="rounded-2xl border border-border bg-card"
-              style={{ padding: "var(--spacing-xl)" }}
-            >
-              <h3
-                className="text-lg font-semibold text-primary flex items-center justify-between"
-                style={{ marginBottom: "var(--spacing-lg)" }}
-              >
-                <div className="flex items-center">
-                  <ArrowRight
-                    className={`${ICON_SIZES.MD} mr-2 text-blue-400`}
-                  />
-                  Players to Receive
+          {/* Trade Target */}
+          <Card className="bg-[var(--color-bg-card)] border-[var(--color-border-primary)]">
+            <CardHeader>
+              <CardTitle className="text-lg font-bold text-[var(--color-text-primary)] flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <ArrowRight className="h-5 w-5 text-blue-500" />
+                  <span>Players to Receive</span>
                 </div>
                 {targetPlayers.length > 0 && (
-                  <div className="text-sm text-blue-400 font-medium">
-                    Value:{" "}
-                    {targetPlayers
-                      .reduce((sum, p) => sum + p.tradeValue, 0)
-                      .toFixed(0)}
-                  </div>
+                  <Badge className="bg-blue-500 text-white">
+                    {targetSideValue.toFixed(0)} pts
+                  </Badge>
                 )}
-              </h3>
-
-              <div
-                className="space-y-3"
-                style={{
-                  marginBottom: "var(--spacing-lg)",
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "var(--spacing-md)",
-                }}
-              >
-                {targetPlayers.length === 0 ? (
-                  <div
-                    className="bg-secondary border-2 border-dashed border-border rounded-lg text-center"
-                    style={{ padding: "var(--spacing-2xl)" }}
-                  >
-                    <Plus
-                      className={`${ICON_SIZES.XL} text-muted-foreground mx-auto`}
-                      style={{ marginBottom: "var(--spacing-sm)" }}
-                    />
-                    <p className="text-muted-foreground">
-                      Select players to acquire
-                    </p>
-                  </div>
-                ) : (
-                  targetPlayers.map((player) => (
-                    <div
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {targetPlayers.length === 0 ? (
+                <div className="border-2 border-dashed border-[var(--color-border-primary)] rounded-lg p-8 text-center">
+                  <Plus className="h-8 w-8 text-[var(--color-text-secondary)] mx-auto mb-2" />
+                  <p className="text-[var(--color-text-secondary)]">
+                    Select players to acquire
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-3">
+                  {targetPlayers.map((player) => (
+                    <motion.div
                       key={player.id}
-                      className="flex items-center justify-between bg-secondary rounded-lg p-3"
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      className="flex items-center justify-between bg-[var(--color-bg-secondary)] rounded-lg p-3"
                     >
-                      <div className="flex-1">
-                        <div className="flex items-center space-x-2">
-                          <span className="font-medium text-primary">
-                            {player.name}
-                          </span>
-                          {player.rank && (
-                            <span className="text-xs bg-blue-500/20 text-blue-400 px-2 py-1 rounded">
-                              #{player.rank}
+                      <div className="flex items-center space-x-3">
+                        <Avatar className="w-8 h-8">
+                          <AvatarFallback className="text-xs font-bold bg-gradient-to-br from-primary/20 to-primary/40">
+                            {player.name.split(' ').map(n => n[0]).join('')}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <div className="flex items-center space-x-2">
+                            <span className="font-medium text-[var(--color-text-primary)]">
+                              {player.name}
                             </span>
-                          )}
-                        </div>
-                        <div className="text-xs text-tertiary">
-                          {player.position} - {player.team} • Value:{" "}
-                          {player.tradeValue.toFixed(0)}
+                            <Badge className={`${getPositionColor(player.position)} text-white text-xs`}>
+                              {player.position}
+                            </Badge>
+                            {player.rank && (
+                              <Badge variant="outline" className="text-xs">
+                                #{player.rank}
+                              </Badge>
+                            )}
+                          </div>
+                          <div className="text-xs text-[var(--color-text-secondary)]">
+                            {player.team} • Value: <span className={getTradeValueColor(player.tradeValue)}>{player.tradeValue.toFixed(0)}</span>
+                          </div>
                         </div>
                       </div>
-                      <button
+                      <Button
+                        variant="ghost"
+                        size="sm"
                         onClick={() => handleRemovePlayer(player.id, "target")}
-                        className="text-tertiary hover:text-red-400 transition-colors"
+                        className="text-red-500 hover:text-red-700"
                       >
-                        <X className={ICON_SIZES.SM} />
-                      </button>
-                    </div>
-                  ))
-                )}
-              </div>
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </motion.div>
+                  ))}
+                </div>
+              )}
 
+              {/* Available Players */}
               <div className="space-y-2">
-                <h4 className="text-sm font-medium text-secondary">
+                <h4 className="text-sm font-medium text-[var(--color-text-primary)]">
                   Available Players
                 </h4>
-                <div className="grid grid-cols-1 gap-2 max-h-40 overflow-y-auto">
-                  {availablePlayers.slice(0, 20).map((player) => {
+                <div className="max-h-48 overflow-y-auto space-y-1">
+                  {filteredPlayers.slice(0, 10).map((player) => {
                     const rankedPlayer = state.rankedItems.find(
                       (rp: any) => rp.player_id === player.id
                     );
@@ -396,103 +520,176 @@ function TradeAnalyzerContent() {
                       <button
                         key={player.id}
                         onClick={() => handleAddPlayer(player, "target")}
-                        className="flex items-center justify-between bg-tertiary bg-hover rounded p-2 text-left transition-colors"
+                        className="w-full flex items-center justify-between bg-[var(--color-bg-secondary)] hover:bg-[var(--color-bg-card)] rounded p-2 text-left transition-colors"
                       >
-                        <div className="flex-1">
-                          <div className="flex items-center space-x-2">
-                            <span className="text-sm text-primary">
-                              {player.name}
-                            </span>
-                            {rankedPlayer && (
-                              <span className="text-xs bg-blue-500/20 text-blue-400 px-1 py-0.5 rounded">
-                                #{rankedPlayer.overall_rank}
-                              </span>
-                            )}
-                          </div>
-                          <span className="text-xs text-tertiary">
-                            {player.position} - {player.team}
+                        <div className="flex items-center space-x-2">
+                          <span className="text-sm font-medium text-[var(--color-text-primary)]">
+                            {player.name}
                           </span>
+                          <Badge className={`${getPositionColor(player.position)} text-white text-xs`}>
+                            {player.position}
+                          </Badge>
+                          {rankedPlayer && (
+                            <Badge variant="outline" className="text-xs">
+                              #{rankedPlayer.overall_rank}
+                            </Badge>
+                          )}
                         </div>
+                        <span className="text-xs text-[var(--color-text-secondary)]">
+                          {player.team}
+                        </span>
                       </button>
                     );
                   })}
                 </div>
               </div>
-            </div>
-          </div>
-
-          {/* Clear Trade Button */}
-          {(yourPlayers.length > 0 || targetPlayers.length > 0) && (
-            <div className="flex justify-center">
-              <Button
-                onClick={handleClearTrade}
-                variant="outline"
-                className="border border-border text-tertiary hover:text-primary"
-              >
-                Clear Trade
-              </Button>
-            </div>
-          )}
+            </CardContent>
+          </Card>
         </motion.div>
 
         {/* Trade Analysis Results */}
-        {tradeAnalysis && (
-          <motion.div variants={itemVariants}>
-            <div className="rounded-2xl border border-border p-6 bg-card">
-              <div className="space-y-6">
-                <div className="text-center text-primary rounded-xl">
-                  <div className="text-3xl font-bold mb-2 text-emerald-400">
-                    {tradeAnalysis.fairness}
+        {(yourPlayers.length > 0 || targetPlayers.length > 0) && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.4 }}
+            className="grid grid-cols-1 lg:grid-cols-3 gap-6"
+          >
+            {/* Trade Analysis */}
+            <Card className="bg-[var(--color-bg-card)] border-[var(--color-border-primary)] lg:col-span-2">
+              <CardHeader>
+                <CardTitle className="text-lg font-bold text-[var(--color-text-primary)] flex items-center space-x-2">
+                  <BarChart3 className="h-5 w-5 text-purple-500" />
+                  <span>Trade Analysis</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Fairness Rating */}
+                <div className="text-center">
+                  <div className="flex items-center justify-center space-x-2 mb-2">
+                    {(() => {
+                      const Icon = getFairnessIcon(tradeAnalysis?.fairness || "neutral");
+                      return <Icon className={`h-8 w-8 ${getFairnessColor(tradeAnalysis?.fairness || "neutral")}`} />;
+                    })()}
+                    <h3 className={`text-2xl font-bold ${getFairnessColor(tradeAnalysis?.fairness || "neutral")}`}>
+                      {tradeAnalysis?.fairness || "Neutral"}
+                    </h3>
                   </div>
-                  <div className="text-xl text-primary mb-4">
-                    {tradeAnalysis.recommendation}
+                  <p className="text-[var(--color-text-secondary)] text-sm">
+                    {tradeAnalysis?.recommendation || "Add players to analyze trade"}
+                  </p>
+                </div>
+
+                {/* Value Comparison */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-[var(--color-bg-secondary)] rounded-lg p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm text-[var(--color-text-secondary)]">Your Side</span>
+                      <span className="font-bold text-green-500">{yourSideValue.toFixed(0)}</span>
+                    </div>
+                    <Progress value={(yourSideValue / Math.max(yourSideValue, targetSideValue)) * 100} className="h-2" />
                   </div>
-                  <div className="text-sm text-tertiary">
-                    Value difference:{" "}
-                    {Math.abs(tradeAnalysis.valueDifference).toFixed(0)} points
+                  <div className="bg-[var(--color-bg-secondary)] rounded-lg p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm text-[var(--color-text-secondary)]">Their Side</span>
+                      <span className="font-bold text-blue-500">{targetSideValue.toFixed(0)}</span>
+                    </div>
+                    <Progress value={(targetSideValue / Math.max(yourSideValue, targetSideValue)) * 100} className="h-2" />
                   </div>
                 </div>
 
-                <div className={`grid grid-cols-2 ${GAP.MD}`}>
-                  <div className="bg-secondary rounded-lg">
-                    <div className="flex justify-between items-center">
-                      <span className="text-tertiary">Your Side Value</span>
-                      <span className="font-medium text-emerald-400">
-                        {tradeAnalysis.yourSideValue.toFixed(0)}
-                      </span>
-                    </div>
-                  </div>
-                  <div className="bg-secondary rounded-lg">
-                    <div className="flex justify-between items-center">
-                      <span className="text-tertiary">Their Side Value</span>
-                      <span className="font-medium text-secondary">
-                        {tradeAnalysis.targetSideValue.toFixed(0)}
-                      </span>
-                    </div>
-                  </div>
-                </div>
-
-                {tradeAnalysis.winnerSide !== "neutral" && (
-                  <div className="rounded-lg border-2 text-emerald-400/30">
+                {/* Value Difference */}
+                <div className="bg-[var(--color-bg-secondary)] rounded-lg p-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-[var(--color-text-secondary)]">Value Difference</span>
                     <div className="flex items-center space-x-2">
-                      {tradeAnalysis.winnerSide === "your" ? (
-                        <Crown className="text-emerald-400" size={20} />
+                      {valueDifference > 0 ? (
+                        <TrendingUp className="h-4 w-4 text-green-500" />
+                      ) : valueDifference < 0 ? (
+                        <TrendingDown className="h-4 w-4 text-red-500" />
                       ) : (
-                        <Target className="text-red-400" size={20} />
+                        <Equal className="h-4 w-4 text-gray-500" />
                       )}
-                      <span className="font-medium text-emerald-400">
-                        {tradeAnalysis.winnerSide === "your"
-                          ? "You win this trade!"
-                          : "They win this trade!"}
+                      <span className={`font-bold ${valueDifference > 0 ? 'text-green-500' : valueDifference < 0 ? 'text-red-500' : 'text-gray-500'}`}>
+                        {Math.abs(valueDifference).toFixed(0)} pts
                       </span>
                     </div>
                   </div>
-                )}
-              </div>
-            </div>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex items-center justify-between">
+                  <Button variant="outline" onClick={handleClearTrade}>
+                    <RefreshCw className="h-4 w-4 mr-2" />
+                    Clear Trade
+                  </Button>
+                  <div className="flex items-center space-x-2">
+                    <Button variant="outline">
+                      <Copy className="h-4 w-4 mr-2" />
+                      Copy
+                    </Button>
+                    <Button variant="outline">
+                      <Share2 className="h-4 w-4 mr-2" />
+                      Share
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Live Reactions */}
+            {showLiveReactions && (
+              <Card className="bg-[var(--color-bg-card)] border-[var(--color-border-primary)]">
+                <CardHeader>
+                  <CardTitle className="text-lg font-bold text-[var(--color-text-primary)] flex items-center space-x-2">
+                    <Zap className="h-5 w-5 text-yellow-500" />
+                    <span>Live Reactions</span>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="space-y-3">
+                    {mockLiveReactions.map((reaction) => (
+                      <div key={reaction.id} className="flex items-center justify-between">
+                        <div className="flex items-center space-x-2">
+                          {reaction.type === "thumbs_up" && <ThumbsUp className="h-4 w-4 text-green-500" />}
+                          {reaction.type === "thumbs_down" && <ThumbsDown className="h-4 w-4 text-red-500" />}
+                          {reaction.type === "neutral" && <Minus className="h-4 w-4 text-gray-500" />}
+                          <span className="text-sm text-[var(--color-text-primary)] capitalize">
+                            {reaction.type.replace('_', ' ')}
+                          </span>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <span className="text-sm font-medium text-[var(--color-text-primary)]">
+                            {reaction.count}
+                          </span>
+                          <div className="w-16 bg-[var(--color-bg-secondary)] rounded-full h-2">
+                            <div 
+                              className="bg-primary h-2 rounded-full" 
+                              style={{ width: `${reaction.percentage}%` }}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  <Separator />
+                  
+                  <div className="text-center">
+                    <p className="text-xs text-[var(--color-text-secondary)]">
+                      Based on 40 community votes
+                    </p>
+                    <Button variant="outline" size="sm" className="mt-2">
+                      <ThumbsUp className="h-4 w-4 mr-2" />
+                      Vote
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </motion.div>
         )}
-      </motion.div>
+      </div>
     </Layout>
   );
 }
