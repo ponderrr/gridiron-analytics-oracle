@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import { useTheme } from "@/contexts/ThemeContext";
 import AppSidebar from "@/components/AppSidebar";
 import ErrorBoundary from "./ErrorBoundary";
 import LoadingSpinner from "@/components/LoadingSpinner";
@@ -13,7 +12,7 @@ interface LayoutProps {
 
 // Sidebar skeleton loader - moved outside to prevent recreation on every render
 const SidebarSkeleton = React.memo(() => {
-  const { effectiveTheme } = useTheme();
+  // Removed unused: const { effectiveTheme } = useTheme();
 
   return (
     <div
@@ -45,7 +44,7 @@ const SIDEBAR_COLLAPSED_WIDTH = "4rem"; // 64px
 
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   const { user, isLoading, authError } = useAuth();
-  const { effectiveTheme } = useTheme();
+  // Removed unused: const { effectiveTheme } = useTheme();
 
   // Sidebar collapse state is now managed here
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -95,15 +94,20 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     return (
       <ErrorBoundary>
         <div className={`min-h-screen bg-[var(--color-bg-primary)]`}>
-          <AppSidebar isCollapsed={isSidebarCollapsed} setIsCollapsed={setIsSidebarCollapsed} />
+          <AppSidebar
+            isCollapsed={isSidebarCollapsed}
+            setIsCollapsed={setIsSidebarCollapsed}
+          />
 
           {/* Main content area with margin to account for fixed/collapsed sidebar */}
           <div
             className="min-h-screen flex flex-col transition-all duration-300"
             style={{
-              marginLeft: isSidebarCollapsed ? SIDEBAR_COLLAPSED_WIDTH : SIDEBAR_WIDTH,
+              marginLeft: isSidebarCollapsed
+                ? SIDEBAR_COLLAPSED_WIDTH
+                : SIDEBAR_WIDTH,
               width: `calc(100% - ${isSidebarCollapsed ? SIDEBAR_COLLAPSED_WIDTH : SIDEBAR_WIDTH})`,
-              maxWidth: "100%"
+              maxWidth: "100%",
             }}
           >
             {/* Main Content - this will scroll independently */}

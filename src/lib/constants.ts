@@ -205,3 +205,10 @@ export const getThemeVariables = (theme: "light" | "dark") => {
     ),
   };
 };
+
+export const UI_CONSTANTS = {
+  SIDEBAR: {
+    EXPANDED_WIDTH_PX: "288px",
+    COLLAPSED_WIDTH_CSS_PX: "80px",
+  },
+};

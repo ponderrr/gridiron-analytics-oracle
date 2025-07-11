@@ -29,7 +29,6 @@ export function RankedPlayersList() {
     [dispatch, state.rankedItems]
   );
 
-  // Helper to derive legacy rankedPlayers from rankedItems
   const rankedPlayers = state.rankedItems
     .filter((item) => item.type === "player" && item.player)
     .filter(

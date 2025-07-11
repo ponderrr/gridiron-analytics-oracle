@@ -1,6 +1,6 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { Brain, Construction, BarChart3, TrendingUp, Zap } from "lucide-react";
+import { Brain, Construction, BarChart3, Zap } from "lucide-react";
 import Layout from "@/components/Layout";
 import { Card } from "@/components/ui/card";
 

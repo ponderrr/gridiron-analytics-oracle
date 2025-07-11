@@ -1,12 +1,12 @@
-import React, { useRef } from 'react';
-import { useFrame } from '@react-three/fiber';
-import { Plane } from '@react-three/drei';
-import * as THREE from 'three';
+import React, { useRef } from "react";
+import { useFrame } from "@react-three/fiber";
+import { Plane } from "@react-three/drei";
+import * as THREE from "three";
 
 const FootballField: React.FC = () => {
   const fieldRef = useRef<THREE.Mesh>(null);
 
-  useFrame((state) => {
+  useFrame(() => {
     // Animation can be added here if needed
   });
 
@@ -19,11 +19,7 @@ const FootballField: React.FC = () => {
         rotation={[-Math.PI / 2, 0, 0]}
         position={[0, -0.1, 0]}
       >
-        <meshStandardMaterial
-          color="#2d5016"
-          roughness={0.8}
-          metalness={0.1}
-        />
+        <meshStandardMaterial color="#2d5016" roughness={0.8} metalness={0.1} />
       </Plane>
 
       {/* Grass Texture Layer */}
@@ -93,4 +89,4 @@ const FootballField: React.FC = () => {
   );
 };
 
-export default FootballField; 
+export default FootballField;

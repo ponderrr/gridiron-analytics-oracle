@@ -39,7 +39,7 @@ export const appConfig: AppConfig = {
     enableTradeAnalyzer: true,
     enableAdmin: true,
     enableFantasyPointsTest: true,
-    enableLeagueManagement: false, // coming soon
+    enableLeagueManagement: false, 
   },
   UI: {
     sidebarExpandedWidth: UI_CONSTANTS.SIDEBAR.EXPANDED_WIDTH_PX,

@@ -3,6 +3,7 @@ import { ETLBase, ETLRun, SleeperPlayer } from "../_shared/etl-utils.ts";
 
 class NFLDataSync extends ETLBase {
   async syncPlayers(): Promise<ETLRun> {
+    console.log("Starting syncPlayers method...");
     const run: ETLRun = {
       run_type: "nfl-data",
       records_processed: 0,
@@ -10,26 +11,47 @@ class NFLDataSync extends ETLBase {
     };
 
     try {
+      console.log("Checking if should update players...");
       const shouldUpdate = await this.shouldUpdatePlayers();
+      console.log("Should update result:", shouldUpdate);
 
       if (shouldUpdate) {
+        console.log("Getting players from Sleeper API...");
         const players = await this.api.getPlayers();
+        console.log(
+          "Got players from API, count:",
+          Object.keys(players).length
+        );
+
+        console.log("Upserting players to database...");
         await this.upsertPlayers(players);
+        console.log("Upsert completed successfully");
+
         run.records_processed = Object.keys(players).length;
       }
 
+      console.log("syncPlayers completed successfully");
       return run;
     } catch (error: unknown) {
+      console.error("Error caught in syncPlayers:");
+      console.error("Error type:", typeof error);
+      console.error("Error constructor:", error?.constructor?.name);
+      console.error("Error details:", error);
+
       run.status = "error";
       if (error instanceof Error) {
+        console.error("Standard Error message:", error.message);
+        console.error("Standard Error stack:", error.stack);
         run.error_message = error.message;
-        console.error("Error in nfl-data-sync:", error.message);
+      } else if (error && typeof error === "object") {
+        console.error("Object error:", JSON.stringify(error, null, 2));
+        run.error_message = JSON.stringify(error);
       } else {
+        console.error("Other error type:", String(error));
         run.error_message = String(error);
-        console.error("Error in nfl-data-sync:", String(error));
       }
-      // Don't throw error, just return the failed run
-      return run;
+
+      return run; // Don't throw, just return failed run
     }
   }
 

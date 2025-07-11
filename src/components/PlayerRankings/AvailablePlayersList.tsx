@@ -11,7 +11,6 @@ import { DraftPick } from "@/lib/database";
 import { LoadingState } from "@/components/ui/common";
 import { useResponsiveListDimensions } from "@/hooks/useResponsiveListDimensions";
 
-// Custom outer element for react-window with correct ref typing
 const OuterElement = React.forwardRef<
   HTMLDivElement,
   React.HTMLProps<HTMLDivElement>

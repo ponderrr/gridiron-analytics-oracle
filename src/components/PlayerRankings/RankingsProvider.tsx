@@ -487,7 +487,16 @@ export function RankingsProvider({ children }: { children: React.ReactNode }) {
         .order("overall_pick");
 
       if (error) throw error;
-      dispatch({ type: "SET_AVAILABLE_PICKS", payload: data || [] });
+      dispatch({
+        type: "SET_AVAILABLE_PICKS",
+        payload: (data || []).map((pick) => ({
+          ...pick,
+          pick_type: "",
+          display_name: "",
+          description: "",
+          is_active: true,
+        })),
+      });
     } catch (error) {
       console.error("Error fetching draft picks:", error);
       toast.error("Failed to fetch draft picks");
