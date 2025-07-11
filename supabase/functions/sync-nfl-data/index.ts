@@ -58,15 +58,35 @@ class NFLDataSync extends ETLBase {
   private async upsertPlayers(
     players: Record<string, SleeperPlayer>
   ): Promise<void> {
-    const playersData = Object.entries(players).map(([playerId, player]) => ({
-      player_id: playerId,
-      full_name: player.full_name,
-      position: player.position,
-      team: player.team,
-      bye_week: player.bye_week,
-    }));
+    // Filter out players with missing required data and clean the data
+    const playersData = Object.entries(players)
+      .filter(([playerId, player]) => {
+        // Filter out players without required data
+        return (
+          playerId &&
+          player &&
+          player.full_name &&
+          player.full_name.trim() !== "" &&
+          player.full_name !== null &&
+          player.full_name !== undefined
+        );
+      })
+      .map(([playerId, player]) => ({
+        player_id: playerId,
+        full_name: player.full_name.trim(), // Clean whitespace
+        position: player.position || "UNK", // Default position if missing
+        team: player.team || "FA", // Default to Free Agent if missing
+        bye_week: player.bye_week || null, // Allow null bye weeks
+      }));
 
-    if (playersData.length === 0) return;
+    if (playersData.length === 0) {
+      console.log("No valid players to insert after filtering");
+      return;
+    }
+
+    console.log(
+      `Filtered to ${playersData.length} valid players out of ${Object.keys(players).length} total`
+    );
 
     const start = Date.now();
     const { error } = await this.supabase
@@ -75,14 +95,24 @@ class NFLDataSync extends ETLBase {
     const end = Date.now();
     const execution_time_ms = end - start;
 
-    await this.logQueryPerformance({
-      query_type: "upsert_sleeper_players_cache",
-      execution_time_ms,
-      rows_affected: playersData.length,
-      query_hash: undefined,
-    });
+    // Only log performance if table exists (avoid secondary errors)
+    try {
+      await this.logQueryPerformance({
+        query_type: "upsert_sleeper_players_cache",
+        execution_time_ms,
+        rows_affected: playersData.length,
+        query_hash: undefined,
+      });
+    } catch (perfError) {
+      console.warn("Performance logging failed (non-critical):", perfError);
+    }
 
-    if (error) throw error;
+    if (error) {
+      console.error("Database upsert error:", error);
+      throw error;
+    }
+
+    console.log(`Successfully upserted ${playersData.length} players`);
   }
 }
 
@@ -103,14 +133,19 @@ serve(async () => {
 
     return new Response(
       JSON.stringify({
-        success: true,
-        message: "NFL data sync completed successfully",
+        success: result.status === "success",
+        message:
+          result.status === "success"
+            ? "NFL data sync completed successfully"
+            : "NFL data sync completed with errors",
         players_processed: result.records_processed,
+        status: result.status,
+        error: result.error_message || null,
         timestamp: new Date().toISOString(),
       }),
       {
         headers: { "Content-Type": "application/json" },
-        status: 200,
+        status: result.status === "success" ? 200 : 500,
       }
     );
   } catch (error) {
