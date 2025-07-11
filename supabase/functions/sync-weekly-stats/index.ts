@@ -118,32 +118,33 @@ class NFLVerseStatsSync extends ETLBase {
     // Log some sample data to see the actual format
     console.log("=== SAMPLE NFLVERSE DATA ===");
 
-    // Process each data row
-    for (let i = 1; i < lines.length && i <= 10; i++) {
-      // Only first 10 for debugging
+    let debugCount = 0;
+    for (let i = 1; i < lines.length; i++) {
       const line = lines[i].trim();
       if (!line) continue;
 
       const values = this.parseCSVLine(line);
       if (values.length < headers.length) continue;
 
-      // Create object from headers and values
       const record: any = {};
       headers.forEach((header, index) => {
         record[header] = values[index];
       });
 
-      // Log sample records to see the actual format
-      console.log(`Sample record ${i}:`, {
-        player_name: record.player_name,
-        player_display_name: record.player_display_name,
-        player_id: record.player_id,
-        recent_team: record.recent_team,
-        position: record.position,
-        week: record.week,
-      });
+      // Debug log only first 10 records
+      if (debugCount < 10) {
+        console.log(`Sample record ${debugCount + 1}:`, {
+          player_name: record.player_name,
+          player_display_name: record.player_display_name,
+          player_id: record.player_id,
+          recent_team: record.recent_team,
+          position: record.position,
+          week: record.week,
+        });
+        debugCount++;
+      }
 
-      // Filter for the target week
+      // Filter for the target week (process ALL records)
       const week = parseInt(record.week);
       if (week === targetWeek) {
         stats.push({
