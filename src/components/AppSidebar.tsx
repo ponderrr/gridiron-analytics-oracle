@@ -1,13 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
-import {
-  ChevronLeft,
-  ChevronRight,
-  ChevronDown,
-  ChevronUp,
-} from "lucide-react";
+import { ChevronLeft, ChevronRight, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
-import useLocalStorage from "@/hooks/useLocalStorage";
 import { useTheme } from "@/contexts/ThemeContext";
 import Logo from "@/components/ui/Logo";
 import SidebarFooter from "@/components/SidebarFooter";
@@ -124,7 +118,6 @@ const NavSection: React.FC<NavSectionProps> = React.memo(
     sectionId,
   }) => {
     const [isOpen, setIsOpen] = useState(defaultOpen);
-    const { effectiveTheme } = useTheme();
     const handleToggle = () => setIsOpen((open) => !open);
 
     if (isCollapsed) {
@@ -195,7 +188,7 @@ const AppSidebar: React.FC<AppSidebarProps> = ({
   isMobileOpen = false,
   setIsMobileOpen,
   isCollapsed,
-  setIsCollapsed
+  setIsCollapsed,
 }) => {
   const { effectiveTheme } = useTheme();
   // Remove local isCollapsed state, use props instead

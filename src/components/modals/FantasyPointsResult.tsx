@@ -16,7 +16,7 @@ interface FantasyPointsResultModalProps {
 export const FantasyPointsResultModal: React.FC<
   FantasyPointsResultModalProps
 > = ({ isOpen, onClose, result, scoringFormat }) => {
-  const { effectiveTheme } = useTheme();
+  // Removed unused: const { effectiveTheme } = useTheme();
 
   if (!isOpen || !result) return null;
 
