@@ -74,3 +74,6 @@ verify_jwt = true
 
 [functions.weekly_refresh]
 verify_jwt = false
+
+[functions.sync-cache-to-main]
+verify_jwt = false
