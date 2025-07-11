@@ -464,7 +464,7 @@ const Admin: React.FC = () => {
                   <div className="font-medium mb-2">
                     {bulkWeeksSync.result.summary}
                   </div>
-                  <pre className="whitespace-pre-wrap text-xs bg-gray-50 p-2 rounded max-h-40 overflow-y-auto">
+                  <pre className="whitespace-pre-wrap text-xs bg-gray-50 p-2 rounded max-h-40 overflow-y-auto text-gray-900">
                     {bulkWeeksSync.result.details}
                   </pre>
                 </div>
