@@ -136,6 +136,7 @@ class NFLVerseStatsSync extends ETLBase {
       // Log sample records to see the actual format
       console.log(`Sample record ${i}:`, {
         player_name: record.player_name,
+        player_display_name: record.player_display_name,
         player_id: record.player_id,
         recent_team: record.recent_team,
         position: record.position,
@@ -147,7 +148,7 @@ class NFLVerseStatsSync extends ETLBase {
       if (week === targetWeek) {
         stats.push({
           player_id: record.player_id,
-          player_name: record.player_name,
+          player_name: record.player_display_name || record.player_name, // Use display name first!
           recent_team: record.recent_team,
           season: parseInt(record.season),
           week: week,
