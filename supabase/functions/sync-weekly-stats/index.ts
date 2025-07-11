@@ -111,12 +111,16 @@ class NFLVerseStatsSync extends ETLBase {
 
     // Get headers
     const headers = lines[0].split(",").map((h) => h.trim().replace(/"/g, ""));
-    console.log(`CSV headers: ${headers.slice(0, 10).join(", ")}...`);
+    console.log(`CSV headers: ${headers.join(", ")}`);
 
     const stats: NFLVersePlayerStats[] = [];
 
+    // Log some sample data to see the actual format
+    console.log("=== SAMPLE NFLVERSE DATA ===");
+
     // Process each data row
-    for (let i = 1; i < lines.length; i++) {
+    for (let i = 1; i < lines.length && i <= 10; i++) {
+      // Only first 10 for debugging
       const line = lines[i].trim();
       if (!line) continue;
 
@@ -127,6 +131,15 @@ class NFLVerseStatsSync extends ETLBase {
       const record: any = {};
       headers.forEach((header, index) => {
         record[header] = values[index];
+      });
+
+      // Log sample records to see the actual format
+      console.log(`Sample record ${i}:`, {
+        player_name: record.player_name,
+        player_id: record.player_id,
+        recent_team: record.recent_team,
+        position: record.position,
+        week: record.week,
       });
 
       // Filter for the target week
@@ -154,6 +167,8 @@ class NFLVerseStatsSync extends ETLBase {
         });
       }
     }
+
+    console.log("=== END SAMPLE DATA ===");
 
     return stats;
   }
@@ -185,10 +200,10 @@ class NFLVerseStatsSync extends ETLBase {
     week: number,
     stats: NFLVersePlayerStats[]
   ): Promise<void> {
-    // First, get our player ID mapping from Sleeper
+    // Get our player ID mapping from Sleeper with team and position info
     const { data: playerMapping, error: mappingError } = await this.supabase
       .from("sleeper_players_cache")
-      .select("player_id, full_name");
+      .select("player_id, full_name, team, position");
 
     if (mappingError) {
       console.error("Error getting player mapping:", mappingError);
@@ -197,21 +212,78 @@ class NFLVerseStatsSync extends ETLBase {
 
     console.log(`Got ${playerMapping?.length || 0} players from mapping`);
 
-    // Create name-based lookup since nflverse uses different IDs
-    const nameToSleeperIdMap = new Map<string, string>();
+    // Create enhanced lookup maps that include team/position context
+    const exactMatchMap = new Map<string, string>();
+    const teamPositionMap = new Map<string, any[]>(); // name -> array of players with that name
+
     playerMapping?.forEach((player) => {
-      const normalizedName = this.normalizeName(player.full_name);
-      nameToSleeperIdMap.set(normalizedName, player.player_id);
+      const fullName = player.full_name;
+      const playerId = player.player_id;
+
+      // Exact match
+      exactMatchMap.set(fullName, playerId);
+
+      // Group by name for conflict resolution
+      const normalizedName = this.normalizeName(fullName);
+      if (!teamPositionMap.has(normalizedName)) {
+        teamPositionMap.set(normalizedName, []);
+      }
+      teamPositionMap.get(normalizedName)!.push(player);
     });
 
-    // Transform nflverse stats to our format
+    // Transform nflverse stats to our format with conflict resolution
     const mappedStats = stats
       .map((stat) => {
-        const normalizedName = this.normalizeName(stat.player_name || "");
-        const sleeperId = nameToSleeperIdMap.get(normalizedName);
+        const nflverseName = stat.player_name || "";
+        const nflverseTeam = stat.recent_team || "";
+
+        let sleeperId: string | undefined;
+
+        // Try exact match first
+        sleeperId = exactMatchMap.get(nflverseName);
 
         if (!sleeperId) {
-          console.warn(`Could not map player: ${stat.player_name}`);
+          // Try normalized name with conflict resolution
+          const normalized = this.normalizeName(nflverseName);
+          const candidates = teamPositionMap.get(normalized) || [];
+
+          if (candidates.length === 1) {
+            // Only one match - safe to use
+            sleeperId = candidates[0].player_id;
+            console.log(
+              `Single match: "${nflverseName}" -> "${candidates[0].full_name}"`
+            );
+          } else if (candidates.length > 1) {
+            // Multiple matches - use team to resolve
+            const teamMatch = candidates.find(
+              (c) =>
+                c.team && nflverseTeam && this.teamsMatch(c.team, nflverseTeam)
+            );
+
+            if (teamMatch) {
+              sleeperId = teamMatch.player_id;
+              console.log(
+                `Team-resolved: "${nflverseName}" (${nflverseTeam}) -> "${teamMatch.full_name}" (${teamMatch.team})`
+              );
+            } else {
+              console.warn(
+                `Multiple matches for "${nflverseName}", teams: ${candidates.map((c) => `${c.full_name}(${c.team})`).join(", ")}, nflverse team: ${nflverseTeam}`
+              );
+            }
+          } else {
+            // Try fuzzy matching as last resort
+            sleeperId = this.findFuzzyMatch(
+              nflverseName,
+              nflverseTeam,
+              playerMapping || []
+            );
+          }
+        }
+
+        if (!sleeperId) {
+          console.warn(
+            `Could not map player: "${nflverseName}" (${nflverseTeam})`
+          );
           return null;
         }
 
@@ -283,6 +355,91 @@ class NFLVerseStatsSync extends ETLBase {
     if (stats.receptions) points += stats.receptions; // PPR bonus
 
     return Math.round(points * 100) / 100;
+  }
+
+  private teamsMatch(sleeperTeam: string, nflverseTeam: string): boolean {
+    // Handle team abbreviation differences
+    const teamMappings: Record<string, string[]> = {
+      WAS: ["WSH", "WAS"], // Washington
+      JAX: ["JAC", "JAX"], // Jacksonville
+      TB: ["TAM", "TB"], // Tampa Bay
+      LV: ["LVR", "LV", "OAK"], // Las Vegas/Oakland
+      LAR: ["LAR", "LA"], // LA Rams
+      LAC: ["LAC", "LA"], // LA Chargers
+      SF: ["SFO", "SF"], // San Francisco
+      GB: ["GBP", "GB"], // Green Bay
+      NE: ["NEP", "NE"], // New England
+      NO: ["NOS", "NO"], // New Orleans
+      KC: ["KCC", "KC"], // Kansas City
+    };
+
+    // Normalize team names
+    const normalizeTeam = (team: string) => team.toUpperCase().trim();
+    const sleeper = normalizeTeam(sleeperTeam);
+    const nflverse = normalizeTeam(nflverseTeam);
+
+    // Direct match
+    if (sleeper === nflverse) return true;
+
+    // Check mappings
+    for (const [canonical, variations] of Object.entries(teamMappings)) {
+      if (variations.includes(sleeper) && variations.includes(nflverse)) {
+        return true;
+      }
+    }
+
+    return false;
+  }
+
+  private findFuzzyMatch(
+    nflverseName: string,
+    nflverseTeam: string,
+    playerMapping: any[]
+  ): string | undefined {
+    // Enhanced fuzzy matching with team context
+
+    // Pattern: "B.Robinson" with team context
+    const match = nflverseName.match(/^([A-Z])\.(.+)$/);
+    if (match) {
+      const [, lastInitial, firstName] = match;
+
+      const candidates = playerMapping.filter((player) => {
+        const fullName = player.full_name;
+        const parts = fullName.split(/\s+/);
+
+        if (parts.length >= 2) {
+          const playerFirstName = parts[0];
+          const playerLastName = parts[parts.length - 1];
+
+          return (
+            playerFirstName.toLowerCase() === firstName.toLowerCase() &&
+            playerLastName.charAt(0).toUpperCase() === lastInitial
+          );
+        }
+        return false;
+      });
+
+      if (candidates.length === 1) {
+        console.log(
+          `Fuzzy single match: "${nflverseName}" -> "${candidates[0].full_name}"`
+        );
+        return candidates[0].player_id;
+      } else if (candidates.length > 1 && nflverseTeam) {
+        // Use team to resolve
+        const teamMatch = candidates.find(
+          (c) => c.team && this.teamsMatch(c.team, nflverseTeam)
+        );
+
+        if (teamMatch) {
+          console.log(
+            `Fuzzy team-resolved: "${nflverseName}" (${nflverseTeam}) -> "${teamMatch.full_name}" (${teamMatch.team})`
+          );
+          return teamMatch.player_id;
+        }
+      }
+    }
+
+    return undefined;
   }
 }
 
