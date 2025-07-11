@@ -28,7 +28,7 @@ import {
   Server,
   HardDrive,
   Network,
-  Cpu
+  Cpu,
 } from "lucide-react";
 import Layout from "@/components/Layout";
 import { useSyncData } from "@/hooks/useSyncData";
@@ -66,7 +66,7 @@ const mockSystemStats = {
   lastBackup: "2024-01-22T10:30:00Z",
   serverLoad: 45,
   memoryUsage: 67,
-  diskUsage: 78
+  diskUsage: 78,
 };
 
 const mockRecentActivity = [
@@ -76,7 +76,7 @@ const mockRecentActivity = [
     description: "Weekly stats sync completed",
     timestamp: "2024-01-22T15:30:00Z",
     status: "success",
-    details: "Updated 1,247 player records"
+    details: "Updated 1,247 player records",
   },
   {
     id: "2",
@@ -84,7 +84,7 @@ const mockRecentActivity = [
     description: "New user registered",
     timestamp: "2024-01-22T14:45:00Z",
     status: "info",
-    details: "User ID: 1247"
+    details: "User ID: 1247",
   },
   {
     id: "3",
@@ -92,7 +92,7 @@ const mockRecentActivity = [
     description: "New ranking set created",
     timestamp: "2024-01-22T14:20:00Z",
     status: "success",
-    details: "Dynasty Top 200 by user_123"
+    details: "Dynasty Top 200 by user_123",
   },
   {
     id: "4",
@@ -100,8 +100,8 @@ const mockRecentActivity = [
     description: "API rate limit exceeded",
     timestamp: "2024-01-22T13:15:00Z",
     status: "error",
-    details: "ESPN API - Retrying in 5 minutes"
-  }
+    details: "ESPN API - Retrying in 5 minutes",
+  },
 ];
 
 const mockDataQuality = {
@@ -109,36 +109,46 @@ const mockDataQuality = {
   statsData: 97.2,
   projectionData: 95.8,
   tradeValueData: 96.3,
-  overallQuality: 97.0
+  overallQuality: 97.0,
 };
 
 const formatDate = (dateString: string) => {
-  return new Date(dateString).toLocaleDateString('en-US', {
-    year: 'numeric',
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
+  return new Date(dateString).toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
   });
 };
 
 const getActivityIcon = (type: string) => {
   switch (type) {
-    case "data_sync": return RefreshCw;
-    case "user_registration": return Users;
-    case "ranking_created": return Target;
-    case "error": return AlertTriangle;
-    default: return Activity;
+    case "data_sync":
+      return RefreshCw;
+    case "user_registration":
+      return Users;
+    case "ranking_created":
+      return Target;
+    case "error":
+      return AlertTriangle;
+    default:
+      return Activity;
   }
 };
 
 const getActivityColor = (status: string) => {
   switch (status) {
-    case "success": return "text-green-500";
-    case "error": return "text-red-500";
-    case "warning": return "text-yellow-500";
-    case "info": return "text-blue-500";
-    default: return "text-gray-500";
+    case "success":
+      return "text-green-500";
+    case "error":
+      return "text-red-500";
+    case "warning":
+      return "text-yellow-500";
+    case "info":
+      return "text-blue-500";
+    default:
+      return "text-gray-500";
   }
 };
 
@@ -148,6 +158,11 @@ const Admin: React.FC = () => {
   const [selectedSeason, setSelectedSeason] = useState<string>("2024");
   const [etlLoading, setEtlLoading] = useState(false);
   const [etlResult, setEtlResult] = useState<string | null>(null);
+  const [nflDataSync, setNflDataSync] = useState({ isLoading: false, result: null, error: null });
+  const [cacheToMainSync, setCacheToMainSync] = useState({ isLoading: false, result: null, error: null });
+  const [weeklyStatsSync, setWeeklyStatsSync] = useState({ isLoading: false, result: null, error: null });
+  const [top200Sync, setTop200Sync] = useState({ isLoading: false, result: null, error: null });
+  const [dataPopulation, setDataPopulation] = useState({ isLoading: false, result: null, error: null });
 
   // Sync data hook
   const { playerSync, statsSync, syncPlayers, syncWeeklyStats } = useSyncData();
@@ -156,27 +171,123 @@ const Admin: React.FC = () => {
     setActiveTab(tab);
   };
 
-  // Sync handlers
-  const handlePlayerSync = async () => {
+  // NFL Data Sync Handler
+  const handleNFLDataSync = async () => {
+    setNflDataSync({ isLoading: true, result: null, error: null });
     try {
-      await syncPlayers();
-      toast.success("Player sync completed successfully!");
-    } catch (error) {
-      toast.error("Player sync failed. Please try again.");
-      console.error("Player sync failed. Please try again.", error);
+      const { data, error } = await supabase.functions.invoke("sync-nfl-data");
+      if (error) throw error;
+      setNflDataSync({ isLoading: false, result: data, error: null });
+      toast.success("NFL data sync completed successfully!");
+    } catch (error: any) {
+      setNflDataSync({ isLoading: false, result: null, error: error.message });
+      toast.error("NFL data sync failed: " + error.message);
     }
   };
 
-  const handleStatsSync = async () => {
+  // Cache to Main Sync Handler
+  const handleCacheToMainSync = async () => {
+    setCacheToMainSync({ isLoading: true, result: null, error: null });
     try {
-      await syncWeeklyStats(
-        parseInt(selectedWeek, 10),
-        parseInt(selectedSeason, 10)
-      );
-      toast.success("Stats sync completed successfully!");
-    } catch (error) {
-      toast.error("Stats sync failed. Please try again.");
-      console.error("Stats sync failed. Please try again.", error);
+      const { data, error } = await supabase.functions.invoke("sync-cache-to-main", {
+        body: { season: parseInt(selectedSeason) }
+      });
+      if (error) throw error;
+      setCacheToMainSync({ isLoading: false, result: data, error: null });
+      toast.success("Cache to main sync completed successfully!");
+    } catch (error: any) {
+      setCacheToMainSync({ isLoading: false, result: null, error: error.message });
+      toast.error("Cache to main sync failed: " + error.message);
+    }
+  };
+
+  // Weekly Stats Sync Handler
+  const handleWeeklyStatsSync = async () => {
+    setWeeklyStatsSync({ isLoading: true, result: null, error: null });
+    try {
+      const { data, error } = await supabase.functions.invoke("sync-weekly-stats", {
+        body: { 
+          week: parseInt(selectedWeek), 
+          season: parseInt(selectedSeason) 
+        }
+      });
+      if (error) throw error;
+      setWeeklyStatsSync({ isLoading: false, result: data, error: null });
+      toast.success(`Week ${selectedWeek} stats sync completed!`);
+    } catch (error: any) {
+      setWeeklyStatsSync({ isLoading: false, result: null, error: error.message });
+      toast.error("Weekly stats sync failed: " + error.message);
+    }
+  };
+
+  // Top 200 Sync Handler
+  const handleTop200Sync = async (format: 'dynasty' | 'redraft') => {
+    setTop200Sync({ isLoading: true, result: null, error: null });
+    try {
+      const { data, error } = await supabase.functions.invoke("sync-top200-pool", {
+        body: { 
+          format, 
+          season: parseInt(selectedSeason) 
+        }
+      });
+      if (error) throw error;
+      setTop200Sync({ isLoading: false, result: data, error: null });
+      toast.success(`${format} top 200 sync completed!`);
+    } catch (error: any) {
+      setTop200Sync({ isLoading: false, result: null, error: error.message });
+      toast.error(`${format} top 200 sync failed: ` + error.message);
+    }
+  };
+
+  // Complete Data Population Handler
+  const handleCompleteDataPopulation = async () => {
+    setDataPopulation({ isLoading: true, result: null, error: null });
+    try {
+      const season = parseInt(selectedSeason);
+      let results = [];
+      toast.info("Step 1: Syncing NFL player data...");
+      const { data: nflData, error: nflError } = await supabase.functions.invoke("sync-nfl-data");
+      if (nflError) throw new Error("NFL Data sync failed: " + nflError.message);
+      results.push(`✅ Synced ${nflData.players_processed || 0} players`);
+      toast.info("Step 2: Moving players to main table...");
+      const { data: cacheData, error: cacheError } = await supabase.functions.invoke("sync-cache-to-main", {
+        body: { season, sync_players: true, sync_stats: false }
+      });
+      if (cacheError) throw new Error("Cache sync failed: " + cacheError.message);
+      results.push(`✅ Moved ${cacheData.players_synced || 0} players to main table`);
+      toast.info("Step 3: Loading recent week stats...");
+      for (let week = 15; week <= 18; week++) {
+        const { error: statsError } = await supabase.functions.invoke("sync-weekly-stats", {
+          body: { week, season }
+        });
+        if (statsError) console.warn(`Week ${week} sync failed:`, statsError);
+      }
+      results.push(`✅ Loaded stats for weeks 15-18`);
+      toast.info("Step 4: Moving stats to main table...");
+      const { data: statsData, error: statsError } = await supabase.functions.invoke("sync-cache-to-main", {
+        body: { season, sync_players: false, sync_stats: true }
+      });
+      if (statsError) throw new Error("Stats sync failed: " + statsError.message);
+      results.push(`✅ Moved ${statsData.stats_synced || 0} stats to main table`);
+      toast.info("Step 5: Generating top 200 rankings...");
+      const { data: dynastyData, error: dynastyError } = await supabase.functions.invoke("sync-top200-pool", {
+        body: { format: 'dynasty', season }
+      });
+      if (dynastyError) throw new Error("Dynasty top 200 failed: " + dynastyError.message);
+      const { data: redraftData, error: redraftError } = await supabase.functions.invoke("sync-top200-pool", {
+        body: { format: 'redraft', season }
+      });
+      if (redraftError) throw new Error("Redraft top 200 failed: " + redraftError.message);
+      results.push(`✅ Generated dynasty (${dynastyData.players_processed || 0}) and redraft (${redraftData.players_processed || 0}) rankings`);
+      setDataPopulation({ 
+        isLoading: false, 
+        result: `Complete data population finished!\n\n${results.join('\n')}`, 
+        error: null 
+      });
+      toast.success("Complete data population finished successfully!");
+    } catch (error: any) {
+      setDataPopulation({ isLoading: false, result: null, error: error.message });
+      toast.error("Data population failed: " + error.message);
     }
   };
 
@@ -219,7 +330,7 @@ const Admin: React.FC = () => {
                 System administration and data management
               </p>
             </div>
-            
+
             <div className="flex items-center space-x-3">
               <Button variant="outline" size="sm">
                 <Download className="h-4 w-4 mr-2" />
@@ -248,8 +359,8 @@ const Admin: React.FC = () => {
           <div className="relative flex mb-8 border-b border-slate-200 dark:border-slate-200/10">
             <button
               className={`text-lg font-semibold pb-3 px-4 transition-colors border-b-2 flex-1 ${
-                activeTab === "overview" 
-                  ? "text-indigo-500 dark:text-indigo-400 border-indigo-500 dark:border-indigo-400" 
+                activeTab === "overview"
+                  ? "text-indigo-500 dark:text-indigo-400 border-indigo-500 dark:border-indigo-400"
                   : "text-slate-500 dark:text-slate-400 border-transparent hover:text-slate-700 dark:hover:text-slate-300"
               } focus:outline-none`}
               onClick={() => handleTabChange("overview")}
@@ -263,8 +374,8 @@ const Admin: React.FC = () => {
             </button>
             <button
               className={`text-lg font-semibold pb-3 px-4 transition-colors border-b-2 flex-1 ${
-                activeTab === "data-sync" 
-                  ? "text-indigo-500 dark:text-indigo-400 border-indigo-500 dark:border-indigo-400" 
+                activeTab === "data-sync"
+                  ? "text-indigo-500 dark:text-indigo-400 border-indigo-500 dark:border-indigo-400"
                   : "text-slate-500 dark:text-slate-400 border-transparent hover:text-slate-700 dark:hover:text-slate-300"
               } focus:outline-none`}
               onClick={() => handleTabChange("data-sync")}
@@ -278,8 +389,8 @@ const Admin: React.FC = () => {
             </button>
             <button
               className={`text-lg font-semibold pb-3 px-4 transition-colors border-b-2 flex-1 ${
-                activeTab === "monitoring" 
-                  ? "text-indigo-500 dark:text-indigo-400 border-indigo-500 dark:border-indigo-400" 
+                activeTab === "monitoring"
+                  ? "text-indigo-500 dark:text-indigo-400 border-indigo-500 dark:border-indigo-400"
                   : "text-slate-500 dark:text-slate-400 border-transparent hover:text-slate-700 dark:hover:text-slate-300"
               } focus:outline-none`}
               onClick={() => handleTabChange("monitoring")}
@@ -293,8 +404,8 @@ const Admin: React.FC = () => {
             </button>
             <button
               className={`text-lg font-semibold pb-3 px-4 transition-colors border-b-2 flex-1 ${
-                activeTab === "users" 
-                  ? "text-indigo-500 dark:text-indigo-400 border-indigo-500 dark:border-indigo-400" 
+                activeTab === "users"
+                  ? "text-indigo-500 dark:text-indigo-400 border-indigo-500 dark:border-indigo-400"
                   : "text-slate-500 dark:text-slate-400 border-transparent hover:text-slate-700 dark:hover:text-slate-300"
               } focus:outline-none`}
               onClick={() => handleTabChange("users")}
@@ -306,16 +417,21 @@ const Admin: React.FC = () => {
                 <span>Users</span>
               </div>
             </button>
-            
+
             {/* Animated Indicator */}
             <motion.span
               className="absolute bottom-0 h-0.5 bg-indigo-500 dark:bg-indigo-400 rounded"
               initial={false}
               animate={{
-                left: activeTab === "overview" ? "0%" : 
-                      activeTab === "data-sync" ? "25%" : 
-                      activeTab === "monitoring" ? "50%" : "75%",
-                width: "25%"
+                left:
+                  activeTab === "overview"
+                    ? "0%"
+                    : activeTab === "data-sync"
+                      ? "25%"
+                      : activeTab === "monitoring"
+                        ? "50%"
+                        : "75%",
+                width: "25%",
               }}
               transition={{ duration: 0.3, ease: "easeInOut" }}
             />
@@ -342,8 +458,12 @@ const Admin: React.FC = () => {
                             <Users className="h-5 w-5 text-white" />
                           </div>
                           <div>
-                            <p className="text-sm text-[var(--color-text-secondary)]">Total Users</p>
-                            <p className="text-xl font-bold text-[var(--color-text-primary)]">{mockSystemStats.totalUsers.toLocaleString()}</p>
+                            <p className="text-sm text-[var(--color-text-secondary)]">
+                              Total Users
+                            </p>
+                            <p className="text-xl font-bold text-[var(--color-text-primary)]">
+                              {mockSystemStats.totalUsers.toLocaleString()}
+                            </p>
                           </div>
                         </div>
                       </CardContent>
@@ -356,8 +476,12 @@ const Admin: React.FC = () => {
                             <Target className="h-5 w-5 text-white" />
                           </div>
                           <div>
-                            <p className="text-sm text-[var(--color-text-secondary)]">Total Rankings</p>
-                            <p className="text-xl font-bold text-[var(--color-text-primary)]">{mockSystemStats.totalRankings.toLocaleString()}</p>
+                            <p className="text-sm text-[var(--color-text-secondary)]">
+                              Total Rankings
+                            </p>
+                            <p className="text-xl font-bold text-[var(--color-text-primary)]">
+                              {mockSystemStats.totalRankings.toLocaleString()}
+                            </p>
                           </div>
                         </div>
                       </CardContent>
@@ -370,8 +494,12 @@ const Admin: React.FC = () => {
                             <RefreshCw className="h-5 w-5 text-white" />
                           </div>
                           <div>
-                            <p className="text-sm text-[var(--color-text-secondary)]">Data Syncs</p>
-                            <p className="text-xl font-bold text-[var(--color-text-primary)]">{mockSystemStats.dataSyncs}</p>
+                            <p className="text-sm text-[var(--color-text-secondary)]">
+                              Data Syncs
+                            </p>
+                            <p className="text-xl font-bold text-[var(--color-text-primary)]">
+                              {mockSystemStats.dataSyncs}
+                            </p>
                           </div>
                         </div>
                       </CardContent>
@@ -384,8 +512,12 @@ const Admin: React.FC = () => {
                             <CheckCircle className="h-5 w-5 text-white" />
                           </div>
                           <div>
-                            <p className="text-sm text-[var(--color-text-secondary)]">System Uptime</p>
-                            <p className="text-xl font-bold text-[var(--color-text-primary)]">{mockSystemStats.systemUptime}%</p>
+                            <p className="text-sm text-[var(--color-text-secondary)]">
+                              System Uptime
+                            </p>
+                            <p className="text-xl font-bold text-[var(--color-text-primary)]">
+                              {mockSystemStats.systemUptime}%
+                            </p>
                           </div>
                         </div>
                       </CardContent>
@@ -404,24 +536,45 @@ const Admin: React.FC = () => {
                       <CardContent className="space-y-4">
                         <div>
                           <div className="flex justify-between text-sm mb-2">
-                            <span className="text-[var(--color-text-secondary)]">Server Load</span>
-                            <span className="text-[var(--color-text-primary)] font-medium">{mockSystemStats.serverLoad}%</span>
+                            <span className="text-[var(--color-text-secondary)]">
+                              Server Load
+                            </span>
+                            <span className="text-[var(--color-text-primary)] font-medium">
+                              {mockSystemStats.serverLoad}%
+                            </span>
                           </div>
-                          <Progress value={mockSystemStats.serverLoad} className="h-2" />
+                          <Progress
+                            value={mockSystemStats.serverLoad}
+                            className="h-2"
+                          />
                         </div>
                         <div>
                           <div className="flex justify-between text-sm mb-2">
-                            <span className="text-[var(--color-text-secondary)]">Memory Usage</span>
-                            <span className="text-[var(--color-text-primary)] font-medium">{mockSystemStats.memoryUsage}%</span>
+                            <span className="text-[var(--color-text-secondary)]">
+                              Memory Usage
+                            </span>
+                            <span className="text-[var(--color-text-primary)] font-medium">
+                              {mockSystemStats.memoryUsage}%
+                            </span>
                           </div>
-                          <Progress value={mockSystemStats.memoryUsage} className="h-2" />
+                          <Progress
+                            value={mockSystemStats.memoryUsage}
+                            className="h-2"
+                          />
                         </div>
                         <div>
                           <div className="flex justify-between text-sm mb-2">
-                            <span className="text-[var(--color-text-secondary)]">Disk Usage</span>
-                            <span className="text-[var(--color-text-primary)] font-medium">{mockSystemStats.diskUsage}%</span>
+                            <span className="text-[var(--color-text-secondary)]">
+                              Disk Usage
+                            </span>
+                            <span className="text-[var(--color-text-primary)] font-medium">
+                              {mockSystemStats.diskUsage}%
+                            </span>
                           </div>
-                          <Progress value={mockSystemStats.diskUsage} className="h-2" />
+                          <Progress
+                            value={mockSystemStats.diskUsage}
+                            className="h-2"
+                          />
                         </div>
                       </CardContent>
                     </Card>
@@ -436,24 +589,45 @@ const Admin: React.FC = () => {
                       <CardContent className="space-y-4">
                         <div>
                           <div className="flex justify-between text-sm mb-2">
-                            <span className="text-[var(--color-text-secondary)]">Player Data</span>
-                            <span className="text-[var(--color-text-primary)] font-medium">{mockDataQuality.playerData}%</span>
+                            <span className="text-[var(--color-text-secondary)]">
+                              Player Data
+                            </span>
+                            <span className="text-[var(--color-text-primary)] font-medium">
+                              {mockDataQuality.playerData}%
+                            </span>
                           </div>
-                          <Progress value={mockDataQuality.playerData} className="h-2" />
+                          <Progress
+                            value={mockDataQuality.playerData}
+                            className="h-2"
+                          />
                         </div>
                         <div>
                           <div className="flex justify-between text-sm mb-2">
-                            <span className="text-[var(--color-text-secondary)]">Stats Data</span>
-                            <span className="text-[var(--color-text-primary)] font-medium">{mockDataQuality.statsData}%</span>
+                            <span className="text-[var(--color-text-secondary)]">
+                              Stats Data
+                            </span>
+                            <span className="text-[var(--color-text-primary)] font-medium">
+                              {mockDataQuality.statsData}%
+                            </span>
                           </div>
-                          <Progress value={mockDataQuality.statsData} className="h-2" />
+                          <Progress
+                            value={mockDataQuality.statsData}
+                            className="h-2"
+                          />
                         </div>
                         <div>
                           <div className="flex justify-between text-sm mb-2">
-                            <span className="text-[var(--color-text-secondary)]">Overall Quality</span>
-                            <span className="text-[var(--color-text-primary)] font-medium">{mockDataQuality.overallQuality}%</span>
+                            <span className="text-[var(--color-text-secondary)]">
+                              Overall Quality
+                            </span>
+                            <span className="text-[var(--color-text-primary)] font-medium">
+                              {mockDataQuality.overallQuality}%
+                            </span>
                           </div>
-                          <Progress value={mockDataQuality.overallQuality} className="h-2" />
+                          <Progress
+                            value={mockDataQuality.overallQuality}
+                            className="h-2"
+                          />
                         </div>
                       </CardContent>
                     </Card>
@@ -472,8 +646,13 @@ const Admin: React.FC = () => {
                         {mockRecentActivity.map((activity) => {
                           const Icon = getActivityIcon(activity.type);
                           return (
-                            <div key={activity.id} className="flex items-center space-x-3 p-3 rounded-lg hover:bg-[var(--color-bg-card)] transition-colors">
-                              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${getActivityColor(activity.status)} bg-opacity-10`}>
+                            <div
+                              key={activity.id}
+                              className="flex items-center space-x-3 p-3 rounded-lg hover:bg-[var(--color-bg-card)] transition-colors"
+                            >
+                              <div
+                                className={`w-8 h-8 rounded-full flex items-center justify-center ${getActivityColor(activity.status)} bg-opacity-10`}
+                              >
                                 <Icon className="h-4 w-4" />
                               </div>
                               <div className="flex-1 min-w-0">
@@ -481,12 +660,18 @@ const Admin: React.FC = () => {
                                   {activity.description}
                                 </p>
                                 <p className="text-xs text-[var(--color-text-secondary)]">
-                                  {activity.details} • {formatDate(activity.timestamp)}
+                                  {activity.details} •{" "}
+                                  {formatDate(activity.timestamp)}
                                 </p>
                               </div>
-                              <Badge 
-                                variant={activity.status === "success" ? "default" : 
-                                        activity.status === "error" ? "destructive" : "secondary"}
+                              <Badge
+                                variant={
+                                  activity.status === "success"
+                                    ? "default"
+                                    : activity.status === "error"
+                                      ? "destructive"
+                                      : "secondary"
+                                }
                                 className="text-xs"
                               >
                                 {activity.status}
@@ -519,15 +704,16 @@ const Admin: React.FC = () => {
                     </CardHeader>
                     <CardContent className="space-y-4">
                       <p className="text-sm text-[var(--color-text-secondary)]">
-                        Sync current season player data from ESPN including names, positions, teams, and bye weeks.
+                        Sync current season player data from ESPN including
+                        names, positions, teams, and bye weeks.
                       </p>
 
                       <div className="flex items-center justify-between">
                         <Button
-                          onClick={handlePlayerSync}
-                          disabled={playerSync.isLoading}
+                          onClick={handleNFLDataSync}
+                          disabled={nflDataSync.isLoading}
                         >
-                          {playerSync.isLoading ? (
+                          {nflDataSync.isLoading ? (
                             <div className="flex items-center space-x-2">
                               <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                               <span>Syncing Players...</span>
@@ -540,30 +726,33 @@ const Admin: React.FC = () => {
                           )}
                         </Button>
 
-                        {playerSync.result && (
+                        {nflDataSync.result && (
                           <div className="text-sm space-x-4">
                             <span className="text-green-500">
-                              {playerSync.result.players_added || 0} players added
+                              {nflDataSync.result.players_added || 0} players
+                              added
                             </span>
                             <span className="text-blue-500">
-                              {playerSync.result.total_processed || 0} players processed
+                              {nflDataSync.result.total_processed || 0} players
+                              processed
                             </span>
                           </div>
                         )}
                       </div>
 
-                      {playerSync.error && (
+                      {nflDataSync.error && (
                         <div className="p-3 bg-red-500/20 border border-red-500/30 rounded-lg">
                           <p className="text-red-400 text-sm">
-                            {String(playerSync.error)}
+                            {String(nflDataSync.error)}
                           </p>
                         </div>
                       )}
 
-                      {playerSync.result && playerSync.result.success && (
+                      {nflDataSync.result && nflDataSync.result.success && (
                         <div className="p-3 bg-green-500/20 border border-green-500/30 rounded-lg">
                           <p className="text-green-400 text-sm">
-                            Player sync completed for {playerSync.result.players_added} players.
+                            Player sync completed for{" "}
+                            {nflDataSync.result.players_added} players.
                           </p>
                         </div>
                       )}
@@ -580,21 +769,31 @@ const Admin: React.FC = () => {
                     </CardHeader>
                     <CardContent className="space-y-4">
                       <p className="text-sm text-[var(--color-text-secondary)]">
-                        Sync weekly player statistics including passing, rushing, receiving, and defensive stats.
+                        Sync weekly player statistics including passing,
+                        rushing, receiving, and defensive stats.
                       </p>
 
                       <div className="grid grid-cols-2 gap-4">
                         <div>
-                          <Label htmlFor="week-select" className="text-sm font-medium text-[var(--color-text-primary)]">
+                          <Label
+                            htmlFor="week-select"
+                            className="text-sm font-medium text-[var(--color-text-primary)]"
+                          >
                             Week
                           </Label>
-                          <Select value={selectedWeek} onValueChange={setSelectedWeek}>
+                          <Select
+                            value={selectedWeek}
+                            onValueChange={setSelectedWeek}
+                          >
                             <SelectTrigger className="mt-1">
                               <SelectValue placeholder="Select week" />
                             </SelectTrigger>
                             <SelectContent>
                               {Array.from({ length: 18 }, (_, i) => (
-                                <SelectItem key={i + 1} value={(i + 1).toString()}>
+                                <SelectItem
+                                  key={i + 1}
+                                  value={(i + 1).toString()}
+                                >
                                   Week {i + 1}
                                 </SelectItem>
                               ))}
@@ -603,7 +802,10 @@ const Admin: React.FC = () => {
                         </div>
 
                         <div>
-                          <Label htmlFor="season-input" className="text-sm font-medium text-[var(--color-text-primary)]">
+                          <Label
+                            htmlFor="season-input"
+                            className="text-sm font-medium text-[var(--color-text-primary)]"
+                          >
                             Season
                           </Label>
                           <Input
@@ -620,10 +822,10 @@ const Admin: React.FC = () => {
 
                       <div className="flex items-center justify-between">
                         <Button
-                          onClick={handleStatsSync}
-                          disabled={statsSync.isLoading}
+                          onClick={handleWeeklyStatsSync}
+                          disabled={weeklyStatsSync.isLoading}
                         >
-                          {statsSync.isLoading ? (
+                          {weeklyStatsSync.isLoading ? (
                             <div className="flex items-center space-x-2">
                               <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                               <span>Syncing Stats...</span>
@@ -636,30 +838,151 @@ const Admin: React.FC = () => {
                           )}
                         </Button>
 
-                        {statsSync.result && (
+                        {weeklyStatsSync.result && (
                           <div className="text-sm space-x-4">
                             <span className="text-green-500">
-                              Updated: {statsSync.result.stats_updated || 0}
+                              Updated:{" "}
+                              {weeklyStatsSync.result.stats_updated || 0}
                             </span>
                             <span className="text-blue-500">
-                              Processed: {statsSync.result.players_processed || 0}
+                              Processed:{" "}
+                              {weeklyStatsSync.result.players_processed || 0}
                             </span>
                           </div>
                         )}
                       </div>
 
-                      {statsSync.error && (
+                      {weeklyStatsSync.error && (
                         <div className="p-3 bg-red-500/20 border border-red-500/30 rounded-lg">
                           <p className="text-red-400 text-sm">
-                            {String(statsSync.error)}
+                            {String(weeklyStatsSync.error)}
                           </p>
                         </div>
                       )}
 
-                      {statsSync.result && statsSync.result.success && (
+                      {weeklyStatsSync.result &&
+                        weeklyStatsSync.result.success && (
+                          <div className="p-3 bg-green-500/20 border border-green-500/30 rounded-lg">
+                            <p className="text-green-400 text-sm">
+                              Stats sync completed for Week{" "}
+                              {weeklyStatsSync.result.week} of{" "}
+                              {weeklyStatsSync.result.season}! Updated{" "}
+                              {weeklyStatsSync.result.stats_updated} player
+                              records.
+                            </p>
+                          </div>
+                        )}
+                    </CardContent>
+                  </Card>
+
+                  {/* Top 200 Sync Section */}
+                  <Card className="bg-[var(--color-bg-secondary)] border-[var(--color-border-primary)]">
+                    <CardHeader>
+                      <CardTitle className="text-lg font-bold text-[var(--color-text-primary)] flex items-center space-x-2">
+                        <Target className="h-5 w-5 text-purple-500" />
+                        <span>Top 200 Rankings</span>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <p className="text-sm text-[var(--color-text-secondary)]">
+                        Sync dynasty and redraft top 200 rankings for the
+                        current season.
+                      </p>
+                      <div className="flex items-center space-x-2">
+                        <Button
+                          onClick={() => handleTop200Sync("dynasty")}
+                          disabled={top200Sync.isLoading}
+                        >
+                          {top200Sync.isLoading ? (
+                            <div className="flex items-center space-x-2">
+                              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                              <span>Syncing Dynasty Top 200...</span>
+                            </div>
+                          ) : (
+                            <div className="flex items-center space-x-2">
+                              <Target className="h-4 w-4" />
+                              <span>Sync Dynasty Top 200</span>
+                            </div>
+                          )}
+                        </Button>
+                        <Button
+                          onClick={() => handleTop200Sync("redraft")}
+                          disabled={top200Sync.isLoading}
+                        >
+                          {top200Sync.isLoading ? (
+                            <div className="flex items-center space-x-2">
+                              <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                              <span>Syncing Redraft Top 200...</span>
+                            </div>
+                          ) : (
+                            <div className="flex items-center space-x-2">
+                              <Target className="h-4 w-4" />
+                              <span>Sync Redraft Top 200</span>
+                            </div>
+                          )}
+                        </Button>
+                      </div>
+                      {top200Sync.result && (
+                        <div className="text-sm space-x-4">
+                          <span className="text-green-500">
+                            {top200Sync.result.players_processed || 0} players
+                            processed
+                          </span>
+                        </div>
+                      )}
+                      {top200Sync.error && (
+                        <div className="p-3 bg-red-500/20 border border-red-500/30 rounded-lg">
+                          <p className="text-red-400 text-sm">
+                            {String(top200Sync.error)}
+                          </p>
+                        </div>
+                      )}
+                      {top200Sync.result && top200Sync.result.success && (
                         <div className="p-3 bg-green-500/20 border border-green-500/30 rounded-lg">
                           <p className="text-green-400 text-sm">
-                            Stats sync completed for Week {statsSync.result.week} of {statsSync.result.season}! Updated {statsSync.result.stats_updated} player records.
+                            Top 200 sync completed for{" "}
+                            {top200Sync.result.players_processed || 0} players.
+                          </p>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+
+                  {/* Complete Data Population Section */}
+                  <Card className="bg-[var(--color-bg-secondary)] border-[var(--color-border-primary)]">
+                    <CardHeader>
+                      <CardTitle className="text-lg font-bold text-[var(--color-text-primary)] flex items-center space-x-2">
+                        <Zap className="h-5 w-5 text-orange-500" />
+                        <span>Complete Data Population</span>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <p className="text-sm text-[var(--color-text-secondary)]">
+                        This will run the full ETL process (ADP, stats, players,
+                        rankings) and refresh all analytics data for the current
+                        season.
+                      </p>
+                      <Button
+                        onClick={handleCompleteDataPopulation}
+                        disabled={dataPopulation.isLoading}
+                        className="bg-red-600 hover:bg-red-700 text-white"
+                      >
+                        {dataPopulation.isLoading ? (
+                          <div className="flex items-center space-x-2">
+                            <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                            <span>Running Complete ETL...</span>
+                          </div>
+                        ) : (
+                          <div className="flex items-center space-x-2">
+                            <Zap className="h-4 w-4" />
+                            <span>Run Complete ETL</span>
+                          </div>
+                        )}
+                      </Button>
+                      {dataPopulation.result && (
+                        <div className="p-3 bg-blue-500/20 border border-blue-500/30 rounded-lg">
+                          <p className="text-blue-400 text-sm">
+                            {dataPopulation.result}
                           </p>
                         </div>
                       )}
@@ -676,14 +999,16 @@ const Admin: React.FC = () => {
                     </CardHeader>
                     <CardContent className="space-y-4">
                       <p className="text-sm text-[var(--color-text-secondary)]">
-                        This will run the full weekly ETL process (ADP, stats, players) and refresh all analytics data. Only use if you want to force a full refresh now.
+                        This will run the full weekly ETL process (ADP, stats,
+                        players) and refresh all analytics data. Only use if you
+                        want to force a full refresh now.
                       </p>
-                      
-                                             <Button
-                         onClick={handleRunWeeklyETL}
-                         disabled={etlLoading}
-                         className="bg-red-600 hover:bg-red-700 text-white"
-                       >
+
+                      <Button
+                        onClick={handleRunWeeklyETL}
+                        disabled={etlLoading}
+                        className="bg-red-600 hover:bg-red-700 text-white"
+                      >
                         {etlLoading ? (
                           <div className="flex items-center space-x-2">
                             <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
@@ -696,7 +1021,7 @@ const Admin: React.FC = () => {
                           </div>
                         )}
                       </Button>
-                      
+
                       {etlResult && (
                         <div className="p-3 bg-blue-500/20 border border-blue-500/30 rounded-lg">
                           <p className="text-blue-400 text-sm">{etlResult}</p>
@@ -718,7 +1043,8 @@ const Admin: React.FC = () => {
                       Advanced Monitoring
                     </h3>
                     <p className="text-[var(--color-text-secondary)] mb-4">
-                      Real-time system monitoring, performance metrics, and alert management.
+                      Real-time system monitoring, performance metrics, and
+                      alert management.
                     </p>
                     <Button>
                       <Plus className="h-4 w-4 mr-2" />

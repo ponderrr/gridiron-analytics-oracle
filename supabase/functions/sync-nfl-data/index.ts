@@ -23,12 +23,13 @@ class NFLDataSync extends ETLBase {
       run.status = "error";
       if (error instanceof Error) {
         run.error_message = error.message;
-        await this.handleErrors(error, "nfl-data-sync");
+        console.error("Error in nfl-data-sync:", error.message);
       } else {
         run.error_message = String(error);
-        await this.handleErrors(new Error(String(error)), "nfl-data-sync");
+        console.error("Error in nfl-data-sync:", String(error));
       }
-      throw error;
+      // Don't throw error, just return the failed run
+      return run;
     }
   }
 
@@ -62,7 +63,6 @@ class NFLDataSync extends ETLBase {
     if (error) throw error;
   }
 }
-
 
 serve(async () => {
   try {
