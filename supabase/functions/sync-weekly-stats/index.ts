@@ -245,33 +245,16 @@ class NFLVerseStatsSync extends ETLBase {
         sleeperId = exactMatchMap.get(nflverseName);
 
         if (!sleeperId) {
-          // Try normalized name with conflict resolution
+          // For historical data, match by name only - ignore team conflicts
           const normalized = this.normalizeName(nflverseName);
           const candidates = teamPositionMap.get(normalized) || [];
 
-          if (candidates.length === 1) {
-            // Only one match - safe to use
+          if (candidates.length >= 1) {
+            // Use the first match - teams may differ due to trades
             sleeperId = candidates[0].player_id;
             console.log(
-              `Single match: "${nflverseName}" -> "${candidates[0].full_name}"`
+              `Historical match: "${nflverseName}" -> "${candidates[0].full_name}"`
             );
-          } else if (candidates.length > 1) {
-            // Multiple matches - use team to resolve
-            const teamMatch = candidates.find(
-              (c) =>
-                c.team && nflverseTeam && this.teamsMatch(c.team, nflverseTeam)
-            );
-
-            if (teamMatch) {
-              sleeperId = teamMatch.player_id;
-              console.log(
-                `Team-resolved: "${nflverseName}" (${nflverseTeam}) -> "${teamMatch.full_name}" (${teamMatch.team})`
-              );
-            } else {
-              console.warn(
-                `Multiple matches for "${nflverseName}", teams: ${candidates.map((c) => `${c.full_name}(${c.team})`).join(", ")}, nflverse team: ${nflverseTeam}`
-              );
-            }
           } else {
             // Try fuzzy matching as last resort
             sleeperId = this.findFuzzyMatch(
@@ -421,23 +404,12 @@ class NFLVerseStatsSync extends ETLBase {
         return false;
       });
 
-      if (candidates.length === 1) {
+      if (candidates.length >= 1) {
+        // For historical data, use first match regardless of team
         console.log(
-          `Fuzzy single match: "${nflverseName}" -> "${candidates[0].full_name}"`
+          `Fuzzy historical match: "${nflverseName}" -> "${candidates[0].full_name}"`
         );
         return candidates[0].player_id;
-      } else if (candidates.length > 1 && nflverseTeam) {
-        // Use team to resolve
-        const teamMatch = candidates.find(
-          (c) => c.team && this.teamsMatch(c.team, nflverseTeam)
-        );
-
-        if (teamMatch) {
-          console.log(
-            `Fuzzy team-resolved: "${nflverseName}" (${nflverseTeam}) -> "${teamMatch.full_name}" (${teamMatch.team})`
-          );
-          return teamMatch.player_id;
-        }
       }
     }
 
