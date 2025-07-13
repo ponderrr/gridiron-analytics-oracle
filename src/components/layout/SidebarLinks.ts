@@ -80,11 +80,6 @@ export const SIDEBAR_SECTIONS_CONFIG: SidebarSection[] = [
     icon: Wrench,
     items: [
       {
-        href: "/fantasy-points-test",
-        icon: Calculator,
-        label: "Points Calculator",
-      },
-      {
         href: "/settings",
         icon: Settings,
         label: "Settings",

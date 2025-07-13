@@ -6,7 +6,6 @@ const Players = lazy(() => import("@/pages/Players"));
 const Analytics = lazy(() => import("@/pages/Analytics"));
 const Admin = lazy(() => import("@/pages/Admin"));
 const AdminMapping = lazy(() => import("@/pages/AdminMapping"));
-const FantasyPointsTest = lazy(() => import("@/pages/FantasyPointsTest"));
 const TradeAnalyzer = lazy(() => import("@/pages/TradeAnalyzer"));
 
 const Settings = lazy(() => import("@/pages/Settings"));
@@ -81,12 +80,6 @@ export const routes: RouteConfig[] = [
   {
     path: "/admin/mapping",
     component: AdminMapping,
-    protected: true,
-    errorBoundary: true,
-  },
-  {
-    path: "/fantasy-points-test",
-    component: FantasyPointsTest,
     protected: true,
     errorBoundary: true,
   },
