@@ -10,6 +10,7 @@ import {
   Target,
   Wrench,
   Layout,
+  Link,
 } from "lucide-react";
 
 export interface SidebarItem {
@@ -66,6 +67,11 @@ export const SIDEBAR_SECTIONS_CONFIG: SidebarSection[] = [
         href: "/admin",
         icon: Shield,
         label: "Admin Panel",
+      },
+      {
+        href: "/admin/mapping",
+        icon: Link,
+        label: "Player Mapping",
       },
     ],
   },

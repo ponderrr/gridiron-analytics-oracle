@@ -3,6 +3,11 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { ETLBase, ETLRun } from "../_shared/etl-utils.ts";
+import { NameNormalizer } from "../_shared/name-utils.ts";
+import {
+  FuzzyMatcher,
+  type PlayerCandidate,
+} from "../_shared/fuzzy-matcher.ts";
 
 interface NFLVersePlayerStats {
   player_id?: string;
@@ -39,7 +44,17 @@ interface NFLVersePlayerStats {
   fantasy_points_ppr?: number;
 }
 
-class NFLVerseStatsSync extends ETLBase {
+interface PlayerMapping {
+  sleeper_id: string;
+  nflverse_id: string;
+  canonical_name: string;
+  confidence_score: number;
+}
+
+class MappingBasedStatsSync extends ETLBase {
+  private playerMappings: Map<string, PlayerMapping> = new Map();
+  private sleeperPlayers: PlayerCandidate[] = [];
+
   async syncWeeklyStats(week: number, season: number): Promise<ETLRun> {
     const run: ETLRun = {
       run_type: "weekly-stats",
@@ -51,18 +66,25 @@ class NFLVerseStatsSync extends ETLBase {
 
     try {
       console.log(
-        `Starting nflverse stats sync for week ${week}, season ${season}`
+        `Starting mapping-based stats sync for week ${week}, season ${season}`
       );
+
+      // Load player mappings into memory
+      await this.loadPlayerMappings();
+      console.log(`Loaded ${this.playerMappings.size} player mappings`);
 
       // Get stats from nflverse
       const stats = await this.getNFLVerseStats(season, week);
       console.log(`Got ${stats.length} player stat records from nflverse`);
 
-      // Map to our player IDs and upsert
-      await this.upsertStatsFromNFLVerse(season, week, stats);
-      console.log(`Successfully processed stats for week ${week}`);
+      // Map to Sleeper IDs and upsert
+      const mappingResult = await this.mapAndUpsertStats(season, week, stats);
+      console.log(
+        `Successfully processed stats for week ${week}:`,
+        mappingResult
+      );
 
-      run.records_processed = stats.length;
+      run.records_processed = mappingResult.successfully_mapped;
       return run;
     } catch (error) {
       console.error(`Error syncing week ${week} stats:`, error);
@@ -73,20 +95,56 @@ class NFLVerseStatsSync extends ETLBase {
     }
   }
 
+  private async loadPlayerMappings(): Promise<void> {
+    // Load existing mappings
+    const { data: mappings, error: mappingError } = await this.supabase
+      .from("player_id_mapping")
+      .select("sleeper_id, nflverse_id, canonical_name, confidence_score");
+
+    if (mappingError) {
+      console.error("Error loading player mappings:", mappingError);
+      throw mappingError;
+    }
+
+    // Load Sleeper players for fallback matching
+    const { data: sleeperData, error: sleeperError } = await this.supabase
+      .from("sleeper_players_cache")
+      .select("player_id, full_name, position, team");
+
+    if (sleeperError) {
+      console.error("Error loading Sleeper players:", sleeperError);
+      throw sleeperError;
+    }
+
+    // Build mapping lookup
+    this.playerMappings.clear();
+    mappings.forEach((mapping) => {
+      this.playerMappings.set(mapping.nflverse_id, mapping);
+    });
+
+    // Build Sleeper players array for fallback
+    this.sleeperPlayers = sleeperData.map((p) => ({
+      sleeper_id: p.player_id,
+      full_name: p.full_name,
+      position: p.position,
+      team: p.team,
+    }));
+
+    console.log(
+      `Loaded ${this.playerMappings.size} mappings and ${this.sleeperPlayers.length} Sleeper players`
+    );
+  }
+
   private async getNFLVerseStats(
     season: number,
     week: number
   ): Promise<NFLVersePlayerStats[]> {
     console.log(`Fetching nflverse stats for ${season} week ${week}`);
 
-    // nflverse provides data via CSV/JSON endpoints
-    // For weekly player stats, we use their player_stats endpoint
     const url = `https://github.com/nflverse/nflverse-data/releases/download/player_stats/player_stats_${season}.csv`;
-
     console.log(`Calling nflverse: ${url}`);
 
     const response = await fetch(url);
-
     if (!response.ok) {
       throw new Error(
         `nflverse API error: ${response.status} ${response.statusText}`
@@ -94,11 +152,9 @@ class NFLVerseStatsSync extends ETLBase {
     }
 
     const csvText = await response.text();
-
-    // Parse CSV data
     const stats = this.parseCSVStats(csvText, week);
-
     console.log(`Parsed ${stats.length} records for week ${week}`);
+
     return stats;
   }
 
@@ -109,16 +165,9 @@ class NFLVerseStatsSync extends ETLBase {
     const lines = csvText.split("\n");
     if (lines.length === 0) return [];
 
-    // Get headers
     const headers = lines[0].split(",").map((h) => h.trim().replace(/"/g, ""));
-    console.log(`CSV headers: ${headers.join(", ")}`);
-
     const stats: NFLVersePlayerStats[] = [];
 
-    // Log some sample data to see the actual format
-    console.log("=== SAMPLE NFLVERSE DATA ===");
-
-    let debugCount = 0;
     for (let i = 1; i < lines.length; i++) {
       const line = lines[i].trim();
       if (!line) continue;
@@ -131,25 +180,11 @@ class NFLVerseStatsSync extends ETLBase {
         record[header] = values[index];
       });
 
-      // Debug log only first 10 records
-      if (debugCount < 10) {
-        console.log(`Sample record ${debugCount + 1}:`, {
-          player_name: record.player_name,
-          player_display_name: record.player_display_name,
-          player_id: record.player_id,
-          recent_team: record.recent_team,
-          position: record.position,
-          week: record.week,
-        });
-        debugCount++;
-      }
-
-      // Filter for the target week (process ALL records)
       const week = parseInt(record.week);
       if (week === targetWeek) {
         stats.push({
           player_id: record.player_id,
-          player_name: record.player_display_name || record.player_name, // Use display name first!
+          player_name: record.player_display_name || record.player_name,
           recent_team: record.recent_team,
           season: parseInt(record.season),
           week: week,
@@ -170,8 +205,6 @@ class NFLVerseStatsSync extends ETLBase {
       }
     }
 
-    console.log("=== END SAMPLE DATA ===");
-
     return stats;
   }
 
@@ -182,7 +215,6 @@ class NFLVerseStatsSync extends ETLBase {
 
     for (let i = 0; i < line.length; i++) {
       const char = line[i];
-
       if (char === '"') {
         inQuotes = !inQuotes;
       } else if (char === "," && !inQuotes) {
@@ -197,128 +229,168 @@ class NFLVerseStatsSync extends ETLBase {
     return result;
   }
 
-  private async upsertStatsFromNFLVerse(
+  private async mapAndUpsertStats(
     season: number,
     week: number,
     stats: NFLVersePlayerStats[]
-  ): Promise<void> {
-    // Get our player ID mapping from Sleeper with team and position info
-    const { data: playerMapping, error: mappingError } = await this.supabase
-      .from("sleeper_players_cache")
-      .select("player_id, full_name, team, position");
+  ): Promise<{
+    successfully_mapped: number;
+    failed_mapping: number;
+    new_mappings_created: number;
+    unmapped_logged: number;
+  }> {
+    const result = {
+      successfully_mapped: 0,
+      failed_mapping: 0,
+      new_mappings_created: 0,
+      unmapped_logged: 0,
+    };
 
-    if (mappingError) {
-      console.error("Error getting player mapping:", mappingError);
-      throw mappingError;
+    const mappedStats: any[] = [];
+    const newMappings: any[] = [];
+    const unmappedPlayers: any[] = [];
+
+    for (const stat of stats) {
+      const nflverseId = stat.player_id!;
+      const playerName = stat.player_name!;
+
+      // Try to find existing mapping
+      let sleeperId = this.findSleeperIdFromMapping(nflverseId);
+
+      if (sleeperId) {
+        // Found existing mapping
+        mappedStats.push(this.createStatRecord(sleeperId, stat));
+        result.successfully_mapped++;
+        console.log(
+          `✅ Mapped via existing mapping: ${playerName} -> ${sleeperId}`
+        );
+        continue;
+      }
+
+      // Try to create new mapping via fuzzy matching
+      const newMapping = await this.attemptNewMapping(nflverseId, playerName);
+
+      if (newMapping) {
+        sleeperId = newMapping.sleeper_id;
+        mappedStats.push(this.createStatRecord(sleeperId, stat));
+        newMappings.push(newMapping);
+        result.successfully_mapped++;
+        result.new_mappings_created++;
+        console.log(
+          `🆕 Created new mapping: ${playerName} -> ${sleeperId} (score: ${newMapping.confidence_score})`
+        );
+        continue;
+      }
+
+      // Could not map - log for review
+      unmappedPlayers.push({
+        source: "nflverse",
+        player_id: nflverseId,
+        player_name: playerName,
+        position: this.inferPositionFromStats(stat),
+        team: stat.recent_team,
+        notes: `Failed to map during week ${week} sync`,
+      });
+      result.failed_mapping++;
+      result.unmapped_logged++;
+      console.warn(`❌ Could not map: ${playerName} (${nflverseId})`);
     }
 
-    console.log(`Got ${playerMapping?.length || 0} players from mapping`);
+    // Batch operations
+    await Promise.all([
+      this.upsertMappedStats(mappedStats),
+      this.insertNewMappings(newMappings),
+      this.logUnmappedPlayers(unmappedPlayers),
+    ]);
 
-    // Create enhanced lookup maps that include team/position context
-    const exactMatchMap = new Map<string, string>();
-    const teamPositionMap = new Map<string, any[]>(); // name -> array of players with that name
+    return result;
+  }
 
-    playerMapping?.forEach((player) => {
-      const fullName = player.full_name;
+  private findSleeperIdFromMapping(nflverseId: string): string | null {
+    const mapping = this.playerMappings.get(nflverseId);
+    return mapping ? mapping.sleeper_id : null;
+  }
 
-      // DEBUG: Log George Kittle specifically
-      if (fullName.toLowerCase().includes("kittle")) {
-        console.log(
-          `Found Kittle in cache: "${fullName}" (${player.player_id})`
-        );
-      }
-
-      const playerId = player.player_id;
-
-      // Exact match
-      exactMatchMap.set(fullName, playerId);
-
-      // Group by name for conflict resolution
-      const normalizedName = this.normalizeName(fullName);
-      if (!teamPositionMap.has(normalizedName)) {
-        teamPositionMap.set(normalizedName, []);
-      }
-      teamPositionMap.get(normalizedName)!.push(player);
-    });
-
-    // Transform nflverse stats to our format with conflict resolution
-    const mappedStats = stats
-      .map((stat) => {
-        const nflverseName = stat.player_name || "";
-        const nflverseTeam = stat.recent_team || "";
-
-        let sleeperId: string | undefined;
-
-        // Try exact match first
-        sleeperId = exactMatchMap.get(nflverseName);
-
-        // DEBUG: Log the exact match attempt
-        console.log(
-          `Exact match attempt: "${nflverseName}" -> ${sleeperId ? "FOUND" : "NOT FOUND"}`
-        );
-        if (!sleeperId) {
-          console.log(
-            `Available exact matches starting with "George": ${Array.from(
-              exactMatchMap.keys()
-            )
-              .filter((k) => k.startsWith("George"))
-              .slice(0, 3)
-              .join(", ")}`
-          );
-        }
-
-        if (!sleeperId) {
-          // For historical data, match by name only - ignore team conflicts
-          const normalized = this.normalizeName(nflverseName);
-          const candidates = teamPositionMap.get(normalized) || [];
-
-          if (candidates.length >= 1) {
-            // Use the first match - teams may differ due to trades
-            sleeperId = candidates[0].player_id;
-            console.log(
-              `Historical match: "${nflverseName}" -> "${candidates[0].full_name}"`
-            );
-          } else {
-            // Try fuzzy matching as last resort
-            sleeperId = this.findFuzzyMatch(
-              nflverseName,
-              nflverseTeam,
-              playerMapping || []
-            );
-          }
-        }
-
-        if (!sleeperId) {
-          console.warn(
-            `Could not map player: "${nflverseName}" (${nflverseTeam})`
-          );
-          return null;
-        }
-
-        return {
-          season,
-          week,
-          player_id: sleeperId,
-          pts_ppr: stat.fantasy_points_ppr || this.calculatePPRPoints(stat),
-          rec_yd: stat.receiving_yards || 0,
-          rec_td: stat.receiving_tds || 0,
-          rush_yd: stat.rushing_yards || 0,
-          pass_yd: stat.passing_yards || 0,
-          pass_td: stat.passing_tds || 0,
-        };
-      })
-      .filter((stat) => stat !== null);
-
-    console.log(
-      `Mapped ${mappedStats.length} stats out of ${stats.length} total`
+  private async attemptNewMapping(
+    nflverseId: string,
+    playerName: string
+  ): Promise<{
+    sleeper_id: string;
+    nflverse_id: string;
+    canonical_name: string;
+    confidence_score: number;
+    match_method: string;
+  } | null> {
+    // Use fuzzy matching with high threshold for auto-mapping
+    const fuzzyResult = FuzzyMatcher.findBestMatch(
+      playerName,
+      this.sleeperPlayers,
+      false // Don't filter by position for now
     );
 
-    if (mappedStats.length === 0) {
-      console.log("No stats could be mapped to Sleeper players");
-      return;
+    if (fuzzyResult && fuzzyResult.confidence === "high") {
+      // Auto-create mapping for high confidence matches
+      const newMapping = {
+        sleeper_id: fuzzyResult.sleeperId,
+        nflverse_id: nflverseId,
+        canonical_name: playerName,
+        confidence_score: fuzzyResult.score,
+        match_method: "fuzzy_auto",
+        verified: false,
+      };
+
+      return newMapping;
     }
 
-    // Upsert to database
+    return null;
+  }
+
+  private createStatRecord(sleeperId: string, stat: NFLVersePlayerStats) {
+    return {
+      season: stat.season,
+      week: stat.week,
+      player_id: sleeperId,
+      pts_ppr: stat.fantasy_points_ppr || this.calculatePPRPoints(stat),
+      rec_yd: stat.receiving_yards || 0,
+      rec_td: stat.receiving_tds || 0,
+      rush_yd: stat.rushing_yards || 0,
+      pass_yd: stat.passing_yards || 0,
+      pass_td: stat.passing_tds || 0,
+    };
+  }
+
+  private calculatePPRPoints(stats: NFLVersePlayerStats): number {
+    let points = 0;
+
+    if (stats.fantasy_points_ppr) {
+      return stats.fantasy_points_ppr;
+    }
+
+    // Calculate manually if not provided
+    if (stats.passing_yards) points += stats.passing_yards / 25;
+    if (stats.passing_tds) points += stats.passing_tds * 4;
+    if (stats.interceptions) points -= stats.interceptions * 2;
+    if (stats.rushing_yards) points += stats.rushing_yards / 10;
+    if (stats.rushing_tds) points += stats.rushing_tds * 6;
+    if (stats.receiving_yards) points += stats.receiving_yards / 10;
+    if (stats.receiving_tds) points += stats.receiving_tds * 6;
+    if (stats.receptions) points += stats.receptions;
+
+    return Math.round(points * 100) / 100;
+  }
+
+  private inferPositionFromStats(stat: NFLVersePlayerStats): string | null {
+    if (stat.passing_yards && stat.passing_yards > 0) return "QB";
+    if (stat.rushing_yards && stat.rushing_yards > 0) return "RB";
+    if (stat.receiving_yards && stat.receiving_yards > 0) return "WR";
+    if (stat.receptions && stat.receptions > 0) return "TE";
+    return null;
+  }
+
+  private async upsertMappedStats(mappedStats: any[]): Promise<void> {
+    if (mappedStats.length === 0) return;
+
+    console.log(`Upserting ${mappedStats.length} stat records`);
     const { error } = await this.supabase
       .from("sleeper_stats")
       .upsert(mappedStats, { onConflict: "season,week,player_id" });
@@ -327,120 +399,46 @@ class NFLVerseStatsSync extends ETLBase {
       console.error("Database upsert error:", error);
       throw error;
     }
-
-    console.log(`Successfully upserted ${mappedStats.length} stat records`);
   }
 
-  private normalizeName(name: string): string {
-    return name
-      .toLowerCase()
-      .replace(/[^a-z\s]/g, "") // Remove special characters
-      .replace(/\s+/g, " ") // Normalize whitespace
-      .trim();
-  }
+  private async insertNewMappings(newMappings: any[]): Promise<void> {
+    if (newMappings.length === 0) return;
 
-  private calculatePPRPoints(stats: NFLVersePlayerStats): number {
-    let points = 0;
+    console.log(`Inserting ${newMappings.length} new mappings`);
+    const { error } = await this.supabase
+      .from("player_id_mapping")
+      .insert(newMappings);
 
-    // Use nflverse fantasy points if available
-    if (stats.fantasy_points_ppr) {
-      return stats.fantasy_points_ppr;
+    if (error) {
+      console.error("Error inserting new mappings:", error);
+      throw error;
     }
 
-    // Otherwise calculate manually
-    // Passing (1 pt per 25 yards, 4 pts per TD, -2 per INT)
-    if (stats.passing_yards) points += stats.passing_yards / 25;
-    if (stats.passing_tds) points += stats.passing_tds * 4;
-    if (stats.interceptions) points -= stats.interceptions * 2;
-
-    // Rushing (1 pt per 10 yards, 6 pts per TD)
-    if (stats.rushing_yards) points += stats.rushing_yards / 10;
-    if (stats.rushing_tds) points += stats.rushing_tds * 6;
-
-    // Receiving (1 pt per 10 yards, 6 pts per TD, 1 pt per reception)
-    if (stats.receiving_yards) points += stats.receiving_yards / 10;
-    if (stats.receiving_tds) points += stats.receiving_tds * 6;
-    if (stats.receptions) points += stats.receptions; // PPR bonus
-
-    return Math.round(points * 100) / 100;
+    // Update local mapping cache
+    newMappings.forEach((mapping) => {
+      this.playerMappings.set(mapping.nflverse_id, mapping);
+    });
   }
 
-  private teamsMatch(sleeperTeam: string, nflverseTeam: string): boolean {
-    // Handle team abbreviation differences
-    const teamMappings: Record<string, string[]> = {
-      WAS: ["WSH", "WAS"], // Washington
-      JAX: ["JAC", "JAX"], // Jacksonville
-      TB: ["TAM", "TB"], // Tampa Bay
-      LV: ["LVR", "LV", "OAK"], // Las Vegas/Oakland
-      LAR: ["LAR", "LA"], // LA Rams
-      LAC: ["LAC", "LA"], // LA Chargers
-      SF: ["SFO", "SF"], // San Francisco
-      GB: ["GBP", "GB"], // Green Bay
-      NE: ["NEP", "NE"], // New England
-      NO: ["NOS", "NO"], // New Orleans
-      KC: ["KCC", "KC"], // Kansas City
-    };
+  private async logUnmappedPlayers(unmappedPlayers: any[]): Promise<void> {
+    if (unmappedPlayers.length === 0) return;
 
-    // Normalize team names
-    const normalizeTeam = (team: string) => team.toUpperCase().trim();
-    const sleeper = normalizeTeam(sleeperTeam);
-    const nflverse = normalizeTeam(nflverseTeam);
-
-    // Direct match
-    if (sleeper === nflverse) return true;
-
-    // Check mappings
-    for (const [canonical, variations] of Object.entries(teamMappings)) {
-      if (variations.includes(sleeper) && variations.includes(nflverse)) {
-        return true;
-      }
-    }
-
-    return false;
-  }
-
-  private findFuzzyMatch(
-    nflverseName: string,
-    nflverseTeam: string,
-    playerMapping: any[]
-  ): string | undefined {
-    // Enhanced fuzzy matching with team context
-
-    // Pattern: "B.Robinson" with team context
-    const match = nflverseName.match(/^([A-Z])\.(.+)$/);
-    if (match) {
-      const [, lastInitial, firstName] = match;
-
-      const candidates = playerMapping.filter((player) => {
-        const fullName = player.full_name;
-        const parts = fullName.split(/\s+/);
-
-        if (parts.length >= 2) {
-          const playerFirstName = parts[0];
-          const playerLastName = parts[parts.length - 1];
-
-          return (
-            playerFirstName.toLowerCase() === firstName.toLowerCase() &&
-            playerLastName.charAt(0).toUpperCase() === lastInitial
-          );
-        }
-        return false;
+    console.log(`Logging ${unmappedPlayers.length} unmapped players`);
+    const { error } = await this.supabase
+      .from("unmapped_players")
+      .upsert(unmappedPlayers, {
+        onConflict: "source,player_id",
+        ignoreDuplicates: false,
       });
 
-      if (candidates.length >= 1) {
-        // For historical data, use first match regardless of team
-        console.log(
-          `Fuzzy historical match: "${nflverseName}" -> "${candidates[0].full_name}"`
-        );
-        return candidates[0].player_id;
-      }
+    if (error) {
+      console.error("Error logging unmapped players:", error);
+      // Don't throw - this is non-critical
     }
-
-    return undefined;
   }
 }
 
-// Main handler (same structure as before)
+// Main handler
 serve(async (req) => {
   try {
     if (req.method === "OPTIONS") {
@@ -472,7 +470,7 @@ serve(async (req) => {
       console.warn("Could not parse request body, using defaults:", parseError);
     }
 
-    const week = body?.week || 18;
+    const week = body?.week || 10;
     const season = body?.season || 2024;
 
     if (!week || week < 1 || week > 22) {
@@ -485,7 +483,7 @@ serve(async (req) => {
       );
     }
 
-    const sync = new NFLVerseStatsSync(supabaseUrl, supabaseServiceKey);
+    const sync = new MappingBasedStatsSync(supabaseUrl, supabaseServiceKey);
     const result = await sync.syncWeeklyStats(week, season);
     await sync.logETLRun(result);
 
@@ -494,8 +492,8 @@ serve(async (req) => {
         success: result.status === "success",
         message:
           result.status === "success"
-            ? "NFLVerse stats sync completed successfully"
-            : "NFLVerse stats sync completed with errors",
+            ? "Mapping-based stats sync completed successfully"
+            : "Mapping-based stats sync completed with errors",
         stats_updated: result.records_processed,
         week: result.last_week,
         season: result.last_season,
@@ -516,7 +514,6 @@ serve(async (req) => {
     );
   } catch (error) {
     console.error("Edge function error:", error);
-
     return new Response(
       JSON.stringify({
         success: false,
