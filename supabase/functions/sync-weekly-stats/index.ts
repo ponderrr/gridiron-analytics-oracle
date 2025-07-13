@@ -220,6 +220,14 @@ class NFLVerseStatsSync extends ETLBase {
 
     playerMapping?.forEach((player) => {
       const fullName = player.full_name;
+
+      // DEBUG: Log George Kittle specifically
+      if (fullName.toLowerCase().includes("kittle")) {
+        console.log(
+          `Found Kittle in cache: "${fullName}" (${player.player_id})`
+        );
+      }
+
       const playerId = player.player_id;
 
       // Exact match
@@ -243,6 +251,21 @@ class NFLVerseStatsSync extends ETLBase {
 
         // Try exact match first
         sleeperId = exactMatchMap.get(nflverseName);
+
+        // DEBUG: Log the exact match attempt
+        console.log(
+          `Exact match attempt: "${nflverseName}" -> ${sleeperId ? "FOUND" : "NOT FOUND"}`
+        );
+        if (!sleeperId) {
+          console.log(
+            `Available exact matches starting with "George": ${Array.from(
+              exactMatchMap.keys()
+            )
+              .filter((k) => k.startsWith("George"))
+              .slice(0, 3)
+              .join(", ")}`
+          );
+        }
 
         if (!sleeperId) {
           // For historical data, match by name only - ignore team conflicts
