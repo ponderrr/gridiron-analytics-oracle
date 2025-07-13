@@ -70,8 +70,17 @@ class MappingAnalytics extends ETLBase {
     };
 
     data.forEach((mapping) => {
-      // Count by method
-      stats.by_method[mapping.match_method as keyof typeof stats.by_method]++;
+      // Count by method with runtime validation
+      const matchMethod = mapping.match_method;
+      if (
+        matchMethod &&
+        typeof matchMethod === "string" &&
+        matchMethod in stats.by_method
+      ) {
+        stats.by_method[matchMethod as keyof typeof stats.by_method]++;
+      } else {
+        console.warn(`Invalid match_method encountered: ${matchMethod}`);
+      }
 
       // Count by confidence
       if (mapping.confidence_score > 0.9) {
@@ -106,7 +115,13 @@ class MappingAnalytics extends ETLBase {
     };
 
     data.forEach((player) => {
-      stats[player.source as keyof typeof stats]++;
+      // Count by source with runtime validation
+      const source = player.source;
+      if (source && typeof source === "string" && source in stats) {
+        stats[source as keyof typeof stats]++;
+      } else {
+        console.warn(`Invalid source encountered: ${source}`);
+      }
     });
 
     return stats;
@@ -162,6 +177,48 @@ class MappingAnalytics extends ETLBase {
   }
 }
 
+// Helper function to validate and sanitize limit parameter
+function validateLimit(
+  limitParam: string | null,
+  defaultValue = 20,
+  maxLimit = 100
+): number {
+  if (!limitParam) return defaultValue;
+
+  const parsed = parseInt(limitParam, 10);
+
+  // Check if parsing was successful and value is positive
+  if (isNaN(parsed) || parsed <= 0) {
+    return defaultValue;
+  }
+
+  // Ensure the value doesn't exceed maximum limit
+  return Math.min(parsed, maxLimit);
+}
+
+// Whitelist of allowed report types
+const ALLOWED_REPORT_TYPES = ["summary", "unmapped", "low-confidence"] as const;
+type ReportType = (typeof ALLOWED_REPORT_TYPES)[number];
+
+// Helper function to validate report parameter
+function validateReport(
+  reportParam: string | null,
+  defaultValue: ReportType = "summary"
+): ReportType {
+  if (!reportParam) return defaultValue;
+
+  // Check if the report parameter is in the whitelist
+  if (ALLOWED_REPORT_TYPES.includes(reportParam as ReportType)) {
+    return reportParam as ReportType;
+  }
+
+  // Log warning for invalid report type and return default
+  console.warn(
+    `Invalid report type encountered: ${reportParam}, defaulting to ${defaultValue}`
+  );
+  return defaultValue;
+}
+
 serve(async (req) => {
   try {
     if (req.method === "OPTIONS") {
@@ -184,7 +241,7 @@ serve(async (req) => {
     }
 
     const url = new URL(req.url);
-    const report = url.searchParams.get("report") || "summary";
+    const report = validateReport(url.searchParams.get("report"));
 
     const analytics = new MappingAnalytics(supabaseUrl, supabaseServiceKey);
 
@@ -196,12 +253,12 @@ serve(async (req) => {
         break;
       case "unmapped":
         result = await analytics.getTopUnmappedPlayers(
-          parseInt(url.searchParams.get("limit") || "20")
+          validateLimit(url.searchParams.get("limit"))
         );
         break;
       case "low-confidence":
         result = await analytics.getLowConfidenceMappings(
-          parseInt(url.searchParams.get("limit") || "20")
+          validateLimit(url.searchParams.get("limit"))
         );
         break;
       default:

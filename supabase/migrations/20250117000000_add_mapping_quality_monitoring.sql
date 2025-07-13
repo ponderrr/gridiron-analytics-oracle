@@ -1,3 +1,6 @@
+-- Migration: Add mapping quality monitoring functions
+-- This migration adds comprehensive monitoring and alerting functions for player mapping quality
+
 -- Daily mapping quality check
 CREATE OR REPLACE FUNCTION check_mapping_quality()
 RETURNS TABLE (
@@ -181,7 +184,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Monthly mapping trends
+-- Monthly mapping trends (optimized with CTEs)
 CREATE OR REPLACE FUNCTION monthly_mapping_trends()
 RETURNS TABLE (
   month_year text,
@@ -326,18 +329,3 @@ BEGIN
     'Unmapped players with high attempt counts and old last attempt' as description;
 END;
 $$ LANGUAGE plpgsql; 
-
--- Usage examples for configurable alert thresholds:
--- 
--- 1. Use default thresholds from configuration table:
---    SELECT alert_mapping_failures();
---
--- 2. Override thresholds with parameters:
---    SELECT alert_mapping_failures(30, 15);
---
--- 3. Update configuration table thresholds:
---    SELECT update_mapping_alert_threshold('unmapped_players_threshold', 40);
---    SELECT update_mapping_alert_threshold('low_confidence_mappings_threshold', 25);
---
--- 4. View current configuration:
---    SELECT * FROM mapping_alert_config;

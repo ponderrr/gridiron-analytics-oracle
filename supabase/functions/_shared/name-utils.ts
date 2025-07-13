@@ -30,6 +30,16 @@ export class NameNormalizer {
     ["joe", "joseph"],
     ["david", "dave"],
     ["dave", "david"],
+    ["matthew", "matt"],
+    ["matt", "matthew"],
+    ["nicholas", "nick"],
+    ["nick", "nicholas"],
+    ["benjamin", "ben"],
+    ["ben", "benjamin"],
+    ["jonathan", "jon"],
+    ["jon", "jonathan"],
+    ["nathaniel", "nate"],
+    ["nate", "nathaniel"],
   ]);
 
   static normalizeName(name: string): string {
@@ -37,7 +47,7 @@ export class NameNormalizer {
 
     return name
       .toLowerCase()
-      .replace(/[.,\-'`]/g, "") // Remove punctuation
+      .replace(/[.,'`]/g, "") // Remove punctuation except hyphens
       .replace(/\s+/g, " ") // Normalize spaces
       .replace(new RegExp(`\\b(${this.SUFFIXES.join("|")})\\b`, "g"), "") // Remove suffixes
       .trim();
@@ -79,12 +89,31 @@ export class NameNormalizer {
       variations.add(nicknameVariation);
     }
 
-    // Handle initials in original name (D.J. Moore -> dj moore)
-    if (firstName.includes(".")) {
-      const withoutDots = firstName.replace(/\./g, "");
-      const noDotVariation =
-        `${withoutDots}${middleParts.length ? " " + middleParts.join(" ") : ""} ${lastName}`.trim();
-      variations.add(noDotVariation);
+    // Handle initials in original name (D.J. Moore, D. J. Moore, DJ Moore)
+    if (/\./.test(firstName) || /^[A-Z](?:[.\s]*[A-Z])+$/i.test(firstName)) {
+      // Remove all dots and spaces to get the compact form (e.g., 'DJ')
+      const compactInitials = firstName.replace(/[.\s]/g, "");
+      const compactVariation =
+        `${compactInitials}${middleParts.length ? " " + middleParts.join(" ") : ""} ${lastName}`.trim();
+      variations.add(compactVariation);
+
+      // Add spaced initials (e.g., 'D J')
+      const spacedInitials = compactInitials.split("").join(" ");
+      const spacedVariation =
+        `${spacedInitials}${middleParts.length ? " " + middleParts.join(" ") : ""} ${lastName}`.trim();
+      variations.add(spacedVariation);
+
+      // Add dot-separated initials (e.g., 'D.J.')
+      const dotInitials = compactInitials.split("").join(".") + ".";
+      const dotVariation =
+        `${dotInitials}${middleParts.length ? " " + middleParts.join(" ") : ""} ${lastName}`.trim();
+      variations.add(dotVariation);
+
+      // Add dot-space-separated initials (e.g., 'D. J.')
+      const dotSpaceInitials = compactInitials.split("").join(". ") + ".";
+      const dotSpaceVariation =
+        `${dotSpaceInitials}${middleParts.length ? " " + middleParts.join(" ") : ""} ${lastName}`.trim();
+      variations.add(dotSpaceVariation);
     }
 
     return {

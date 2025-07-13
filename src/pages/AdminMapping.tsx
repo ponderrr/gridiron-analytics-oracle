@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -18,10 +18,84 @@ interface BulkMappingResults {
   total_processed: number;
 }
 
+interface HealthCheckResult {
+  service: string;
+  status: "healthy" | "degraded" | "down";
+  responseTime?: number;
+  error?: string;
+  details?: any;
+}
+
+interface SystemHealth {
+  database: HealthCheckResult;
+  edgeFunctions: HealthCheckResult;
+  nflverseApi: HealthCheckResult;
+  sleeperCache: HealthCheckResult;
+  overall: "healthy" | "degraded" | "down";
+  timestamp: string;
+}
+
+// Configurable week numbers for Quick Stats Sync
+const QUICK_STATS_WEEKS = [5, 10, 15, 18];
+
 export default function AdminMapping() {
   const [isRunning, setIsRunning] = useState(false);
   const [progress, setProgress] = useState(0);
   const [results, setResults] = useState<BulkMappingResults | null>(null);
+  const [systemHealth, setSystemHealth] = useState<SystemHealth | null>(null);
+  const [isLoadingHealth, setIsLoadingHealth] = useState(false);
+  const progressIntervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Cleanup interval on component unmount
+  useEffect(() => {
+    return () => {
+      if (progressIntervalRef.current) {
+        clearInterval(progressIntervalRef.current);
+      }
+    };
+  }, []);
+
+  // Fetch system health on component mount and every 30 seconds
+  useEffect(() => {
+    const fetchSystemHealth = async () => {
+      setIsLoadingHealth(true);
+      try {
+        const { data, error } = await supabase.functions.invoke(
+          "system-health-check",
+          {
+            body: { action: "check" },
+          }
+        );
+
+        if (error) {
+          throw error;
+        }
+
+        if (data?.success) {
+          setSystemHealth(data.data);
+        } else {
+          throw new Error(data?.error || "Health check failed");
+        }
+      } catch (error: unknown) {
+        console.error("Health check failed:", error);
+        const errorMessage =
+          error instanceof Error ? error.message : "Unknown error occurred";
+        toast.error("Health check failed: " + errorMessage);
+      } finally {
+        setIsLoadingHealth(false);
+      }
+    };
+
+    // Initial fetch
+    fetchSystemHealth();
+
+    // Set up interval for periodic health checks
+    const healthInterval = setInterval(fetchSystemHealth, 30000); // 30 seconds
+
+    return () => {
+      clearInterval(healthInterval);
+    };
+  }, []);
 
   const runBulkMapping = async () => {
     setIsRunning(true);
@@ -30,7 +104,7 @@ export default function AdminMapping() {
 
     try {
       // Simulate progress (you can make this real with websockets)
-      const progressInterval = setInterval(() => {
+      progressIntervalRef.current = setInterval(() => {
         setProgress((prev) => Math.min(prev + 10, 90));
       }, 500);
 
@@ -41,7 +115,10 @@ export default function AdminMapping() {
         }
       );
 
-      clearInterval(progressInterval);
+      if (progressIntervalRef.current) {
+        clearInterval(progressIntervalRef.current);
+        progressIntervalRef.current = null;
+      }
       setProgress(100);
 
       if (error) {
@@ -54,11 +131,43 @@ export default function AdminMapping() {
       } else {
         throw new Error(data?.error || "Bulk mapping failed");
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Bulk mapping failed:", error);
-      toast.error("Bulk mapping failed: " + error.message);
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error occurred";
+      toast.error("Bulk mapping failed: " + errorMessage);
     } finally {
+      if (progressIntervalRef.current) {
+        clearInterval(progressIntervalRef.current);
+        progressIntervalRef.current = null;
+      }
       setIsRunning(false);
+    }
+  };
+
+  const getHealthBadgeVariant = (status: "healthy" | "degraded" | "down") => {
+    switch (status) {
+      case "healthy":
+        return "default";
+      case "degraded":
+        return "secondary";
+      case "down":
+        return "destructive";
+      default:
+        return "outline";
+    }
+  };
+
+  const getHealthStatusText = (status: "healthy" | "degraded" | "down") => {
+    switch (status) {
+      case "healthy":
+        return "Healthy";
+      case "degraded":
+        return "Degraded";
+      case "down":
+        return "Down";
+      default:
+        return "Unknown";
     }
   };
 
@@ -83,9 +192,11 @@ export default function AdminMapping() {
       } else {
         throw new Error(data?.error || "Stats sync failed");
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Stats sync failed:", error);
-      toast.error(`Week ${week} sync failed: ` + error.message);
+      const errorMessage =
+        error instanceof Error ? error.message : "Unknown error occurred";
+      toast.error(`Week ${week} sync failed: ` + errorMessage);
     }
   };
 
@@ -185,7 +296,7 @@ export default function AdminMapping() {
                   </p>
 
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                    {[5, 10, 15, 18].map((week) => (
+                    {QUICK_STATS_WEEKS.map((week) => (
                       <Button
                         key={week}
                         variant="outline"
@@ -202,27 +313,160 @@ export default function AdminMapping() {
               {/* System Status Card */}
               <Card>
                 <CardHeader>
-                  <CardTitle>System Status</CardTitle>
+                  <CardTitle className="flex items-center justify-between">
+                    System Status
+                    <div className="flex items-center gap-2">
+                      {systemHealth && (
+                        <Badge
+                          variant={getHealthBadgeVariant(systemHealth.overall)}
+                          className="text-xs"
+                        >
+                          {getHealthStatusText(systemHealth.overall)}
+                        </Badge>
+                      )}
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={async () => {
+                          setIsLoadingHealth(true);
+                          try {
+                            const { data, error } =
+                              await supabase.functions.invoke(
+                                "system-health-check",
+                                {
+                                  body: { action: "check" },
+                                }
+                              );
+
+                            if (error) {
+                              throw error;
+                            }
+
+                            if (data?.success) {
+                              setSystemHealth(data.data);
+                              toast.success("System status refreshed");
+                            } else {
+                              throw new Error(
+                                data?.error || "Health check failed"
+                              );
+                            }
+                          } catch (error: unknown) {
+                            console.error("Health check failed:", error);
+                            const errorMessage =
+                              error instanceof Error
+                                ? error.message
+                                : "Unknown error occurred";
+                            toast.error("Health check failed: " + errorMessage);
+                          } finally {
+                            setIsLoadingHealth(false);
+                          }
+                        }}
+                        disabled={isLoadingHealth}
+                      >
+                        {isLoadingHealth ? "Refreshing..." : "Refresh"}
+                      </Button>
+                    </div>
+                  </CardTitle>
                 </CardHeader>
                 <CardContent>
-                  <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <span>Mapping Database:</span>
-                      <Badge variant="default">Ready</Badge>
+                  {isLoadingHealth ? (
+                    <div className="space-y-2">
+                      <div className="flex justify-between">
+                        <span>Loading system status...</span>
+                        <Badge variant="outline">Checking</Badge>
+                      </div>
                     </div>
-                    <div className="flex justify-between">
-                      <span>Edge Functions:</span>
-                      <Badge variant="default">Deployed</Badge>
+                  ) : systemHealth ? (
+                    <div className="space-y-2">
+                      <div className="flex justify-between">
+                        <span>Mapping Database:</span>
+                        <div className="flex items-center gap-2">
+                          <Badge
+                            variant={getHealthBadgeVariant(
+                              systemHealth.database.status
+                            )}
+                          >
+                            {getHealthStatusText(systemHealth.database.status)}
+                          </Badge>
+                          {systemHealth.database.responseTime && (
+                            <span className="text-xs text-muted-foreground">
+                              {systemHealth.database.responseTime}ms
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Edge Functions:</span>
+                        <div className="flex items-center gap-2">
+                          <Badge
+                            variant={getHealthBadgeVariant(
+                              systemHealth.edgeFunctions.status
+                            )}
+                          >
+                            {getHealthStatusText(
+                              systemHealth.edgeFunctions.status
+                            )}
+                          </Badge>
+                          {systemHealth.edgeFunctions.responseTime && (
+                            <span className="text-xs text-muted-foreground">
+                              {systemHealth.edgeFunctions.responseTime}ms
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>NFLVerse API:</span>
+                        <div className="flex items-center gap-2">
+                          <Badge
+                            variant={getHealthBadgeVariant(
+                              systemHealth.nflverseApi.status
+                            )}
+                          >
+                            {getHealthStatusText(
+                              systemHealth.nflverseApi.status
+                            )}
+                          </Badge>
+                          {systemHealth.nflverseApi.responseTime && (
+                            <span className="text-xs text-muted-foreground">
+                              {systemHealth.nflverseApi.responseTime}ms
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Sleeper Cache:</span>
+                        <div className="flex items-center gap-2">
+                          <Badge
+                            variant={getHealthBadgeVariant(
+                              systemHealth.sleeperCache.status
+                            )}
+                          >
+                            {getHealthStatusText(
+                              systemHealth.sleeperCache.status
+                            )}
+                          </Badge>
+                          {systemHealth.sleeperCache.responseTime && (
+                            <span className="text-xs text-muted-foreground">
+                              {systemHealth.sleeperCache.responseTime}ms
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      {systemHealth.timestamp && (
+                        <div className="text-xs text-muted-foreground mt-4 pt-2 border-t">
+                          Last updated:{" "}
+                          {new Date(systemHealth.timestamp).toLocaleString()}
+                        </div>
+                      )}
                     </div>
-                    <div className="flex justify-between">
-                      <span>NFLVerse API:</span>
-                      <Badge variant="default">Accessible</Badge>
+                  ) : (
+                    <div className="space-y-2">
+                      <div className="flex justify-between">
+                        <span>System status unavailable</span>
+                        <Badge variant="outline">Unknown</Badge>
+                      </div>
                     </div>
-                    <div className="flex justify-between">
-                      <span>Sleeper Cache:</span>
-                      <Badge variant="default">Updated</Badge>
-                    </div>
-                  </div>
+                  )}
                 </CardContent>
               </Card>
             </div>

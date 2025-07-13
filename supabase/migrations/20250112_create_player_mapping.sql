@@ -5,7 +5,7 @@ CREATE TABLE player_id_mapping (
   nflverse_id text NOT NULL,
   canonical_name text NOT NULL,
   alternate_names text[], -- Array of known variations
-  confidence_score numeric DEFAULT 1.0 CHECK (confidence_score >= 0 AND confidence_score <= 1),
+  confidence_score numeric(3,2) DEFAULT 1.0 CHECK (confidence_score >= 0 AND confidence_score <= 1),
   match_method text NOT NULL CHECK (match_method IN ('exact', 'fuzzy', 'manual', 'community')),
   position text,
   team text, -- For disambiguation, but not used for matching

@@ -199,6 +199,7 @@ class MappingBasedStatsSync extends ETLBase {
           receiving_tds: parseInt(record.receiving_tds) || 0,
           receptions: parseInt(record.receptions) || 0,
           targets: parseInt(record.targets) || 0,
+
           fantasy_points: parseFloat(record.fantasy_points) || 0,
           fantasy_points_ppr: parseFloat(record.fantasy_points_ppr) || 0,
         });
@@ -251,8 +252,20 @@ class MappingBasedStatsSync extends ETLBase {
     const unmappedPlayers: any[] = [];
 
     for (const stat of stats) {
-      const nflverseId = stat.player_id!;
-      const playerName = stat.player_name!;
+      // Validate required fields before processing
+      if (!stat.player_id || !stat.player_name) {
+        console.warn(`Skipping stat record with missing required fields:`, {
+          player_id: stat.player_id,
+          player_name: stat.player_name,
+          season: stat.season,
+          week: stat.week,
+        });
+        result.failed_mapping++;
+        continue;
+      }
+
+      const nflverseId = stat.player_id;
+      const playerName = stat.player_name;
 
       // Try to find existing mapping
       let sleeperId = this.findSleeperIdFromMapping(nflverseId);
@@ -268,7 +281,12 @@ class MappingBasedStatsSync extends ETLBase {
       }
 
       // Try to create new mapping via fuzzy matching
-      const newMapping = await this.attemptNewMapping(nflverseId, playerName);
+      const inferredPosition = this.inferPositionFromStats(stat);
+      const newMapping = await this.attemptNewMapping(
+        nflverseId,
+        playerName,
+        inferredPosition
+      );
 
       if (newMapping) {
         sleeperId = newMapping.sleeper_id;
@@ -313,7 +331,8 @@ class MappingBasedStatsSync extends ETLBase {
 
   private async attemptNewMapping(
     nflverseId: string,
-    playerName: string
+    playerName: string,
+    position: string | null
   ): Promise<{
     sleeper_id: string;
     nflverse_id: string;
@@ -325,7 +344,7 @@ class MappingBasedStatsSync extends ETLBase {
     const fuzzyResult = FuzzyMatcher.findBestMatch(
       playerName,
       this.sleeperPlayers,
-      false // Don't filter by position for now
+      position // Use inferred position for filtering
     );
 
     if (fuzzyResult && fuzzyResult.confidence === "high") {
@@ -356,6 +375,11 @@ class MappingBasedStatsSync extends ETLBase {
       rush_yd: stat.rushing_yards || 0,
       pass_yd: stat.passing_yards || 0,
       pass_td: stat.passing_tds || 0,
+      // Additional stats for comprehensive tracking
+      rec: stat.receptions || 0,
+      targets: stat.targets || 0,
+      carries: stat.carries || 0,
+      int: stat.interceptions || 0,
     };
   }
 
@@ -367,11 +391,16 @@ class MappingBasedStatsSync extends ETLBase {
     }
 
     // Calculate manually if not provided
+    // Passing stats
     if (stats.passing_yards) points += stats.passing_yards / 25;
     if (stats.passing_tds) points += stats.passing_tds * 4;
     if (stats.interceptions) points -= stats.interceptions * 2;
+
+    // Rushing stats
     if (stats.rushing_yards) points += stats.rushing_yards / 10;
     if (stats.rushing_tds) points += stats.rushing_tds * 6;
+
+    // Receiving stats
     if (stats.receiving_yards) points += stats.receiving_yards / 10;
     if (stats.receiving_tds) points += stats.receiving_tds * 6;
     if (stats.receptions) points += stats.receptions;
@@ -380,10 +409,73 @@ class MappingBasedStatsSync extends ETLBase {
   }
 
   private inferPositionFromStats(stat: NFLVersePlayerStats): string | null {
-    if (stat.passing_yards && stat.passing_yards > 0) return "QB";
-    if (stat.rushing_yards && stat.rushing_yards > 0) return "RB";
-    if (stat.receiving_yards && stat.receiving_yards > 0) return "WR";
-    if (stat.receptions && stat.receptions > 0) return "TE";
+    // Calculate total activity for each category to determine primary role
+    const passingActivity =
+      (stat.passing_yards || 0) +
+      (stat.passing_tds || 0) * 25 +
+      (stat.interceptions || 0) * 10;
+    const rushingActivity =
+      (stat.rushing_yards || 0) +
+      (stat.rushing_tds || 0) * 10 +
+      (stat.carries || 0);
+    const receivingActivity =
+      (stat.receiving_yards || 0) +
+      (stat.receiving_tds || 0) * 10 +
+      (stat.receptions || 0) +
+      (stat.targets || 0);
+
+    // Position inference with improved precedence logic for QB, RB, WR, TE
+    // 1. Quarterbacks - check for significant passing activity first
+    if (passingActivity > 50) {
+      return "QB";
+    }
+
+    // 2. Running Backs - check for rushing activity
+    if (rushingActivity > 0) {
+      return "RB";
+    }
+
+    // 3. Receiving positions - distinguish between WR and TE
+    if (receivingActivity > 0) {
+      // Use targets vs receptions ratio to distinguish WR vs TE
+      // TEs typically have lower targets/receptions ratios and fewer targets overall
+      const targetReceptionRatio =
+        stat.targets && stat.receptions ? stat.targets / stat.receptions : 0;
+      const totalTargets = stat.targets || 0;
+
+      // TE indicators: lower target/reception ratio, fewer total targets
+      if (
+        targetReceptionRatio < 1.5 &&
+        totalTargets < 8 &&
+        receivingActivity > 20
+      ) {
+        return "TE";
+      }
+
+      // Otherwise, classify as WR
+      return "WR";
+    }
+
+    // 4. Special cases for versatile players
+    // If a player has both rushing and receiving activity, prioritize based on volume
+    if (rushingActivity > 0 && receivingActivity > 0) {
+      if (rushingActivity > receivingActivity * 2) {
+        return "RB";
+      } else if (receivingActivity > rushingActivity * 2) {
+        return "WR";
+      } else {
+        // Balanced player - default to RB for fantasy purposes
+        return "RB";
+      }
+    }
+
+    // 5. If no clear activity, try to infer from fantasy points pattern
+    if (stat.fantasy_points && stat.fantasy_points > 0) {
+      // This is a fallback - if we have fantasy points but no clear stats,
+      // we can't reliably determine position
+      return null;
+    }
+
     return null;
   }
 

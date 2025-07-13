@@ -28,7 +28,9 @@ export class FuzzyMatcher {
     const bigrams1 = this.getBigrams(str1);
     const bigrams2 = this.getBigrams(str2);
 
-    const intersection = bigrams1.filter((bigram) => bigrams2.includes(bigram));
+    // Convert bigrams2 to Set for O(1) lookups
+    const bigrams2Set = new Set(bigrams2);
+    const intersection = bigrams1.filter((bigram) => bigrams2Set.has(bigram));
     return (2.0 * intersection.length) / (bigrams1.length + bigrams2.length);
   }
 

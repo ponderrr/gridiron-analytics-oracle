@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { toast } from "@/components/ui/sonner";
 import { supabase } from "@/integrations/supabase/client";
 
 interface UnmappedPlayer {
@@ -21,7 +22,12 @@ interface UnmappedPlayer {
 export default function MappingReview() {
   const [unmappedPlayers, setUnmappedPlayers] = useState<UnmappedPlayer[]>([]);
   const [loading, setLoading] = useState(true);
-  const [processingId, setProcessingId] = useState<string | null>(null);
+  const [processingCreateId, setProcessingCreateId] = useState<string | null>(
+    null
+  );
+  const [processingRejectId, setProcessingRejectId] = useState<string | null>(
+    null
+  );
 
   useEffect(() => {
     loadUnmappedPlayers();
@@ -38,14 +44,18 @@ export default function MappingReview() {
 
       if (error) {
         console.error("Failed to load unmapped players:", error);
+        toast.error("Failed to load unmapped players. Please try again.");
         return;
       }
 
       if (data?.success) {
         setUnmappedPlayers(data.data);
+      } else {
+        toast.error("Failed to load unmapped players. Please try again.");
       }
     } catch (error) {
       console.error("Failed to load unmapped players:", error);
+      toast.error("Failed to load unmapped players. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -56,7 +66,7 @@ export default function MappingReview() {
     sleeperId: string,
     canonicalName: string
   ) => {
-    setProcessingId(nflverseId);
+    setProcessingCreateId(nflverseId);
     try {
       const { data, error } = await supabase.functions.invoke(
         "manual-mapping-review",
@@ -73,6 +83,7 @@ export default function MappingReview() {
 
       if (error) {
         console.error("Failed to create mapping:", error);
+        toast.error("Failed to create player mapping. Please try again.");
         return;
       }
 
@@ -81,16 +92,20 @@ export default function MappingReview() {
         setUnmappedPlayers((prev) =>
           prev.filter((p) => p.player_id !== nflverseId)
         );
+        toast.success("Player mapping created successfully!");
+      } else {
+        toast.error("Failed to create player mapping. Please try again.");
       }
     } catch (error) {
       console.error("Failed to create mapping:", error);
+      toast.error("Failed to create player mapping. Please try again.");
     } finally {
-      setProcessingId(null);
+      setProcessingCreateId(null);
     }
   };
 
   const rejectMapping = async (nflverseId: string) => {
-    setProcessingId(nflverseId);
+    setProcessingRejectId(nflverseId);
     try {
       const { data, error } = await supabase.functions.invoke(
         "manual-mapping-review",
@@ -105,6 +120,7 @@ export default function MappingReview() {
 
       if (error) {
         console.error("Failed to reject mapping:", error);
+        toast.error("Failed to reject player mapping. Please try again.");
         return;
       }
 
@@ -113,11 +129,15 @@ export default function MappingReview() {
         setUnmappedPlayers((prev) =>
           prev.filter((p) => p.player_id !== nflverseId)
         );
+        toast.success("Player mapping rejected successfully!");
+      } else {
+        toast.error("Failed to reject player mapping. Please try again.");
       }
     } catch (error) {
       console.error("Failed to reject mapping:", error);
+      toast.error("Failed to reject player mapping. Please try again.");
     } finally {
-      setProcessingId(null);
+      setProcessingRejectId(null);
     }
   };
 
@@ -161,7 +181,7 @@ export default function MappingReview() {
                   onClick={() => rejectMapping(player.player_id)}
                   variant="danger"
                   size="sm"
-                  disabled={processingId === player.player_id}
+                  disabled={processingRejectId === player.player_id}
                 >
                   Reject
                 </Button>
@@ -209,10 +229,10 @@ export default function MappingReview() {
                                 player.player_name
                               )
                             }
-                            disabled={processingId === player.player_id}
+                            disabled={processingCreateId === player.player_id}
                             size="sm"
                           >
-                            {processingId === player.player_id
+                            {processingCreateId === player.player_id
                               ? "Processing..."
                               : "Accept"}
                           </Button>

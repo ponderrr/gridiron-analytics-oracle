@@ -1,9 +1,13 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { ETLBase } from "../_shared/etl-utils.ts";
 import {
   FuzzyMatcher,
   type PlayerCandidate,
 } from "../_shared/fuzzy-matcher.ts";
+
+// Constants for player mapping review
+const DEPRIORITIZE_ATTEMPTS = 999; // High attempts count to move rejected players to bottom of review queue
 
 interface UnmappedPlayerReview {
   id: string;
@@ -114,12 +118,53 @@ class ManualMappingReview extends ETLBase {
       .from("unmapped_players")
       .update({
         notes: `Rejected: ${reason}`,
-        attempts_count: 999, // Move to bottom of review queue
+        attempts_count: DEPRIORITIZE_ATTEMPTS, // Move to bottom of review queue
       })
       .eq("player_id", nflverseId)
       .eq("source", "nflverse");
 
     if (error) throw error;
+  }
+}
+
+// Authentication helper function
+async function verifyAuthToken(
+  authHeader: string | null,
+  supabaseUrl: string
+): Promise<{ user: any; error?: string }> {
+  if (!authHeader) {
+    return { user: null, error: "Missing authorization header" };
+  }
+
+  // Extract token from "Bearer <token>" format
+  const token = authHeader.replace(/^Bearer\s+/i, "");
+  if (!token) {
+    return { user: null, error: "Invalid authorization header format" };
+  }
+
+  try {
+    // Create a Supabase client for auth verification
+    const supabase = createClient(supabaseUrl, "dummy-anon-key", {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false,
+      },
+    });
+
+    // Verify the JWT token
+    const {
+      data: { user },
+      error,
+    } = await supabase.auth.getUser(token);
+
+    if (error || !user) {
+      return { user: null, error: "Invalid or expired token" };
+    }
+
+    return { user };
+  } catch (error) {
+    console.error("Token verification error:", error);
+    return { user: null, error: "Token verification failed" };
   }
 }
 
@@ -147,11 +192,47 @@ serve(async (req) => {
     const url = new URL(req.url);
     const action = url.searchParams.get("action") || "list";
 
+    // Authentication check for sensitive actions
+    if (action === "create" || action === "reject") {
+      const authHeader = req.headers.get("authorization");
+      const { user, error: authError } = await verifyAuthToken(
+        authHeader,
+        supabaseUrl
+      );
+
+      if (authError || !user) {
+        return new Response(
+          JSON.stringify({
+            success: false,
+            error: authError || "Authentication required",
+          }),
+          {
+            headers: {
+              "Content-Type": "application/json",
+              "Access-Control-Allow-Origin": "*",
+            },
+            status: 401,
+          }
+        );
+      }
+
+      // Optional: Add role-based access control here
+      // For example, check if user has admin role or specific permissions
+      console.log(
+        `Authenticated user: ${user.email} performing ${action} action`
+      );
+    }
+
     const reviewer = new ManualMappingReview(supabaseUrl, supabaseServiceKey);
 
     if (action === "list") {
-      const limit = parseInt(url.searchParams.get("limit") || "50");
-      const reviews = await reviewer.getUnmappedPlayersForReview(limit);
+      const limitParam = url.searchParams.get("limit") || "50";
+      const limit = parseInt(limitParam);
+
+      // Validate that limit is a valid number, use default if NaN
+      const validatedLimit = isNaN(limit) ? 50 : limit;
+      const reviews =
+        await reviewer.getUnmappedPlayersForReview(validatedLimit);
 
       return new Response(
         JSON.stringify({

@@ -7,6 +7,9 @@ import {
   type FuzzyMatchResult,
 } from "../_shared/fuzzy-matcher.ts";
 
+// Performance and configuration constants
+const MAX_FALLBACK_CANDIDATES = 1000; // Maximum number of candidates to consider in fallback fuzzy matching
+
 interface MappingResult {
   exact_matches: number;
   fuzzy_matches: number;
@@ -21,6 +24,13 @@ interface NFLVersePlayer {
   player_display_name: string;
   position: string;
   recent_team: string;
+}
+
+interface SleeperIndexes {
+  exactMatch: Map<string, PlayerCandidate>;
+  lastNameIndex: Map<string, PlayerCandidate[]>;
+  initialLastIndex: Map<string, PlayerCandidate[]>;
+  allPlayers: PlayerCandidate[];
 }
 
 class BulkPlayerMapper extends ETLBase {
@@ -84,16 +94,91 @@ class BulkPlayerMapper extends ETLBase {
   }
 
   private async getNFLVersePlayers(): Promise<NFLVersePlayer[]> {
-    // For now, we'll get unique players from 2024 stats
-    // In a real implementation, you might fetch from the nflverse API directly
     console.log("Fetching unique nflverse players from 2024 stats");
 
-    // This would typically come from your nflverse stats data
-    // For now, return empty array - you'll populate this with actual data
-    return [];
+    try {
+      // Fetch the full 2024 season stats from NFLVerse API
+      const url = `https://github.com/nflverse/nflverse-data/releases/download/player_stats/player_stats_2024.csv`;
+      console.log(`Calling nflverse API: ${url}`);
+
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error(
+          `nflverse API error: ${response.status} ${response.statusText}`
+        );
+      }
+
+      const csvText = await response.text();
+      const uniquePlayers = this.parseUniquePlayersFromCSV(csvText);
+
+      console.log(`Found ${uniquePlayers.length} unique NFLVerse players`);
+      return uniquePlayers;
+    } catch (error) {
+      console.error("Error fetching NFLVerse players:", error);
+      throw error;
+    }
   }
 
-  private createSleeperIndexes(players: PlayerCandidate[]) {
+  private parseUniquePlayersFromCSV(csvText: string): NFLVersePlayer[] {
+    const lines = csvText.split("\n");
+    if (lines.length === 0) return [];
+
+    const headers = lines[0].split(",").map((h) => h.trim().replace(/"/g, ""));
+    const uniquePlayers = new Map<string, NFLVersePlayer>();
+
+    for (let i = 1; i < lines.length; i++) {
+      const line = lines[i].trim();
+      if (!line) continue;
+
+      const values = this.parseCSVLine(line);
+      if (values.length < headers.length) continue;
+
+      const record: any = {};
+      headers.forEach((header, index) => {
+        record[header] = values[index];
+      });
+
+      const playerId = record.player_id;
+      if (!playerId) continue;
+
+      // Only add if we haven't seen this player before
+      if (!uniquePlayers.has(playerId)) {
+        uniquePlayers.set(playerId, {
+          player_id: playerId,
+          player_name: record.player_name || "",
+          player_display_name:
+            record.player_display_name || record.player_name || "",
+          position: record.position || "",
+          recent_team: record.recent_team || "",
+        });
+      }
+    }
+
+    return Array.from(uniquePlayers.values());
+  }
+
+  private parseCSVLine(line: string): string[] {
+    const result: string[] = [];
+    let current = "";
+    let inQuotes = false;
+
+    for (let i = 0; i < line.length; i++) {
+      const char = line[i];
+      if (char === '"') {
+        inQuotes = !inQuotes;
+      } else if (char === "," && !inQuotes) {
+        result.push(current.trim());
+        current = "";
+      } else {
+        current += char;
+      }
+    }
+
+    result.push(current.trim());
+    return result;
+  }
+
+  private createSleeperIndexes(players: PlayerCandidate[]): SleeperIndexes {
     const exactMatch = new Map<string, PlayerCandidate>();
     const lastNameIndex = new Map<string, PlayerCandidate[]>();
     const initialLastIndex = new Map<string, PlayerCandidate[]>();
@@ -124,7 +209,7 @@ class BulkPlayerMapper extends ETLBase {
 
   private async processMappings(
     nflversePlayers: NFLVersePlayer[],
-    sleeperIndexes: any
+    sleeperIndexes: SleeperIndexes
   ): Promise<MappingResult> {
     const result: MappingResult = {
       exact_matches: 0,
@@ -225,7 +310,7 @@ class BulkPlayerMapper extends ETLBase {
 
   private async findMatch(
     nflversePlayer: NFLVersePlayer,
-    sleeperIndexes: any
+    sleeperIndexes: SleeperIndexes
   ): Promise<{
     type: "exact" | "fuzzy" | "none";
     sleeperId?: string;
@@ -262,7 +347,10 @@ class BulkPlayerMapper extends ETLBase {
 
     // Last resort: try against all players (expensive)
     if (candidates.length === 0) {
-      const allCandidates = sleeperIndexes.allPlayers.slice(0, 1000); // Limit for performance
+      const allCandidates = sleeperIndexes.allPlayers.slice(
+        0,
+        MAX_FALLBACK_CANDIDATES
+      ); // Limit for performance
       const fuzzyResult = FuzzyMatcher.findBestMatch(name, allCandidates);
 
       if (fuzzyResult) {

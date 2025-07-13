@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { supabase } from "@/integrations/supabase/client";
 
 interface MappingAnalytics {
@@ -46,6 +47,10 @@ export default function MappingAnalytics() {
     []
   );
   const [loading, setLoading] = useState(true);
+  const [analyticsError, setAnalyticsError] = useState<string | null>(null);
+  const [lowConfidenceError, setLowConfidenceError] = useState<string | null>(
+    null
+  );
 
   useEffect(() => {
     loadAnalytics();
@@ -54,6 +59,7 @@ export default function MappingAnalytics() {
 
   const loadAnalytics = async () => {
     try {
+      setAnalyticsError(null);
       const { data, error } = await supabase.functions.invoke(
         "mapping-analytics",
         {
@@ -63,19 +69,30 @@ export default function MappingAnalytics() {
 
       if (error) {
         console.error("Failed to load analytics:", error);
+        setAnalyticsError(
+          "Failed to load analytics data. Please try again later."
+        );
         return;
       }
 
       if (data?.success) {
         setAnalytics(data.data);
+      } else {
+        setAnalyticsError(
+          "Failed to load analytics data. Please try again later."
+        );
       }
     } catch (error) {
       console.error("Failed to load analytics:", error);
+      setAnalyticsError(
+        "An unexpected error occurred while loading analytics data. Please try again later."
+      );
     }
   };
 
   const loadLowConfidenceMappings = async () => {
     try {
+      setLowConfidenceError(null);
       const { data, error } = await supabase.functions.invoke(
         "mapping-analytics",
         {
@@ -85,42 +102,117 @@ export default function MappingAnalytics() {
 
       if (error) {
         console.error("Failed to load low confidence mappings:", error);
+        setLowConfidenceError(
+          "Failed to load low confidence mappings. Please try again later."
+        );
         return;
       }
 
       if (data?.success) {
         setLowConfidence(data.data);
+      } else {
+        setLowConfidenceError(
+          "Failed to load low confidence mappings. Please try again later."
+        );
       }
     } catch (error) {
       console.error("Failed to load low confidence mappings:", error);
+      setLowConfidenceError(
+        "An unexpected error occurred while loading low confidence mappings. Please try again later."
+      );
     } finally {
       setLoading(false);
     }
   };
 
-  if (loading || !analytics) {
+  const handleRefresh = () => {
+    setLoading(true);
+    setAnalyticsError(null);
+    setLowConfidenceError(null);
+    loadAnalytics();
+    loadLowConfidenceMappings();
+  };
+
+  if (loading) {
     return <div className="p-6">Loading analytics...</div>;
   }
 
-  const mappingSuccessRate =
-    (analytics.total_mappings /
-      (analytics.total_mappings + analytics.unmapped_players.nflverse)) *
-    100;
+  // Show error state if both analytics and low confidence data failed to load
+  if (analyticsError && lowConfidenceError && !analytics) {
+    return (
+      <div className="p-6 space-y-4">
+        <div className="flex justify-between items-center">
+          <h1 className="text-2xl font-bold">Player Mapping Analytics</h1>
+          <Button onClick={handleRefresh} variant="outline">
+            Refresh
+          </Button>
+        </div>
+        <Alert variant="destructive">
+          <AlertDescription>
+            {analyticsError} Please try refreshing the page or contact support
+            if the issue persists.
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
+
+  // If no analytics data is available, show error
+  if (!analytics) {
+    return (
+      <div className="p-6 space-y-4">
+        <div className="flex justify-between items-center">
+          <h1 className="text-2xl font-bold">Player Mapping Analytics</h1>
+          <Button onClick={handleRefresh} variant="outline">
+            Refresh
+          </Button>
+        </div>
+        {analyticsError && (
+          <Alert variant="destructive">
+            <AlertDescription>
+              {analyticsError} Please try refreshing the page or contact support
+              if the issue persists.
+            </AlertDescription>
+          </Alert>
+        )}
+      </div>
+    );
+  }
+
+  const mappingSuccessRate = (() => {
+    const denominator =
+      analytics.total_mappings + analytics.unmapped_players.nflverse;
+    return denominator === 0
+      ? 0
+      : (analytics.total_mappings / denominator) * 100;
+  })();
 
   return (
     <div className="p-6 space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">Player Mapping Analytics</h1>
-        <Button
-          onClick={() => {
-            loadAnalytics();
-            loadLowConfidenceMappings();
-          }}
-          variant="outline"
-        >
+        <Button onClick={handleRefresh} variant="outline">
           Refresh
         </Button>
       </div>
+
+      {/* Error Alerts */}
+      {analyticsError && (
+        <Alert variant="destructive">
+          <AlertDescription>
+            {analyticsError} Some data may be incomplete.
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {lowConfidenceError && (
+        <Alert variant="destructive">
+          <AlertDescription>
+            {lowConfidenceError} The low confidence mappings section may not be
+            available.
+          </AlertDescription>
+        </Alert>
+      )}
 
       {/* Overview Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -179,9 +271,11 @@ export default function MappingAnalytics() {
           <CardContent>
             <div className="text-2xl font-bold">
               {Math.round(
-                (analytics.verification_status.verified /
-                  analytics.total_mappings) *
-                  100
+                analytics.total_mappings === 0
+                  ? 0
+                  : (analytics.verification_status.verified /
+                      analytics.total_mappings) *
+                      100
               )}
               %
             </div>
@@ -200,7 +294,10 @@ export default function MappingAnalytics() {
           </CardHeader>
           <CardContent className="space-y-4">
             {Object.entries(analytics.by_method).map(([method, count]) => {
-              const percentage = (count / analytics.total_mappings) * 100;
+              const percentage =
+                analytics.total_mappings === 0
+                  ? 0
+                  : (count / analytics.total_mappings) * 100;
               return (
                 <div key={method} className="space-y-2">
                   <div className="flex justify-between items-center">
@@ -223,7 +320,10 @@ export default function MappingAnalytics() {
           </CardHeader>
           <CardContent className="space-y-4">
             {Object.entries(analytics.by_confidence).map(([level, count]) => {
-              const percentage = (count / analytics.total_mappings) * 100;
+              const percentage =
+                analytics.total_mappings === 0
+                  ? 0
+                  : (count / analytics.total_mappings) * 100;
               const variant =
                 level === "high"
                   ? "default"
@@ -283,6 +383,21 @@ export default function MappingAnalytics() {
                 </div>
               ))}
             </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Show message when no low confidence mappings are available */}
+      {!lowConfidenceError && lowConfidence.length === 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Low Confidence Mappings</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-muted-foreground">
+              No low confidence mappings found. All mappings appear to have high
+              confidence scores.
+            </p>
           </CardContent>
         </Card>
       )}
