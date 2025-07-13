@@ -146,12 +146,12 @@ const Auth: React.FC = () => {
 
   return (
     <Layout>
-      <div className="min-h-screen flex items-center justify-center px-2 pt-8 sm:pt-16 pb-4 sm:px-4">
-        <div className={`w-full max-w-md rounded-xl shadow-xl p-6 sm:p-8`}>
+      <div className="min-h-screen flex items-start justify-center px-2 pt-4 sm:pt-8 pb-4 sm:px-4">
+        <div className="mt-16 sm:mt-24 w-full max-w-md rounded-xl shadow-xl p-6 sm:p-8">
           {/* Tabs */}
           <div className="relative flex mb-8 border-b border-slate-200 dark:border-slate-200/10">
             <button
-              className={`text-2xl font-semibold pb-2 px-2 transition-colors border-b-2 flex-1 ${isLogin ? `text-indigo-500 dark:text-indigo-400` : "text-black/50 dark:text-slate-400"} border-transparent focus:outline-none`}
+              className={`text-2xl font-semibold pb-2 px-2 transition-colors border-b-2 flex-1 ${isLogin ? `text-[var(--color-text-primary)] dark:text-white` : "text-black/50 dark:text-slate-400"} border-transparent focus:outline-none`}
               onClick={() => handleTab(true)}
               type="button"
               style={{ zIndex: 1 }}
@@ -159,7 +159,7 @@ const Auth: React.FC = () => {
               Sign In
             </button>
             <button
-              className={`text-2xl font-semibold pb-2 px-2 ml-6 transition-colors border-b-2 flex-1 ${!isLogin ? `text-indigo-500 dark:text-indigo-400` : "text-black/50 dark:text-slate-400"} border-transparent focus:outline-none`}
+              className={`text-2xl font-semibold pb-2 px-2 ml-6 transition-colors border-b-2 flex-1 ${!isLogin ? `text-[var(--color-text-primary)] dark:text-white` : "text-black/50 dark:text-slate-400"} border-transparent focus:outline-none`}
               onClick={() => handleTab(false)}
               type="button"
               style={{ zIndex: 1 }}
@@ -168,7 +168,7 @@ const Auth: React.FC = () => {
             </button>
             {/* Animated Indicator */}
             <span
-              className="absolute bottom-0 h-1 rounded bg-indigo-400 transition-all duration-300"
+              className="absolute bottom-0 h-1 rounded bg-[var(--color-text-primary)] dark:bg-white transition-all duration-300"
               style={{
                 left: isLogin ? 0 : "50%",
                 width: "50%",
@@ -192,7 +192,7 @@ const Auth: React.FC = () => {
                 {/* Email */}
                 <div>
                   <label
-                    className={`block text-sm font-medium mb-2 text-indigo-500 dark:text-indigo-400`}
+                    className={`block text-sm font-medium mb-2 text-[var(--color-text-primary)] dark:text-white`}
                   >
                     Email <span className="text-red-500 align-middle">*</span>
                   </label>
@@ -201,7 +201,7 @@ const Auth: React.FC = () => {
                       type="email"
                       value={email}
                       onChange={(e) => handleEmailChange(e.target.value)}
-                      className={`w-full bg-transparent border border-black dark:border-slate-600 rounded-lg px-4 py-3 text-indigo-500 dark:text-indigo-400 placeholder-black/40 dark:placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition-all`}
+                      className={`w-full bg-transparent border border-black dark:border-slate-600 rounded-full px-4 py-3 text-[var(--color-text-primary)] dark:text-white placeholder-black/40 dark:placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[var(--color-text-primary)] dark:focus:ring-white focus:border-transparent transition-all`}
                       placeholder="Enter your email"
                       required
                     />
@@ -218,7 +218,7 @@ const Auth: React.FC = () => {
                 {/* Password */}
                 <div>
                   <label
-                    className={`block text-sm font-medium mb-2 text-indigo-500 dark:text-indigo-400`}
+                    className={`block text-sm font-medium mb-2 text-[var(--color-text-primary)] dark:text-white`}
                   >
                     Password{" "}
                     <span className="text-red-500 align-middle">*</span>
@@ -228,7 +228,7 @@ const Auth: React.FC = () => {
                       type={showPassword ? "text" : "password"}
                       value={password}
                       onChange={(e) => handlePasswordChange(e.target.value)}
-                      className={`w-full bg-transparent border border-black dark:border-slate-600 rounded-lg px-4 py-3 text-indigo-500 dark:text-indigo-400 placeholder-black/40 dark:placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition-all`}
+                      className={`w-full bg-transparent border border-black dark:border-slate-600 rounded-full px-4 py-3 text-[var(--color-text-primary)] dark:text-white placeholder-black/40 dark:placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[var(--color-text-primary)] dark:focus:ring-white focus:border-transparent transition-all`}
                       placeholder="Enter your password"
                       required
                     />
@@ -268,10 +268,10 @@ const Auth: React.FC = () => {
                       ].map(({ label, valid }, i) => (
                         <li
                           key={i}
-                          className={`flex items-center ${valid ? "text-indigo-400" : "text-black/50 dark:text-slate-400"}`}
+                          className={`flex items-center ${valid ? "text-[var(--color-text-primary)] dark:text-white" : "text-black/50 dark:text-slate-400"}`}
                         >
                           <span
-                            className={`w-2 h-2 rounded-full mr-2 ${valid ? "bg-indigo-400" : "bg-black/20 dark:bg-slate-700"}`}
+                            className={`w-2 h-2 rounded-full mr-2 ${valid ? "bg-[var(--color-text-primary)] dark:bg-white" : "bg-black/20 dark:bg-slate-700"}`}
                           />
                           {label}
                         </li>
@@ -284,7 +284,7 @@ const Auth: React.FC = () => {
                 {!isLogin && (
                   <div>
                     <label
-                      className={`block text-sm font-medium mb-2 text-indigo-500 dark:text-indigo-400`}
+                      className={`block text-sm font-medium mb-2 text-[var(--color-text-primary)] dark:text-white`}
                     >
                       Confirm Password{" "}
                       <span className="text-red-500 align-middle">*</span>
@@ -296,7 +296,7 @@ const Auth: React.FC = () => {
                         onChange={(e) =>
                           setConfirmPassword(DOMPurify.sanitize(e.target.value))
                         }
-                        className={`w-full bg-transparent border border-black dark:border-slate-600 rounded-lg px-4 py-3 text-indigo-500 dark:text-indigo-400 placeholder-black/40 dark:placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition-all`}
+                        className={`w-full bg-transparent border border-black dark:border-slate-600 rounded-full px-4 py-3 text-[var(--color-text-primary)] dark:text-white placeholder-black/40 dark:placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[var(--color-text-primary)] dark:focus:ring-white focus:border-transparent transition-all`}
                         placeholder="Confirm your password"
                         required
                       />
@@ -325,7 +325,7 @@ const Auth: React.FC = () => {
                   </div>
                 )}
                 {success && (
-                  <div className="bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 px-4 py-3 rounded-lg text-sm">
+                  <div className="bg-[var(--color-text-primary)]/10 border border-[var(--color-text-primary)]/20 text-[var(--color-text-primary)] dark:text-white px-4 py-3 rounded-lg text-sm">
                     {success}
                   </div>
                 )}
@@ -334,7 +334,7 @@ const Auth: React.FC = () => {
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="w-full mt-2 py-3 rounded-lg text-lg font-semibold bg-indigo-500 hover:bg-indigo-400 transition-colors text-white shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="w-full mt-2 py-3 rounded-full text-lg font-semibold bg-white hover:bg-white/90 transition-colors text-black dark:text-black shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isLoading ? (
                     <span className="flex items-center justify-center">
@@ -356,7 +356,7 @@ const Auth: React.FC = () => {
             {isLogin && (
               <Link
                 to="/forgot-password"
-                className={`text-sm transition-colors text-indigo-500 dark:text-indigo-400 hover:text-indigo-600 dark:hover:text-indigo-300`}
+                className={`text-sm transition-colors text-[var(--color-text-primary)] dark:text-white hover:text-[var(--color-text-primary)]/80 dark:hover:text-white/80`}
               >
                 Forgot password?
               </Link>

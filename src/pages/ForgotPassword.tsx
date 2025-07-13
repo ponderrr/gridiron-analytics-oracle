@@ -50,28 +50,14 @@ const ForgotPassword: React.FC = () => {
   /* ---------- render ---------- */
   return (
     <Layout>
-      <div className="min-h-screen flex items-center justify-center px-2 pt-8 sm:pt-16 pb-4 sm:px-4">
-        <div
-          className={`w-full max-w-md rounded-xl shadow-xl ${
-            effectiveTheme === "dark"
-              ? "bg-gray-800 text-white"
-              : "bg-white text-gray-900"
-          } p-6 sm:p-8`}
-        >
+      <div className="min-h-screen flex items-start justify-center px-2 pt-4 sm:pt-8 pb-4 sm:px-4">
+        <div className="mt-16 sm:mt-24 w-full max-w-md rounded-xl shadow-xl p-6 sm:p-8">
           {/* Header */}
           <div className="text-center mb-8">
-            <h2
-              className={`text-3xl font-bold mb-2 ${
-                effectiveTheme === "dark" ? "text-white" : "text-gray-900"
-              }`}
-            >
+            <h2 className="text-3xl font-bold mb-2 text-[var(--color-text-primary)]">
               Reset Password
             </h2>
-            <p
-              className={`${
-                effectiveTheme === "dark" ? "text-gray-400" : "text-gray-600"
-              }`}
-            >
+            <p className="text-[var(--color-text-secondary)]">
               Enter your email to receive reset instructions
             </p>
           </div>
@@ -85,7 +71,7 @@ const ForgotPassword: React.FC = () => {
               </div>
             )}
             {message && (
-              <div className="bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 px-4 py-3 rounded-lg text-sm">
+              <div className="bg-[var(--color-text-primary)]/10 border border-[var(--color-text-primary)]/20 text-[var(--color-text-primary)] px-4 py-3 rounded-lg text-sm">
                 {message}
               </div>
             )}
@@ -94,28 +80,20 @@ const ForgotPassword: React.FC = () => {
             <div>
               <label
                 htmlFor="email-input"
-                className={`block text-sm font-medium mb-2 ${
-                  effectiveTheme === "dark" ? "text-white" : "text-gray-900"
-                }`}
+                className="block text-sm font-medium mb-2 text-[var(--color-text-primary)]"
               >
                 Email <span className="text-red-500 align-middle">*</span>
               </label>
               <div className="relative">
                 <Mail
-                  className={`absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 ${
-                    effectiveTheme === "dark"
-                      ? "text-gray-400"
-                      : "text-gray-600"
-                  }`}
+                  className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-[var(--color-text-secondary)]"
                 />
                 <input
                   id="email-input"
                   type="email"
                   value={email}
                   onChange={(e) => handleEmailChange(e.target.value)}
-                  className={`w-full pl-10 pr-4 py-3 bg-transparent border border-black dark:border-slate-600 rounded-lg ${
-                    effectiveTheme === "dark" ? "text-white" : "text-gray-900"
-                  } placeholder-black/40 dark:placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-400 focus:border-transparent transition-all`}
+                  className="w-full pl-10 pr-4 py-3 bg-transparent border border-black dark:border-slate-600 rounded-full text-[var(--color-text-primary)] placeholder-black/40 dark:placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[var(--color-text-primary)] focus:border-transparent transition-all"
                   placeholder="Enter your email"
                   required
                 />
@@ -133,7 +111,7 @@ const ForgotPassword: React.FC = () => {
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full mt-2 py-3 rounded-lg text-lg font-semibold bg-indigo-500 hover:bg-indigo-400 transition-colors text-white shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full mt-2 py-3 rounded-full text-lg font-semibold bg-white hover:bg-white/90 transition-colors text-black dark:text-black shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? (
                 <span className="flex items-center justify-center">
@@ -150,16 +128,10 @@ const ForgotPassword: React.FC = () => {
           <div className="mt-6 text-center">
             <Link
               to="/login"
-              className={`inline-flex items-center text-sm transition-colors ${
-                effectiveTheme === "dark" ? "text-white" : "text-gray-900"
-              } hover:${
-                effectiveTheme === "dark" ? "text-white" : "text-gray-900"
-              }`}
+              className="group inline-flex items-center text-sm transition-colors text-[var(--color-text-primary)] hover:text-[var(--color-text-primary)]/80"
             >
               <span
-                className={`transition-transform duration-200 mr-1 ${
-                  effectiveTheme === "dark" ? "text-white" : "text-gray-900"
-                } group-hover:-translate-x-1`}
+                className="transition-transform duration-200 mr-1 group-hover:-translate-x-1"
                 style={{ display: "inline-flex", alignItems: "center" }}
               >
                 <ArrowLeft className="h-4 w-4" />

@@ -70,7 +70,7 @@ export function RankingsHeader() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
-          <h1 className="text-3xl font-bold text-white">Player Rankings</h1>
+          <h1 className="text-3xl font-bold text-[var(--color-text-primary)]">Player Rankings</h1>
           {state.currentSet && (
             <Badge variant="outline" className="text-sm">
               {state.currentSet.format === "dynasty" ? "Dynasty" : "Redraft"}
@@ -132,7 +132,7 @@ export function RankingsHeader() {
 
       {/* Create New button positioned above table header */}
       <div className="flex justify-start">
-        <Button onClick={handleCreateNew} disabled={state.loading} size="sm">
+        <Button onClick={handleCreateNew} disabled={state.loading} size="sm" className="rounded-full px-6 font-semibold">
           <Plus className="h-4 w-4 mr-2" />
           Create New
         </Button>
