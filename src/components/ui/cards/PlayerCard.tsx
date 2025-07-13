@@ -172,12 +172,15 @@ const PlayerDisplay: React.FC<{
         <h4 className={`font-medium ${themeClasses.TEXT_PRIMARY} truncate`}>
           {player.name}
         </h4>
-        <Badge
-          variant="outline"
-          className={getPositionColor(player.position, themeClasses)}
-        >
-          {player.position}
-        </Badge>
+        {/* Do not render position badge for K, DEF, or D/ST */}
+        {!(player.position === "K" || player.position === "DEF" || player.position === "D/ST") && (
+          <Badge
+            variant="outline"
+            className={getPositionColor(player.position, themeClasses)}
+          >
+            {player.position}
+          </Badge>
+        )}
         <Badge
           variant="outline"
           className={`text-xs ${themeClasses.TEXT_MUTED}`}

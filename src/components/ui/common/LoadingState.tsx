@@ -1,5 +1,6 @@
 import React from "react";
 import { cn } from "@/lib/utils";
+import { Search } from "lucide-react";
 
 // Types for loading variants
 export type LoadingStateType = "spinner" | "skeleton" | "page";
@@ -95,6 +96,16 @@ export const LoadingState: React.FC<LoadingStateProps> = ({
   }
 
   // Default: spinner (inline/block)
+  if (type === "spinner" && message === "No items found matching your current filters.") {
+    return (
+      <div className={cn("flex flex-col items-center justify-center", className)}>
+        <Search className={cn("animate-spin text-slate-400", spinnerSizes[size])} />
+        {message && (
+          <span className="mt-3 text-slate-400 text-sm">{message}</span>
+        )}
+      </div>
+    );
+  }
   return (
     <div className={cn("flex items-center", className)}>
       <div

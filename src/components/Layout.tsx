@@ -1,10 +1,23 @@
-import React, { useState } from "react";
+import React from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import AppSidebar from "@/components/AppSidebar";
 import ErrorBoundary from "./ErrorBoundary";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import ThemeToggle from "@/components/ui/ThemeToggle";
+import useLocalStorage from "@/hooks/useLocalStorage";
+import { User, LogOut } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { cn } from "@/lib/utils";
+import FloatingNav from "./FloatingNav";
+import { Button } from "@/components/ui/button";
+import { useTheme } from "@/contexts/ThemeContext";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -42,12 +55,78 @@ SidebarSkeleton.displayName = "SidebarSkeleton";
 const SIDEBAR_WIDTH = "16rem"; // 256px
 const SIDEBAR_COLLAPSED_WIDTH = "4rem"; // 64px
 
+const TopRightActions: React.FC = () => {
+  const { user, logout } = useAuth();
+  const userDisplayName = user?.email ? user.email.split("@")[0] : "User";
+  const userEmail = user?.email || "";
+  const { effectiveTheme } = useTheme();
+
+  // Match nav pill style
+  const pillBg = "bg-transparent";
+  const pillText = effectiveTheme === "dark" ? "text-zinc-200" : "text-gray-700";
+  const pillOutline = effectiveTheme === "dark"
+    ? "outline outline-2 outline-white outline-offset-0"
+    : "outline outline-2 outline-black outline-offset-0";
+  const pillFocus = "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--color-bg-primary)]";
+
+  return (
+    <div className="fixed top-6 right-8 z-50 flex items-center gap-3">
+      {/* Theme Toggle as pill */}
+      <ThemeToggle
+        variant="button"
+        size="sm"
+        className={cn(
+          "rounded-full px-5 py-3",
+          pillBg,
+          pillText,
+          pillOutline,
+          pillFocus,
+          "transition-transform duration-200 hover:scale-105 active:scale-95"
+        )}
+      />
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button
+            variant="ghost"
+            size="sm"
+            className={cn(
+              "flex items-center gap-2 rounded-full px-5 py-3 font-medium",
+              pillBg,
+              pillText,
+              pillOutline,
+              pillFocus,
+              "transition-transform duration-200 hover:scale-105 active:scale-95"
+            )}
+          >
+            <User className="h-4 w-4" />
+            <span className={cn("text-sm font-medium", pillText)}>{userDisplayName}</span>
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-56 border shadow bg-white dark:bg-zinc-900 rounded-xl mt-2">
+          <div className="px-3 py-2 text-sm text-gray-500 dark:text-zinc-300">{userEmail}</div>
+          <DropdownMenuSeparator className="bg-gray-100 dark:bg-zinc-700" />
+          <DropdownMenuItem asChild>
+            <a href="/profile" className="cursor-pointer text-gray-700 dark:text-zinc-200 hover:text-blue-600 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-zinc-800 rounded transition-all">Profile</a>
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <a href="/settings" className="cursor-pointer text-gray-700 dark:text-zinc-200 hover:text-blue-600 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-zinc-800 rounded transition-all">Settings</a>
+          </DropdownMenuItem>
+          <DropdownMenuSeparator className="bg-gray-100 dark:bg-zinc-700" />
+          <DropdownMenuItem onClick={logout} className="cursor-pointer text-gray-700 dark:text-zinc-200 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-zinc-800 rounded transition-all">
+            <LogOut className="h-4 w-4 mr-2" />Logout
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
+  );
+};
+
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   const { user, isLoading, authError } = useAuth();
   // Removed unused: const { effectiveTheme } = useTheme();
 
-  // Sidebar collapse state is now managed here
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  // Persist sidebar collapse state in localStorage
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useLocalStorage("sidebar-collapsed", false);
 
   // Error state for auth failures
   if (authError) {
@@ -94,35 +173,18 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     return (
       <ErrorBoundary>
         <div className={`min-h-screen bg-[var(--color-bg-primary)]`}>
-          <AppSidebar
-            isCollapsed={isSidebarCollapsed}
-            setIsCollapsed={setIsSidebarCollapsed}
-          />
-
-          {/* Main content area with margin to account for fixed/collapsed sidebar */}
-          <div
-            className="min-h-screen flex flex-col transition-all duration-300"
-            style={{
-              marginLeft: isSidebarCollapsed
-                ? SIDEBAR_COLLAPSED_WIDTH
-                : SIDEBAR_WIDTH,
-              width: `calc(100% - ${isSidebarCollapsed ? SIDEBAR_COLLAPSED_WIDTH : SIDEBAR_WIDTH})`,
-              maxWidth: "100%",
-            }}
-          >
+          {/* Floating vertical nav */}
+          <FloatingNav />
+          {/* Main content area uses full width */}
+          <div className="min-h-screen flex flex-col transition-all duration-300 w-full">
+            {/* Floating top right actions */}
+            <TopRightActions />
             {/* Main Content - this will scroll independently */}
-            <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto w-full">
-              {children}
-            </main>
-
-            {/* Site-wide Footer */}
-            <footer
-              className={`bg-[var(--color-bg-secondary)] border-t border-[var(--color-border)] py-4 px-4 sm:px-6 lg:px-8`}
-            >
+            <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto w-full">{children}</main>
+            {/* Site-wide Footer - seamless, no border, matches background */}
+            <footer className="bg-[var(--color-bg-primary)] py-6 w-full">
               <div className="text-center">
-                <p className={`text-[var(--color-text-tertiary)] text-sm`}>
-                  © 2025 FF Meta — All rights reserved.
-                </p>
+                <p className="text-[var(--color-text-tertiary)] text-sm">© 2025 FF Meta — All rights reserved.</p>
               </div>
             </footer>
           </div>
