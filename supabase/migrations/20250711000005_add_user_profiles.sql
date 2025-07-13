@@ -6,6 +6,7 @@ CREATE TABLE IF NOT EXISTS user_profiles (
   display_name TEXT,
   bio TEXT,
   avatar_url TEXT,
+  favorite_team TEXT,
   preferences JSONB DEFAULT '{"theme": "system", "notifications": true}'::jsonb,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()

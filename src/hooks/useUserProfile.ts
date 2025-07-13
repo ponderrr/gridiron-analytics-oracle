@@ -132,17 +132,31 @@ export const useUserProfile = (): UseUserProfileReturn => {
       setError(null);
 
       try {
-        // In a real implementation, you would update the user_profiles table
-        // For now, we'll just update the local state to demonstrate the functionality
-        const updatedProfile = { ...profile, ...updates };
-        
-        // Simulate API delay in development
-        if (import.meta.env.DEV) {
-          await new Promise(resolve => setTimeout(resolve, 1000));
+        // Handle avatar upload if there's a new avatar
+        let avatarUrl = updates.avatarUrl;
+        if (updates.avatarUrl && updates.avatarUrl !== profile.avatarUrl && updates.avatarUrl.startsWith('data:')) {
+          // This is a base64 image that needs to be uploaded
+          const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/profile-management/avatar`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+            },
+            body: JSON.stringify({
+              file: updates.avatarUrl.split(',')[1], // Remove data:image/...;base64, prefix
+              fileName: `avatar-${Date.now()}.jpg`,
+              contentType: 'image/jpeg',
+            }),
+          });
+
+          if (!response.ok) {
+            throw new Error('Failed to upload avatar');
+          }
+
+          const result = await response.json();
+          avatarUrl = result.avatarUrl;
         }
-        
-        setProfile(updatedProfile);
-        
+
         // Update the user_profiles table
         const { error } = await supabase
           .from('user_profiles')
@@ -150,12 +164,21 @@ export const useUserProfile = (): UseUserProfileReturn => {
             user_id: user.id,
             display_name: updates.displayName,
             bio: updates.bio,
-            avatar_url: updates.avatarUrl,
+            avatar_url: avatarUrl,
             favorite_team: updates.favoriteTeam,
+            username: updates.username,
           })
           .eq('user_id', user.id);
         
         if (error) throw error;
+
+        // Update local state
+        const updatedProfile = { 
+          ...profile, 
+          ...updates,
+          avatarUrl: avatarUrl || updates.avatarUrl || null
+        };
+        setProfile(updatedProfile);
       } catch (error) {
         const appError = createAppError(
           extractErrorMessage(error),
