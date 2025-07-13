@@ -128,7 +128,7 @@ const ForgotPassword: React.FC = () => {
           <div className="mt-6 text-center">
             <Link
               to="/login"
-              className="inline-flex items-center text-sm transition-colors text-[var(--color-text-primary)] hover:text-[var(--color-text-primary)]/80"
+              className="group inline-flex items-center text-sm transition-colors text-[var(--color-text-primary)] hover:text-[var(--color-text-primary)]/80"
             >
               <span
                 className="transition-transform duration-200 mr-1 group-hover:-translate-x-1"

@@ -1,27 +1,10 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import {
-  Settings as SettingsIcon,
-  User,
-  Shield,
-  Save,
-  Lock,
-  Eye,
-  EyeOff,
-  Key
-} from "lucide-react";
 import Layout from "@/components/Layout";
 import { useAuth } from "@/contexts/AuthContext";
-import { useTheme } from "@/contexts/ThemeContext";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 
 const formatDate = (dateString: string) => {
@@ -41,8 +24,6 @@ const Settings: React.FC = () => {
   const [activeTab, setActiveTab] = useState("profile");
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [showNewPassword, setShowNewPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   
   // Profile form
   const [profileForm, setProfileForm] = useState({
@@ -250,7 +231,7 @@ const Settings: React.FC = () => {
                       </Label>
                       <Input
                         id="newPassword"
-                        type={showNewPassword ? "text" : "password"}
+                        type="password"
                         value={passwordForm.newPassword}
                         onChange={(e) => setPasswordForm(prev => ({ ...prev, newPassword: e.target.value }))}
                         placeholder="Enter new password"
@@ -263,7 +244,7 @@ const Settings: React.FC = () => {
                       </Label>
                       <Input
                         id="confirmPassword"
-                        type={showConfirmPassword ? "text" : "password"}
+                        type="password"
                         value={passwordForm.confirmPassword}
                         onChange={(e) => setPasswordForm(prev => ({ ...prev, confirmPassword: e.target.value }))}
                         placeholder="Confirm new password"

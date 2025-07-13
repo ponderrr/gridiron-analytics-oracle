@@ -1,23 +1,16 @@
 import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
-  User, 
   Settings, 
   Edit
 } from "lucide-react";
 import Layout from "@/components/Layout";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/contexts/AuthContext";
-
-// Mock user profile data - replace with real data from auth context
-const mockUserProfile = {
-  username: "FantasyGuru2024",
-  email: "user@example.com",
-  memberSince: "2023-01-15",
-  bio: "Fantasy football enthusiast with a passion for data-driven decisions and dynasty leagues."
-};
+import { useUserProfile } from "@/hooks/useUserProfile";
+import LoadingSpinner from "@/components/LoadingSpinner";
 
 const formatDate = (dateString: string) => {
   return new Date(dateString).toLocaleDateString('en-US', {
@@ -29,9 +22,35 @@ const formatDate = (dateString: string) => {
 
 const ProfileContent: React.FC = () => {
   const { user } = useAuth();
+  const { profile, isLoading, error } = useUserProfile();
 
-  // Get username from auth context or use mock data
-  const username = user?.email?.split('@')[0] || mockUserProfile.username;
+  // Show loading state while profile is being fetched
+  if (isLoading) {
+    return (
+      <Layout>
+        <div className="min-h-screen flex flex-col items-center justify-center bg-background px-4 py-10">
+          <LoadingSpinner size="lg" />
+          <p className="text-muted-foreground mt-4">Loading profile...</p>
+        </div>
+      </Layout>
+    );
+  }
+
+  // Show error state if profile failed to load
+  if (error || !profile) {
+    return (
+      <Layout>
+        <div className="min-h-screen flex flex-col items-center justify-center bg-background px-4 py-10">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold text-red-600 mb-2">Profile Error</h1>
+            <p className="text-muted-foreground">
+              {error?.message || "Failed to load profile data"}
+            </p>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>
@@ -55,21 +74,21 @@ const ProfileContent: React.FC = () => {
               <CardHeader className="text-center pb-6">
                 <div className="flex flex-col items-center space-y-4">
                   <Avatar className="w-24 h-24 border-4 border-[var(--color-border-primary)] shadow-lg">
-                    <AvatarImage src="" alt={username} />
+                    <AvatarImage src={profile.avatarUrl || undefined} />
                     <AvatarFallback className="text-3xl font-bold bg-gradient-to-br from-primary to-secondary text-white">
-                      {username.charAt(0).toUpperCase()}
+                      {profile.username.charAt(0).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
                   <div>
                     <CardTitle className="text-2xl font-bold text-[var(--color-text-primary)]">
-                      {username}
+                      {profile.displayName || profile.username}
                     </CardTitle>
                     <p className="text-[var(--color-text-secondary)] mt-1">
-                      Member since {formatDate(mockUserProfile.memberSince)}
+                      Member since {formatDate(profile.memberSince)}
                     </p>
-                    {mockUserProfile.bio && (
+                    {profile.bio && (
                       <p className="text-[var(--color-text-secondary)] mt-2 max-w-2xl">
-                        {mockUserProfile.bio}
+                        {profile.bio}
                       </p>
                     )}
                   </div>
@@ -78,7 +97,7 @@ const ProfileContent: React.FC = () => {
                       <Edit className="h-4 w-4 mr-2" />
                       Edit Profile
                     </Button>
-                    <Button variant="outline" size="sm" className="rounded-full">
+                    <Button variant="outline" size="sm" className="rounded-full" aria-label="Settings">
                       <Settings className="h-4 w-4" />
                     </Button>
                   </div>

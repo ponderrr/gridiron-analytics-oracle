@@ -68,6 +68,9 @@ export default {
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
       },
+      transformOrigin: {
+        center: "center",
+      },
       keyframes: {
         "accordion-down": {
           from: {

@@ -461,10 +461,7 @@ const FantasyPointsTest: React.FC = () => {
                 </div>
               </CardContent>
             </Card>
-
-                
-              </div>
-            </div>
+          </div>
 
         {/* Fantasy Points Result Modal */}
         <FantasyPointsResultModal
@@ -473,6 +470,7 @@ const FantasyPointsTest: React.FC = () => {
           result={result}
           scoringFormat={scoringFormat}
         />
+        </div>
       </div>
     </Layout>
   );
