@@ -2,7 +2,6 @@ import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
-import SidebarFooter from "@/components/SidebarFooter";
 import { SIDEBAR_SECTIONS_CONFIG } from "@/components/layout/SidebarLinks";
 import { useTheme } from "@/contexts/ThemeContext";
 
@@ -111,7 +110,7 @@ const AppSidebar: React.FC<AppSidebarProps> = ({
           })}
         </ul>
         {/* Footer Section - always pinned to bottom */}
-        <SidebarFooter isCollapsed={isCollapsed} />
+        <div className="py-4" />
       </nav>
     </>
   );

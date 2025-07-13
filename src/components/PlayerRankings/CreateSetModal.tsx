@@ -176,14 +176,14 @@ export const CreateSetModal = forwardRef<CreateSetModalRef>((_, ref) => {
               type="button"
               variant="outline"
               onClick={closeModal}
-              className="flex-1"
+              className="flex-1 rounded-full border-2 bg-transparent px-6 font-semibold transition-all duration-200 outline-none focus-visible:ring-0 focus-visible:outline-none dark:border-white border-black text-black dark:text-white"
             >
               Cancel
             </Button>
             <Button
               type="submit"
               disabled={!form.name.trim() || loading}
-              className="flex-1"
+              className="flex-1 rounded-full border-2 bg-transparent px-6 font-semibold transition-all duration-200 outline-none focus-visible:ring-0 focus-visible:outline-none dark:border-white border-black text-black dark:text-white"
             >
               {loading ? "Creating..." : "Create Set"}
             </Button>

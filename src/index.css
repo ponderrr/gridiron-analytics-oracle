@@ -177,14 +177,24 @@ image.png  /* Consistent spacing utilities */
     border-radius: var(--radius-full);
   }
 
-  ::-webkit-scrollbar-thumb {
-    background: var(--color-border-secondary);
+  /* Light mode: black scrollbar */
+  html ::-webkit-scrollbar-thumb {
+    background: #111;
     border-radius: var(--radius-full);
     transition: background 0.2s ease;
   }
+  html ::-webkit-scrollbar-thumb:hover {
+    background: #333;
+  }
 
-  ::-webkit-scrollbar-thumb:hover {
-    background: var(--color-text-muted);
+  /* Dark mode: white scrollbar */
+  html.dark ::-webkit-scrollbar-thumb {
+    background: #fff;
+    border-radius: var(--radius-full);
+    transition: background 0.2s ease;
+  }
+  html.dark ::-webkit-scrollbar-thumb:hover {
+    background: #e5e5e5;
   }
 
   /* Loading states */

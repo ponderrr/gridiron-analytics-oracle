@@ -166,7 +166,7 @@ export function RankedPlayersList() {
   return (
     <div className="h-full flex flex-col">
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-bold text-white">My Rankings</h2>
+        <h2 className="text-xl font-bold text-[var(--color-text-primary)]">My Rankings</h2>
 
         <div className="flex items-center gap-2">
           <Select value={positionFilter} onValueChange={setPositionFilter}>

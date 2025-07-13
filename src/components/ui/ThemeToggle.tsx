@@ -39,9 +39,9 @@ export const ThemeToggle: React.FC<ThemeToggleProps> = ({
       return <Monitor className={cn(getIconSize(), "text-indigo-400")} />;
     }
     return effectiveTheme === "dark" ? (
-      <Moon className={cn(getIconSize(), "text-purple-400")} />
+      <Moon className={cn(getIconSize(), "text-white")} />
     ) : (
-      <Sun className={cn(getIconSize(), "text-yellow-500")} />
+      <Sun className={cn(getIconSize(), "text-black")} />
     );
   };
 
@@ -57,23 +57,14 @@ export const ThemeToggle: React.FC<ThemeToggleProps> = ({
         size={size}
         onClick={toggleTheme}
         className={cn(
-          "relative overflow-hidden transition-all duration-300 hover:shadow-lg",
+          "relative overflow-hidden transition-all duration-300 hover:shadow-lg hover:scale-105 hover:-rotate-1",
           effectiveTheme === "dark"
-            ? "bg-slate-800/50 border-slate-700/50 text-slate-300 hover:bg-slate-700/50 hover:text-white"
-            : "bg-white/50 border-slate-200/50 text-slate-600 hover:bg-slate-100/50 hover:text-slate-900",
+            ? "bg-transparent border-slate-700/30 text-slate-300 hover:bg-slate-700/20 hover:text-white"
+            : "bg-transparent border-slate-200/30 text-slate-600 hover:bg-slate-100/20 hover:text-slate-900",
           className
         )}
         aria-label={`Switch to ${effectiveTheme === "dark" ? "light" : "dark"} mode`}
       >
-        {/* Hover gradient effect */}
-        <div
-          className={cn(
-            "absolute inset-0 opacity-0 hover:opacity-100 transition-opacity duration-300",
-            effectiveTheme === "dark"
-              ? "bg-gradient-to-r from-slate-700/60 to-slate-600/60"
-              : "bg-gradient-to-r from-slate-100/80 to-slate-50/80"
-          )}
-        />
         <div className="relative z-10">{getCurrentIcon()}</div>
         <span className="sr-only">Toggle theme</span>
       </Button>
@@ -85,23 +76,14 @@ export const ThemeToggle: React.FC<ThemeToggleProps> = ({
       <button
         onClick={toggleTheme}
         className={cn(
-          "p-2 rounded-lg transition-all duration-300 relative overflow-hidden group hover:shadow-md",
+          "p-2 rounded-lg transition-all duration-300 relative overflow-hidden group hover:shadow-md hover:scale-105 hover:-rotate-1",
           effectiveTheme === "dark"
-            ? "bg-slate-700/50 hover:bg-slate-600/50 text-slate-300 hover:text-white"
-            : "bg-slate-100/50 hover:bg-slate-200/50 text-slate-600 hover:text-slate-900",
+            ? "bg-transparent hover:bg-slate-600/20 text-slate-300 hover:text-white"
+            : "bg-transparent hover:bg-slate-200/20 text-slate-600 hover:text-slate-900",
           className
         )}
         aria-label={`Switch to ${effectiveTheme === "dark" ? "light" : "dark"} mode`}
       >
-        {/* Hover gradient effect */}
-        <div
-          className={cn(
-            "absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300",
-            effectiveTheme === "dark"
-              ? "bg-gradient-to-br from-slate-600/60 to-slate-500/60"
-              : "bg-gradient-to-br from-slate-200/80 to-slate-100/80"
-          )}
-        />
         <div className="relative z-10">{getCurrentIcon()}</div>
         <span className="sr-only">Toggle theme</span>
       </button>
@@ -116,23 +98,14 @@ export const ThemeToggle: React.FC<ThemeToggleProps> = ({
           variant="outline"
           size={size}
           className={cn(
-            "relative overflow-hidden transition-all duration-300 hover:shadow-lg",
+            "relative overflow-hidden transition-all duration-300 hover:shadow-lg hover:scale-105 hover:-rotate-1",
             effectiveTheme === "dark"
-              ? "bg-slate-800/50 border-slate-700/50 text-slate-300 hover:bg-slate-700/50 hover:text-white"
-              : "bg-white/50 border-slate-200/50 text-slate-600 hover:bg-slate-100/50 hover:text-slate-900",
+              ? "bg-transparent border-slate-700/30 text-slate-300 hover:bg-slate-700/20 hover:text-white"
+              : "bg-transparent border-slate-200/30 text-slate-600 hover:bg-slate-100/20 hover:text-slate-900",
             className
           )}
           aria-label="Toggle theme"
         >
-          {/* Hover gradient effect */}
-          <div
-            className={cn(
-              "absolute inset-0 opacity-0 hover:opacity-100 transition-opacity duration-300",
-              effectiveTheme === "dark"
-                ? "bg-gradient-to-r from-slate-700/60 to-slate-600/60"
-                : "bg-gradient-to-r from-slate-100/80 to-slate-50/80"
-            )}
-          />
           <div className="relative z-10">{getCurrentIcon()}</div>
           <span className="sr-only">Toggle theme</span>
         </Button>

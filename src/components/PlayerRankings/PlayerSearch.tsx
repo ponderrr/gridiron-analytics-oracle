@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Search } from "lucide-react";
 import { usePlayerFilters } from "@/hooks/usePlayerFilters";
 import { positions, teams } from "@/constants/playerData";
+import { useState } from "react";
 
 export function PlayerSearch() {
   const {
@@ -22,19 +23,27 @@ export function PlayerSearch() {
     rawSearchTerm,
   } = usePlayerFilters();
 
+  const [isFocused, setIsFocused] = useState(false);
+
   return (
     <div className="space-y-4 p-4 bg-slate-800/50 rounded-lg border border-slate-700/50">
-      <h3 className="text-lg font-semibold text-white">Search & Filters</h3>
+      <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">Search & Filters</h3>
 
       <div className="space-y-3">
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400" />
-          <Input
-            placeholder="Search players..."
-            value={rawSearchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
-          />
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400 z-10" />
+          <div className={`transition-all duration-300 ${
+            isFocused ? "w-80" : "w-64"
+          }`}>
+            <Input
+              placeholder="Search players..."
+              value={rawSearchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              onFocus={() => setIsFocused(true)}
+              onBlur={() => setIsFocused(false)}
+              className="pl-10 !rounded-full !w-full"
+            />
+          </div>
         </div>
 
         <div className="grid grid-cols-2 gap-3">

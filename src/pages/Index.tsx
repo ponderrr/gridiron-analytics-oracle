@@ -2,13 +2,11 @@ import React, { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Users, BarChart3, ArrowLeftRight } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
-import { useTheme } from "@/contexts/ThemeContext";
 import Layout from "@/components/Layout";
 import { motion } from "framer-motion";
 
 const Index: React.FC = () => {
   const { user } = useAuth();
-  const { effectiveTheme } = useTheme();
   const navigate = useNavigate();
 
   // Redirect authenticated users to dashboard

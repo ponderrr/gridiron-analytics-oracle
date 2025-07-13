@@ -82,7 +82,7 @@ export function AvailablePlayersList() {
   return (
     <div className="h-full flex flex-col">
       <div className="mb-4">
-        <h2 className="text-xl font-bold text-white mb-4 flex items-center">
+        <h2 className="text-xl font-bold text-[var(--color-text-primary)] mb-4 flex items-center">
           <Calendar className="mr-2 h-5 w-5" />
           Available Items
         </h2>
