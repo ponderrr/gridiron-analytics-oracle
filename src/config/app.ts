@@ -7,7 +7,6 @@ export interface AppConfig {
   FEATURE_FLAGS: {
     enableTradeAnalyzer: boolean;
     enableAdmin: boolean;
-    enableFantasyPointsTest: boolean;
     enableLeagueManagement: boolean;
   };
   UI: {
@@ -38,7 +37,6 @@ export const appConfig: AppConfig = {
   FEATURE_FLAGS: {
     enableTradeAnalyzer: true,
     enableAdmin: true,
-    enableFantasyPointsTest: true,
     enableLeagueManagement: false, 
   },
   UI: {
