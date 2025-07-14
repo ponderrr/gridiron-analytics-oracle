@@ -157,7 +157,6 @@ export default function MappingAnalytics() {
     );
   }
 
-  // If no analytics data is available, show error
   if (!analytics) {
     return (
       <div className="p-6 space-y-4">

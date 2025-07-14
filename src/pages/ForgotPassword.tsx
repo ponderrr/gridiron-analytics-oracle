@@ -4,7 +4,6 @@ import { Mail, ArrowLeft } from "lucide-react";
 import Layout from "@/components/Layout";
 import LoadingSpinner from "../components/LoadingSpinner";
 import { useAuth } from "@/contexts/AuthContext";
-import { useTheme } from "@/contexts/ThemeContext";
 import { validateEmail, validateEmailDetailed } from "@/lib/validation";
 import { useFormError } from "@/hooks/useFormError";
 
@@ -16,7 +15,6 @@ const ForgotPassword: React.FC = () => {
   const [emailFeedback, setEmailFeedback] = useState<string[]>([]);
 
   const { resetPassword } = useAuth();
-  const { effectiveTheme } = useTheme();
 
   /* ---------- handlers ---------- */
   const handleSubmit = async (e: React.FormEvent) => {
@@ -85,9 +83,7 @@ const ForgotPassword: React.FC = () => {
                 Email <span className="text-red-500 align-middle">*</span>
               </label>
               <div className="relative">
-                <Mail
-                  className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-[var(--color-text-secondary)]"
-                />
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-[var(--color-text-secondary)]" />
                 <input
                   id="email-input"
                   type="email"

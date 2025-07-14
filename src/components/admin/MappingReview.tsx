@@ -88,7 +88,6 @@ export default function MappingReview() {
       }
 
       if (data?.success) {
-        // Remove from list
         setUnmappedPlayers((prev) =>
           prev.filter((p) => p.player_id !== nflverseId)
         );

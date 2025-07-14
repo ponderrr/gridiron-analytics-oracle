@@ -71,23 +71,66 @@ export class RateLimiter {
   }
 }
 
+// --- Circuit Breaker for API Reliability ---
+export class CircuitBreaker {
+  private failures = 0;
+  private lastFailureTime = 0;
+  private state: "CLOSED" | "OPEN" | "HALF_OPEN" = "CLOSED";
+
+  constructor(
+    private maxFailures = 3,
+    private resetTimeout = 30000 // 30 seconds
+  ) {}
+
+  async execute<T>(operation: () => Promise<T>): Promise<T> {
+    if (this.state === "OPEN") {
+      if (Date.now() - this.lastFailureTime > this.resetTimeout) {
+        this.state = "HALF_OPEN";
+      } else {
+        throw new Error("Circuit breaker is OPEN - too many failures");
+      }
+    }
+    try {
+      const result = await operation();
+      this.onSuccess();
+      return result;
+    } catch (error) {
+      this.onFailure();
+      throw error;
+    }
+  }
+
+  private onSuccess(): void {
+    this.failures = 0;
+    this.state = "CLOSED";
+  }
+
+  private onFailure(): void {
+    this.failures++;
+    this.lastFailureTime = Date.now();
+    if (this.failures >= this.maxFailures) {
+      this.state = "OPEN";
+    }
+  }
+}
+
 // Sleeper API client with rate limiting
 export class SleeperAPI {
   private rateLimiter = new RateLimiter();
+  private circuitBreaker = new CircuitBreaker(3, 30000);
   private baseUrl = "https://api.sleeper.app/v1";
 
   async request<T>(endpoint: string): Promise<T> {
     await this.rateLimiter.throttle();
-
-    const response = await fetch(`${this.baseUrl}${endpoint}`);
-
-    if (!response.ok) {
-      throw new Error(
-        `Sleeper API error: ${response.status} ${response.statusText}`
-      );
-    }
-
-    return response.json();
+    return this.circuitBreaker.execute(async () => {
+      const response = await fetch(`${this.baseUrl}${endpoint}`);
+      if (!response.ok) {
+        throw new Error(
+          `Sleeper API error: ${response.status} ${response.statusText}`
+        );
+      }
+      return response.json();
+    });
   }
 
   getMockDrafts(

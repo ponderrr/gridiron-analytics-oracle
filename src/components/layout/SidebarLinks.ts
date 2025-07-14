@@ -5,7 +5,6 @@ import {
   ArrowLeftRight,
   Settings,
   Shield,
-  Calculator,
   BarChart3,
   Target,
   Wrench,

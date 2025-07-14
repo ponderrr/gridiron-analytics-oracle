@@ -1,54 +1,6 @@
 import React from "react";
 import { motion } from "framer-motion";
-import { 
-  Trophy, 
-  Crown,
-  Star,
-  Calendar,
-  BarChart3,
-  Zap,
-  Eye,
-  Clock,
-  Award,
-  TrendingDown,
-  CheckCircle,
-  AlertTriangle,
-  Info,
-  RefreshCw,
-  ArrowRight,
-  DollarSign,
-  Flame,
-  Shield,
-  Heart,
-  Brain,
-  Target as TargetIcon,
-  BarChart,
-  PieChart,
-  LineChart,
-  ArrowUp,
-  ArrowDown,
-  Minus,
-  Plus,
-  Filter,
-  Search,
-  BookOpen,
-  Share2,
-  Download,
-  Copy,
-  Bell,
-  User,
-  Cog,
-  HelpCircle,
-  Calculator,
-  TrendingUp,
-  Users,
-  Activity
-} from "lucide-react";
 import Layout from "@/components/Layout";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Player } from "@/lib/database";
 import { cn } from "@/lib/utils";
 
@@ -184,19 +136,6 @@ const positionOutline = {
   TE: "border-purple-500 text-purple-500",
   K: "border-gray-400 text-gray-400",
   DEF: "border-gray-400 text-gray-400"
-};
-
-// Position glow color mapping (matching Rankings page)
-const getPositionGlowColor = (position: string) => {
-  switch (position) {
-    case "QB": return "0 10px 25px -3px rgba(59, 130, 246, 0.4), 0 4px 12px -2px rgba(59, 130, 246, 0.3)"; // blue
-    case "RB": return "0 10px 25px -3px rgba(239, 68, 68, 0.4), 0 4px 12px -2px rgba(239, 68, 68, 0.3)"; // red
-    case "WR": return "0 10px 25px -3px rgba(34, 197, 94, 0.4), 0 4px 12px -2px rgba(34, 197, 94, 0.3)"; // green
-    case "TE": return "0 10px 25px -3px rgba(168, 85, 247, 0.4), 0 4px 12px -2px rgba(168, 85, 247, 0.3)"; // purple
-    case "K": return "0 10px 25px -3px rgba(156, 163, 175, 0.4), 0 4px 12px -2px rgba(156, 163, 175, 0.3)"; // gray
-    case "DEF": return "0 10px 25px -3px rgba(156, 163, 175, 0.4), 0 4px 12px -2px rgba(156, 163, 175, 0.3)"; // gray
-    default: return "0 10px 25px -3px rgba(59, 130, 246, 0.4), 0 4px 12px -2px rgba(59, 130, 246, 0.3)"; // default blue
-  }
 };
 
 const DashboardContent: React.FC = () => {

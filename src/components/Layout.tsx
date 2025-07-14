@@ -1,7 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import AppSidebar from "@/components/AppSidebar";
 import ErrorBoundary from "./ErrorBoundary";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import ThemeToggle from "@/components/ui/ThemeToggle";
@@ -18,8 +17,7 @@ import { cn } from "@/lib/utils";
 import FloatingNav from "./FloatingNav";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/contexts/ThemeContext";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { useUserProfile } from "@/hooks/useUserProfile";
+import Logo from "@/components/ui/Logo";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -54,12 +52,11 @@ const SidebarSkeleton = React.memo(() => {
 
 SidebarSkeleton.displayName = "SidebarSkeleton";
 
-const SIDEBAR_WIDTH = "16rem"; // 256px
-const SIDEBAR_COLLAPSED_WIDTH = "4rem"; // 64px
 
 const TopRightActions: React.FC = () => {
-  const { logout } = useAuth();
-  const { profile, isLoading } = useUserProfile();
+  const { user, logout } = useAuth();
+  const userDisplayName = user?.email ? user.email.split("@")[0] : "User";
+  const userEmail = user?.email || "";
   const { effectiveTheme } = useTheme();
 
   // Match nav pill style
@@ -91,7 +88,7 @@ const TopRightActions: React.FC = () => {
             variant="ghost"
             size="sm"
             className={cn(
-              "flex items-center gap-1 rounded-full px-2 py-2 font-medium",
+              "flex items-center gap-2 rounded-full px-5 py-3 font-medium",
               pillBg,
               pillText,
               pillOutline,
@@ -99,22 +96,12 @@ const TopRightActions: React.FC = () => {
               "transition-transform duration-200 hover:scale-105 active:scale-95"
             )}
           >
-            {/* Avatar */}
-            <Avatar className="w-6 h-6">
-              <AvatarImage src={profile?.avatarUrl || undefined} />
-              <AvatarFallback>
-                {profile?.username?.charAt(0).toUpperCase() || "?"}
-              </AvatarFallback>
-            </Avatar>
-            {/* Username */}
-            <span className={cn("text-sm font-medium", pillText)}>
-              {profile?.username || "User"}
-            </span>
+            <User className="h-4 w-4" />
+            <span className={cn("text-sm font-medium", pillText)}>{userDisplayName}</span>
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-56 border shadow bg-white dark:bg-zinc-900 rounded-xl mt-2">
-          {/* Optionally show email or display name here if desired */}
-          {/* <div className="px-3 py-2 text-sm text-gray-500 dark:text-zinc-300">{profile?.email}</div> */}
+          <div className="px-3 py-2 text-sm text-gray-500 dark:text-zinc-300">{userEmail}</div>
           <DropdownMenuSeparator className="bg-gray-100 dark:bg-zinc-700" />
           <DropdownMenuItem asChild>
             <a href="/profile" className="cursor-pointer text-gray-700 dark:text-zinc-200 hover:text-blue-600 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-zinc-800 rounded transition-all">Profile</a>
@@ -137,7 +124,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   // Removed unused: const { effectiveTheme } = useTheme();
 
   // Persist sidebar collapse state in localStorage
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useLocalStorage("sidebar-collapsed", false);
+  const [] = useLocalStorage("sidebar-collapsed", false);
 
   // Error state for auth failures
   if (authError) {
@@ -213,19 +200,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           <div className="flex justify-between items-center h-16 backdrop-blur-md bg-transparent border-b border-b-transparent">
             {/* Logo */}
             <Link to="/" className="flex items-center space-x-3 group">
-              <div className="bg-indigo-500 p-2 rounded-lg group-hover:bg-indigo-400 transition-colors">
-                <img src="/logo.svg" alt="FF Meta Logo" className="h-6 w-6" />
-              </div>
-              <div>
-                <h1
-                  className={`text-xl font-bold text-[var(--color-text-primary)]`}
-                >
-                  FF Meta
-                </h1>
-                <p className="text-xs text-indigo-400 -mt-1">
-                  Your digital garden.
-                </p>
-              </div>
+              <Logo size="sm" className="group-hover:scale-105 transition-transform duration-200" />
             </Link>
             {/* Navigation */}
             <nav className="flex items-center space-x-4">

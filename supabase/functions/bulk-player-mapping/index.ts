@@ -5,6 +5,7 @@ import {
   FuzzyMatcher,
   type PlayerCandidate,
   type FuzzyMatchResult,
+  OptimizedFuzzyMatcher,
 } from "../_shared/fuzzy-matcher.ts";
 
 // Performance and configuration constants
@@ -34,6 +35,8 @@ interface SleeperIndexes {
 }
 
 class BulkPlayerMapper extends ETLBase {
+  private static readonly BATCH_SIZE = 100;
+
   async performBulkMapping(): Promise<ETLRun> {
     const run: ETLRun = {
       run_type: "bulk-player-mapping",
@@ -44,9 +47,8 @@ class BulkPlayerMapper extends ETLBase {
     };
 
     try {
-      console.log("Starting bulk player mapping process");
+      console.log("Starting optimized bulk player mapping process");
 
-      // Step 1: Get all players from both sources
       const [sleeperPlayers, nflversePlayers] = await Promise.all([
         this.getSleeperPlayers(),
         this.getNFLVersePlayers(),
@@ -56,17 +58,16 @@ class BulkPlayerMapper extends ETLBase {
         `Loaded ${sleeperPlayers.length} Sleeper players and ${nflversePlayers.length} nflverse players`
       );
 
-      // Step 2: Create lookup indexes for Sleeper players
-      const sleeperIndexes = this.createSleeperIndexes(sleeperPlayers);
+      // Build search index once
+      OptimizedFuzzyMatcher.buildSearchIndex(sleeperPlayers);
 
-      // Step 3: Process mappings
-      const result = await this.processMappings(
+      // Process in batches
+      const result = await this.processMappingsBatch(
         nflversePlayers,
-        sleeperIndexes
+        sleeperPlayers
       );
 
       console.log("Bulk mapping results:", result);
-
       run.records_processed = result.total_processed;
       return run;
     } catch (error) {
@@ -207,9 +208,9 @@ class BulkPlayerMapper extends ETLBase {
     return { exactMatch, lastNameIndex, initialLastIndex, allPlayers: players };
   }
 
-  private async processMappings(
+  private async processMappingsBatch(
     nflversePlayers: NFLVersePlayer[],
-    sleeperIndexes: SleeperIndexes
+    sleeperPlayers: PlayerCandidate[]
   ): Promise<MappingResult> {
     const result: MappingResult = {
       exact_matches: 0,
@@ -219,146 +220,155 @@ class BulkPlayerMapper extends ETLBase {
       total_processed: nflversePlayers.length,
     };
 
-    const mappingsToInsert: any[] = [];
-    const unmappedToInsert: any[] = [];
+    const batches = this.chunk(nflversePlayers, BulkPlayerMapper.BATCH_SIZE);
+    for (let i = 0; i < batches.length; i++) {
+      const batch = batches[i];
+      console.log(
+        `Processing batch ${i + 1}/${batches.length} (${batch.length} players)`
+      );
 
-    for (const nflversePlayer of nflversePlayers) {
-      const matchResult = await this.findMatch(nflversePlayer, sleeperIndexes);
+      const batchMappings: any[] = [];
+      const batchUnmapped: any[] = [];
 
-      if (matchResult.type === "exact") {
-        result.exact_matches++;
-        mappingsToInsert.push({
-          sleeper_id: matchResult.sleeperId,
-          nflverse_id: nflversePlayer.player_id,
-          canonical_name:
-            nflversePlayer.player_display_name || nflversePlayer.player_name,
-          confidence_score: 1.0,
-          match_method: "exact",
-          position: nflversePlayer.position,
-          team: nflversePlayer.recent_team,
-          verified: true,
-        });
-      } else if (matchResult.type === "fuzzy" && matchResult.fuzzyResult) {
-        if (matchResult.fuzzyResult.confidence === "high") {
-          result.fuzzy_matches++;
-          mappingsToInsert.push({
-            sleeper_id: matchResult.fuzzyResult.sleeperId,
-            nflverse_id: nflversePlayer.player_id,
-            canonical_name:
-              nflversePlayer.player_display_name || nflversePlayer.player_name,
-            confidence_score: matchResult.fuzzyResult.score,
-            match_method: "fuzzy",
-            position: nflversePlayer.position,
-            team: nflversePlayer.recent_team,
-            verified: false,
-            notes: `Fuzzy match: ${matchResult.fuzzyResult.candidateName}`,
-          });
-        } else {
-          result.manual_review_needed++;
-          unmappedToInsert.push({
-            source: "nflverse",
-            player_id: nflversePlayer.player_id,
-            player_name:
-              nflversePlayer.player_display_name || nflversePlayer.player_name,
-            position: nflversePlayer.position,
-            team: nflversePlayer.recent_team,
-            notes: `Low confidence fuzzy match: ${matchResult.fuzzyResult.candidateName} (${matchResult.fuzzyResult.score})`,
-          });
-        }
-      } else {
-        result.unmapped++;
-        unmappedToInsert.push({
-          source: "nflverse",
-          player_id: nflversePlayer.player_id,
-          player_name:
-            nflversePlayer.player_display_name || nflversePlayer.player_name,
-          position: nflversePlayer.position,
-          team: nflversePlayer.recent_team,
-          notes: "No match found",
-        });
-      }
-    }
+      // Process batch in parallel
+      const batchResults = await Promise.all(
+        batch.map((player) => this.findMatchOptimized(player))
+      );
 
-    // Batch insert mappings
-    if (mappingsToInsert.length > 0) {
-      console.log(`Inserting ${mappingsToInsert.length} mappings`);
-      const { error } = await this.supabase
-        .from("player_id_mapping")
-        .insert(mappingsToInsert);
+      // Collect results
+      batch.forEach((player, index) => {
+        const matchResult = batchResults[index];
+        this.processBatchResult(
+          matchResult,
+          player,
+          batchMappings,
+          batchUnmapped,
+          result
+        );
+      });
 
-      if (error) {
-        console.error("Error inserting mappings:", error);
-        throw error;
-      }
-    }
-
-    // Batch insert unmapped players
-    if (unmappedToInsert.length > 0) {
-      console.log(`Inserting ${unmappedToInsert.length} unmapped players`);
-      const { error } = await this.supabase
-        .from("unmapped_players")
-        .insert(unmappedToInsert);
-
-      if (error) {
-        console.error("Error inserting unmapped players:", error);
-        throw error;
-      }
+      // Batch database operations
+      await Promise.all([
+        this.batchInsertMappings(batchMappings),
+        this.batchInsertUnmapped(batchUnmapped),
+      ]);
     }
 
     return result;
   }
 
-  private async findMatch(
-    nflversePlayer: NFLVersePlayer,
-    sleeperIndexes: SleeperIndexes
-  ): Promise<{
+  private chunk<T>(array: T[], size: number): T[][] {
+    return Array.from({ length: Math.ceil(array.length / size) }, (_, i) =>
+      array.slice(i * size, i * size + size)
+    );
+  }
+
+  private async findMatchOptimized(nflversePlayer: NFLVersePlayer): Promise<{
     type: "exact" | "fuzzy" | "none";
     sleeperId?: string;
     fuzzyResult?: FuzzyMatchResult;
   }> {
     const name =
       nflversePlayer.player_display_name || nflversePlayer.player_name;
-    const variations = NameNormalizer.createNameVariations(name);
-
-    // Try exact match first
-    for (const variation of variations.variations) {
-      const exactMatch = sleeperIndexes.exactMatch.get(variation);
-      if (exactMatch) {
-        return { type: "exact", sleeperId: exactMatch.sleeper_id };
-      }
+    // Try optimized fuzzy matching
+    const fuzzyResult = OptimizedFuzzyMatcher.findBestMatchOptimized(
+      name,
+      true, // use position filter
+      nflversePlayer.position
+    );
+    if (fuzzyResult) {
+      return { type: "fuzzy", fuzzyResult };
     }
-
-    // Try fuzzy matching on reduced candidate set
-    const lastName = NameNormalizer.extractLastName(name);
-    const candidates = sleeperIndexes.lastNameIndex.get(lastName) || [];
-
-    if (candidates.length > 0) {
-      const fuzzyResult = FuzzyMatcher.findBestMatch(
-        name,
-        candidates,
-        true, // use position filter
-        nflversePlayer.position
-      );
-
-      if (fuzzyResult) {
-        return { type: "fuzzy", fuzzyResult };
-      }
-    }
-
-    // Last resort: try against all players (expensive)
-    if (candidates.length === 0) {
-      const allCandidates = sleeperIndexes.allPlayers.slice(
-        0,
-        MAX_FALLBACK_CANDIDATES
-      ); // Limit for performance
-      const fuzzyResult = FuzzyMatcher.findBestMatch(name, allCandidates);
-
-      if (fuzzyResult) {
-        return { type: "fuzzy", fuzzyResult };
-      }
-    }
-
     return { type: "none" };
+  }
+
+  private processBatchResult(
+    matchResult: {
+      type: "exact" | "fuzzy" | "none";
+      sleeperId?: string;
+      fuzzyResult?: FuzzyMatchResult;
+    },
+    nflversePlayer: NFLVersePlayer,
+    batchMappings: any[],
+    batchUnmapped: any[],
+    result: MappingResult
+  ) {
+    if (matchResult.type === "exact") {
+      result.exact_matches++;
+      batchMappings.push({
+        sleeper_id: matchResult.sleeperId,
+        nflverse_id: nflversePlayer.player_id,
+        canonical_name:
+          nflversePlayer.player_display_name || nflversePlayer.player_name,
+        confidence_score: 1.0,
+        match_method: "exact",
+        position: nflversePlayer.position,
+        team: nflversePlayer.recent_team,
+        verified: true,
+      });
+    } else if (matchResult.type === "fuzzy" && matchResult.fuzzyResult) {
+      if (matchResult.fuzzyResult.confidence === "high") {
+        result.fuzzy_matches++;
+        batchMappings.push({
+          sleeper_id: matchResult.fuzzyResult.sleeperId,
+          nflverse_id: nflversePlayer.player_id,
+          canonical_name:
+            nflversePlayer.player_display_name || nflversePlayer.player_name,
+          confidence_score: matchResult.fuzzyResult.score,
+          match_method: "fuzzy",
+          position: nflversePlayer.position,
+          team: nflversePlayer.recent_team,
+          verified: false,
+          notes: `Fuzzy match: ${matchResult.fuzzyResult.candidateName}`,
+        });
+      } else {
+        result.manual_review_needed++;
+        batchUnmapped.push({
+          source: "nflverse",
+          player_id: nflversePlayer.player_id,
+          player_name:
+            nflversePlayer.player_display_name || nflversePlayer.player_name,
+          position: nflversePlayer.position,
+          team: nflversePlayer.recent_team,
+          notes: `Low confidence fuzzy match: ${matchResult.fuzzyResult.candidateName} (${matchResult.fuzzyResult.score})`,
+        });
+      }
+    } else {
+      result.unmapped++;
+      batchUnmapped.push({
+        source: "nflverse",
+        player_id: nflversePlayer.player_id,
+        player_name:
+          nflversePlayer.player_display_name || nflversePlayer.player_name,
+        position: nflversePlayer.position,
+        team: nflversePlayer.recent_team,
+        notes: "No match found",
+      });
+    }
+  }
+
+  private async batchInsertMappings(mappings: any[]): Promise<void> {
+    if (mappings.length === 0) return;
+    console.log(`Inserting ${mappings.length} mappings`);
+    const { error } = await this.supabase
+      .from("player_id_mapping")
+      .insert(mappings);
+    if (error) {
+      console.error("Error inserting mappings:", error);
+      throw error;
+    }
+  }
+
+  private async batchInsertUnmapped(unmapped: any[]): Promise<void> {
+    if (unmapped.length === 0) return;
+    console.log(`Inserting ${unmapped.length} unmapped players`);
+    const { error } = await this.supabase
+      .from("unmapped_players")
+      .insert(unmapped);
+    if (error) {
+      console.error("Error inserting unmapped players:", error);
+      throw error;
+    }
   }
 }
 
