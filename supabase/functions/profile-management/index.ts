@@ -7,6 +7,7 @@ const corsHeaders = {
 }
 
 interface ProfileUpdateRequest {
+  avatarUrl: any;
   displayName?: string;
   bio?: string;
   username?: string;
@@ -93,16 +94,36 @@ async function handleProfileUpdate(req: Request, supabase: any, userId: string) 
 
   // Check if username is already taken (if username is being updated)
   if (body.username) {
-    const { data: existingUser } = await supabase
-      .from('user_profiles')
-      .select('user_id')
-      .eq('username', body.username)
-      .neq('user_id', userId)
-      .single()
+    let finalUsername = body.username;
+    let attempts = 0;
+    const maxAttempts = 10;
 
-    if (existingUser) {
-      throw new Error('Username is already taken')
+    while (attempts < maxAttempts) {
+      const { data: existingUsers, error: checkError } = await supabase
+        .from('user_profiles')
+        .select('user_id, username')
+        .eq('username', finalUsername)
+        .neq('user_id', userId)
+
+      if (checkError) {
+        console.error('Error checking username:', checkError)
+        throw new Error('Failed to check username availability')
+      }
+
+      if (existingUsers && existingUsers.length > 0) {
+        attempts++;
+        finalUsername = `${body.username}${attempts}`;
+      } else {
+        break;
+      }
     }
+
+    if (attempts >= maxAttempts) {
+      throw new Error(`Username "${body.username}" and variations are already taken. Please choose a different username.`)
+    }
+
+    // Use the final username (with suffix if needed)
+    body.username = finalUsername;
   }
 
   // Update profile
@@ -113,17 +134,25 @@ async function handleProfileUpdate(req: Request, supabase: any, userId: string) 
   if (body.favoriteTeam !== undefined) updateData.favorite_team = body.favoriteTeam
   if (body.preferences) updateData.preferences = body.preferences
 
+  console.log('Updating profile for user_id:', userId, body);
   const { data, error } = await supabase
     .from('user_profiles')
     .upsert({
-      user_id: userId,
-      ...updateData
-    })
+      user_id: userId, // This must be the same for the logged-in user!
+      username: body.username,
+      display_name: body.displayName,
+      bio: body.bio,
+      avatar_url: body.avatarUrl,
+      favorite_team: body.favoriteTeam,
+      preferences: body.preferences,
+      updated_at: new Date().toISOString(),
+    }, { onConflict: 'user_id' }) // <--- THIS IS CRITICAL
     .select()
-    .single()
+    .single();
 
   if (error) {
-    throw new Error(`Failed to update profile: ${error.message}`)
+    console.error('Upsert error:', error);
+    throw new Error(`Failed to update profile: ${error.message}`);
   }
 
   return new Response(

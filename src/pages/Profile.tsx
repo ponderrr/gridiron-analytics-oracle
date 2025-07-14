@@ -12,6 +12,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import ProfileEditModal from "@/components/modals/ProfileEditModal";
+import ProfileDebug from "@/components/ProfileDebug";
 
 const formatDate = (dateString: string) => {
   return new Date(dateString).toLocaleDateString('en-US', {
@@ -110,6 +111,11 @@ const ProfileContent: React.FC = () => {
                   </div>
                 </div>
               </CardHeader>
+            </Card>
+
+            {/* Debug Component - Remove this after fixing the issue */}
+            <Card className="bg-[var(--color-bg-card)]/80 backdrop-blur-md border border-[var(--color-border-primary)] rounded-2xl shadow-xl p-8">
+              <ProfileDebug />
             </Card>
           </div>
         </div>

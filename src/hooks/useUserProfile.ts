@@ -28,6 +28,7 @@ interface UseUserProfileReturn {
   error: AppError | null;
   updateProfile: (updates: Partial<UserProfile>) => Promise<void>;
   refreshProfile: () => Promise<void>;
+  debugProfile: () => void;
 }
 
 const extractErrorMessage = (error: unknown): string => {
@@ -86,7 +87,7 @@ export const useUserProfile = (): UseUserProfileReturn => {
         const dbProfile: UserProfile = {
           id: profileData.user_id, // Use user_id as the id
           email: user.email || "",
-          username: user.email?.split('@')[0] || "User", // Generate from email since username isn't in DB
+          username: profileData.username || user.email?.split('@')[0] || "User", // Use DB username or fallback
           bio: profileData.bio,
           memberSince: profileData.created_at || user.created_at || new Date().toISOString(),
           avatarUrl: profileData.avatar_url,
@@ -172,13 +173,8 @@ export const useUserProfile = (): UseUserProfileReturn => {
         
         if (error) throw error;
 
-        // Update local state
-        const updatedProfile = { 
-          ...profile, 
-          ...updates,
-          avatarUrl: avatarUrl || updates.avatarUrl || null
-        };
-        setProfile(updatedProfile);
+        // Refresh profile data from database to ensure consistency
+        await fetchProfile();
       } catch (error) {
         const appError = createAppError(
           extractErrorMessage(error),
@@ -200,6 +196,12 @@ export const useUserProfile = (): UseUserProfileReturn => {
     await fetchProfile();
   }, [fetchProfile]);
 
+  // Debug function to log current state
+  const debugProfile = useCallback(() => {
+    console.log('Current profile state:', profile);
+    console.log('Current user:', user);
+  }, [profile, user]);
+
   useEffect(() => {
     fetchProfile();
   }, [fetchProfile]);
@@ -210,5 +212,6 @@ export const useUserProfile = (): UseUserProfileReturn => {
     error,
     updateProfile,
     refreshProfile,
+    debugProfile,
   };
 }; 

@@ -31,10 +31,16 @@ const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
   });
   const [isLoading, setIsLoading] = useState(false);
   const [avatarPreview, setAvatarPreview] = useState<string | null>(profile.avatarUrl);
+  const [usernameError, setUsernameError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleInputChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+    
+    // Clear username error when user starts typing
+    if (field === 'username') {
+      setUsernameError(null);
+    }
   };
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -92,8 +98,13 @@ const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
       await onSave(updates);
       toast.success('Profile updated successfully!');
       onClose();
-    } catch (error) {
-      toast.error('Failed to update profile. Please try again.');
+    } catch (error: any) {
+      // Handle specific error messages
+      if (error.message && error.message.includes('Username')) {
+        toast.error(error.message);
+      } else {
+        toast.error('Failed to update profile. Please try again.');
+      }
       console.error('Profile update error:', error);
     } finally {
       setIsLoading(false);
@@ -192,10 +203,15 @@ const ProfileEditModal: React.FC<ProfileEditModalProps> = ({
                     placeholder="Enter your username"
                     maxLength={20}
                     disabled={isLoading}
+                    className={usernameError ? "border-red-500" : ""}
                   />
-                  <p className="text-xs text-[var(--color-text-secondary)] mt-1">
-                    Username must be between 3-20 characters
-                  </p>
+                  {usernameError ? (
+                    <p className="text-xs text-red-500 mt-1">{usernameError}</p>
+                  ) : (
+                    <p className="text-xs text-[var(--color-text-secondary)] mt-1">
+                      Username must be between 3-20 characters
+                    </p>
+                  )}
                 </div>
 
                 <div>
