@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Plus, Save, Download, Undo, Redo } from "lucide-react";
@@ -9,7 +9,8 @@ import { toast } from "sonner";
 export function RankingsHeader() {
   const { state, dispatch, saveRankings, createDefaultRankings } =
     useRankings();
-  const createSetModalRef = useRef<CreateSetModalRef>(null);
+  // Modal open/close state is now lifted here
+  const [isCreateModalOpen, setCreateModalOpen] = useState(false);
 
   const handleUndo = () => {
     if (state.undoStack.length > 0) {
@@ -63,7 +64,7 @@ export function RankingsHeader() {
   };
 
   const handleCreateNew = () => {
-    createSetModalRef.current?.openModal();
+    setCreateModalOpen(true);
   };
 
   return (
@@ -151,7 +152,7 @@ export function RankingsHeader() {
         )}
       </div>
 
-      <CreateSetModal ref={createSetModalRef} />
+      <CreateSetModal isOpen={isCreateModalOpen} onOpenChange={setCreateModalOpen} />
     </div>
   );
 }
