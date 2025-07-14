@@ -211,10 +211,8 @@ async function handleAvatarUpload(req: Request, supabase: any, userId: string) {
   // Update user profile with new avatar URL
   const { error: updateError } = await supabase
     .from('user_profiles')
-    .upsert({
-      user_id: userId,
-      avatar_url: publicUrl
-    })
+    .update({ avatar_url: publicUrl })
+    .eq('user_id', userId)
 
   if (updateError) {
     throw new Error(`Failed to update profile with avatar: ${updateError.message}`)
@@ -251,4 +249,4 @@ async function handleGetProfile(_req: Request, supabase: any, userId: string) {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
     }
   )
-} 
+}

@@ -158,20 +158,57 @@ export const useUserProfile = (): UseUserProfileReturn => {
           avatarUrl = result.avatarUrl;
         }
 
-        // Update the user_profiles table
-        const { error } = await supabase
+        // Check for duplicate username before upsert
+        if (updates.username && updates.username !== profile.username) {
+          const { data: existing, error: checkError } = await supabase
+            .from('user_profiles')
+            .select('user_id')
+            .eq('username', updates.username)
+            .single();
+
+          if (checkError && checkError.code !== 'PGRST116') throw checkError;
+          if (existing && existing.user_id !== user.id) {
+            throw createAppError("Username already taken", "data");
+          }
+        }
+
+        // Check if profile exists for this user
+        const { data: existingProfile, error: profileCheckError } = await supabase
           .from('user_profiles')
-          .upsert({
-            user_id: user.id,
-            display_name: updates.displayName,
-            bio: updates.bio,
-            avatar_url: avatarUrl,
-            favorite_team: updates.favoriteTeam,
-            username: updates.username,
-          })
-          .eq('user_id', user.id);
-        
-        if (error) throw error;
+          .select('user_id')
+          .eq('user_id', user.id)
+          .single();
+        if (profileCheckError && profileCheckError.code !== 'PGRST116') throw profileCheckError;
+
+        let dbError;
+        if (existingProfile) {
+          // Profile exists, do an update
+          ({ error: dbError } = await supabase
+            .from('user_profiles')
+            .update({
+              display_name: updates.displayName,
+              bio: updates.bio,
+              avatar_url: avatarUrl,
+              favorite_team: updates.favoriteTeam,
+              username: updates.username,
+            })
+            .eq('user_id', user.id)
+          );
+        } else {
+          // Profile does not exist, do an insert
+          ({ error: dbError } = await supabase
+            .from('user_profiles')
+            .insert({
+              user_id: user.id,
+              display_name: updates.displayName,
+              bio: updates.bio,
+              avatar_url: avatarUrl,
+              favorite_team: updates.favoriteTeam,
+              username: updates.username,
+            })
+          );
+        }
+        if (dbError) throw dbError;
 
         // Refresh profile data from database to ensure consistency
         await fetchProfile();
