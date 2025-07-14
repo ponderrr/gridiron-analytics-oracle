@@ -1,7 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
-import AppSidebar from "@/components/AppSidebar";
 import ErrorBoundary from "./ErrorBoundary";
 import LoadingSpinner from "@/components/LoadingSpinner";
 import ThemeToggle from "@/components/ui/ThemeToggle";
@@ -18,6 +17,7 @@ import { cn } from "@/lib/utils";
 import FloatingNav from "./FloatingNav";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/contexts/ThemeContext";
+import Logo from "@/components/ui/Logo";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -52,8 +52,6 @@ const SidebarSkeleton = React.memo(() => {
 
 SidebarSkeleton.displayName = "SidebarSkeleton";
 
-const SIDEBAR_WIDTH = "16rem"; // 256px
-const SIDEBAR_COLLAPSED_WIDTH = "4rem"; // 64px
 
 const TopRightActions: React.FC = () => {
   const { user, logout } = useAuth();
@@ -126,7 +124,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
   // Removed unused: const { effectiveTheme } = useTheme();
 
   // Persist sidebar collapse state in localStorage
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useLocalStorage("sidebar-collapsed", false);
+  const [] = useLocalStorage("sidebar-collapsed", false);
 
   // Error state for auth failures
   if (authError) {
@@ -202,19 +200,7 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
           <div className="flex justify-between items-center h-16 backdrop-blur-md bg-transparent border-b border-b-transparent">
             {/* Logo */}
             <Link to="/" className="flex items-center space-x-3 group">
-              <div className="bg-indigo-500 p-2 rounded-lg group-hover:bg-indigo-400 transition-colors">
-                <img src="/logo.svg" alt="FF Meta Logo" className="h-6 w-6" />
-              </div>
-              <div>
-                <h1
-                  className={`text-xl font-bold text-[var(--color-text-primary)]`}
-                >
-                  FF Meta
-                </h1>
-                <p className="text-xs text-indigo-400 -mt-1">
-                  Your digital garden.
-                </p>
-              </div>
+              <Logo size="sm" className="group-hover:scale-105 transition-transform duration-200" />
             </Link>
             {/* Navigation */}
             <nav className="flex items-center space-x-4">

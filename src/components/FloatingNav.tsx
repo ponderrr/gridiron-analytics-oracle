@@ -3,6 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { SIDEBAR_SECTIONS_CONFIG } from "@/components/layout/SidebarLinks";
 import { useTheme } from "@/contexts/ThemeContext";
 import { cn } from "@/lib/utils";
+import Logo from "@/components/ui/Logo";
 
 const FloatingNav: React.FC = () => {
   const { pathname } = useLocation();
@@ -24,6 +25,11 @@ const FloatingNav: React.FC = () => {
 
   return (
     <nav className="fixed top-6 left-6 z-40 flex flex-col gap-4">
+      {/* Logo at the top */}
+      <div className="mb-4">
+        <Logo size="sm" className="drop-shadow-lg" />
+      </div>
+      
       {allNavItems.map((item) => {
         const isActive = pathname === item.href;
         return (
