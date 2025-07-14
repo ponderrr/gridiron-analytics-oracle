@@ -55,6 +55,78 @@ class MappingBasedStatsSync extends ETLBase {
   private playerMappings: Map<string, PlayerMapping> = new Map();
   private sleeperPlayers: PlayerCandidate[] = [];
 
+  // --- Data Validation for Weekly Stats ---
+  private validateStatsBeforeUpsert(statsData: any[]): {
+    valid: any[];
+    invalid: any[];
+  } {
+    const valid: any[] = [];
+    const invalid: any[] = [];
+    statsData.forEach((stat) => {
+      const issues: string[] = [];
+      // Required field validation
+      if (!stat.player_id || !stat.season || !stat.week) {
+        issues.push("Missing required fields");
+      }
+      // Fantasy points sanity check
+      if (stat.pts_ppr && (stat.pts_ppr > 80 || stat.pts_ppr < -10)) {
+        issues.push(`Suspicious fantasy points: ${stat.pts_ppr}`);
+      }
+      // Position-based validation
+      const hasPassingStats =
+        (stat.pass_yd || 0) > 0 || (stat.pass_td || 0) > 0;
+      const hasRushingStats =
+        (stat.rush_yd || 0) > 0 || (stat.carries || 0) > 0;
+      const hasReceivingStats =
+        (stat.rec_yd || 0) > 0 || (stat.rec_td || 0) > 0 || (stat.rec || 0) > 0;
+      if (!hasPassingStats && !hasRushingStats && !hasReceivingStats) {
+        issues.push("No statistical activity");
+      }
+      // Cross-validation of stats
+      if (stat.rec_td > 0 && stat.rec_yd === 0) {
+        issues.push("Receiving TD without receiving yards");
+      }
+      if (issues.length === 0) {
+        valid.push(stat);
+      } else {
+        invalid.push({ ...stat, validation_issues: issues });
+      }
+    });
+    return { valid, invalid };
+  }
+
+  private async validateFantasyPointsCalculation(
+    statsData: any[]
+  ): Promise<void> {
+    const validationResults = statsData.map((stat) => {
+      const calculated = this.calculatePPRPoints(stat);
+      const stored = stat.pts_ppr || 0;
+      const difference = Math.abs(calculated - stored);
+      return {
+        player_id: stat.player_id,
+        calculated,
+        stored,
+        difference,
+        isValid: difference < 2.0, // Allow 2 point variance
+      };
+    });
+    const invalidCalculations = validationResults.filter((v) => !v.isValid);
+    if (invalidCalculations.length > 0) {
+      console.warn(
+        `Found ${invalidCalculations.length} stats with calculation mismatches`
+      );
+      // Alert if more than 5% have calculation issues
+      if (invalidCalculations.length / statsData.length > 0.05) {
+        await this.supabase.from("mapping_alerts").insert({
+          alert_type: "fantasy_points_calculation_mismatch",
+          severity: "HIGH",
+          message: `${invalidCalculations.length} stats have fantasy point calculation mismatches`,
+          metadata: { sample_issues: invalidCalculations.slice(0, 5) },
+        });
+      }
+    }
+  }
+
   async syncWeeklyStats(week: number, season: number): Promise<ETLRun> {
     const run: ETLRun = {
       run_type: "weekly-stats",
@@ -480,12 +552,39 @@ class MappingBasedStatsSync extends ETLBase {
   }
 
   private async upsertMappedStats(mappedStats: any[]): Promise<void> {
-    if (mappedStats.length === 0) return;
+    // Validate stats before upsert
+    const { valid, invalid } = this.validateStatsBeforeUpsert(mappedStats);
 
-    console.log(`Upserting ${mappedStats.length} stat records`);
+    if (invalid.length > 0) {
+      console.warn(
+        `Filtered out ${invalid.length} invalid stats:`,
+        invalid.slice(0, 5)
+      );
+      // Log validation issues for monitoring
+      await this.supabase.from("data_quality_issues").insert(
+        invalid.map((stat) => ({
+          issue_type: "stats_validation",
+          player_id: stat.player_id,
+          season: stat.season,
+          week: stat.week,
+          issues: stat.validation_issues,
+          raw_data: stat,
+        }))
+      );
+    }
+
+    if (valid.length === 0) {
+      console.log("No valid stats to upsert");
+      return;
+    }
+
+    // Validate fantasy points calculation for valid stats
+    await this.validateFantasyPointsCalculation(valid);
+
+    console.log(`Upserting ${valid.length} validated stat records`);
     const { error } = await this.supabase
       .from("sleeper_stats")
-      .upsert(mappedStats, { onConflict: "season,week,player_id" });
+      .upsert(valid, { onConflict: "season,week,player_id" });
 
     if (error) {
       console.error("Database upsert error:", error);

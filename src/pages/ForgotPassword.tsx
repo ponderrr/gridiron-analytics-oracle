@@ -16,7 +16,7 @@ const ForgotPassword: React.FC = () => {
   const [emailFeedback, setEmailFeedback] = useState<string[]>([]);
 
   const { resetPassword } = useAuth();
-  const { effectiveTheme } = useTheme();
+  useTheme();
 
   /* ---------- handlers ---------- */
   const handleSubmit = async (e: React.FormEvent) => {

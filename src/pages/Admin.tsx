@@ -5,16 +5,12 @@ import {
   BarChart3,
   Target,
   Zap,
-  MapPin,
-  BarChart,
 } from "lucide-react";
 import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import MappingReview from "@/components/admin/MappingReview";
-import MappingAnalytics from "@/components/admin/MappingAnalytics";
 
 interface SyncState {
   isLoading: boolean;
@@ -53,7 +49,6 @@ const Admin: React.FC = () => {
   });
   const [startWeek, setStartWeek] = useState<string>("15");
   const [endWeek, setEndWeek] = useState<string>("18");
-  const [activeTab, setActiveTab] = useState<string>("sync");
 
   // NFL Data Sync Handler
   const handleNFLDataSync = async () => {

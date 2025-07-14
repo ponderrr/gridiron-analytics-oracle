@@ -9,7 +9,6 @@ const FloatingNav: React.FC = () => {
   const { effectiveTheme } = useTheme();
   const allNavItems = SIDEBAR_SECTIONS_CONFIG.flatMap(section => section.items);
 
-  // Use bg-gray-50 for light mode, bg-[var(--color-bg-primary)] for dark mode
   const navBg = effectiveTheme === "dark" ? "bg-[var(--color-bg-primary)]" : "bg-gray-50";
   const navText = effectiveTheme === "dark" ? "text-zinc-200" : "text-gray-700";
   const navActiveBg = effectiveTheme === "dark"

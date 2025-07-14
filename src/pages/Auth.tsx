@@ -10,9 +10,7 @@ import {
   validatePassword,
   getPasswordStrength,
   validateEmailDetailed,
-  getPasswordFeedback,
   passwordStrengthScore,
-  passwordStrengthLabel,
 } from "@/lib/validation";
 import { VALIDATION_MESSAGES } from "@/lib/validation";
 import { useFormError } from "@/hooks/useFormError";
@@ -23,7 +21,7 @@ const Auth: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { login, signup } = useAuth();
-  const { effectiveTheme } = useTheme();
+  useTheme();
   const { error, setError, clearError, formatAndSetError } = useFormError();
 
   // Tab state: true = Sign In, false = Sign Up
@@ -35,9 +33,6 @@ const Auth: React.FC = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [emailFeedback, setEmailFeedback] = useState<string[]>([]);
-  const [passwordFeedback, setPasswordFeedback] = useState<string[]>([]);
-  const [passwordScore, setPasswordScore] = useState<number>(0);
-  const [passwordLabel, setPasswordLabel] = useState<string>("Weak");
   const [success, setSuccess] = useState("");
 
   const from = location.state?.from?.pathname || "/dashboard";
@@ -52,9 +47,6 @@ const Auth: React.FC = () => {
     setShowPassword(false);
     setShowConfirmPassword(false);
     setEmailFeedback([]);
-    setPasswordFeedback([]);
-    setPasswordScore(0);
-    setPasswordLabel("Weak");
     clearError();
     setSuccess("");
   }, [location.pathname, clearError]);
@@ -70,10 +62,7 @@ const Auth: React.FC = () => {
     const sanitized = DOMPurify.sanitize(value);
     setPassword(sanitized);
     if (!isLogin) {
-      setPasswordFeedback(getPasswordFeedback(sanitized));
-      const score = passwordStrengthScore(sanitized);
-      setPasswordScore(score);
-      setPasswordLabel(passwordStrengthLabel(score));
+      passwordStrengthScore(sanitized);
     }
   };
 
