@@ -209,13 +209,24 @@ async function handleAvatarUpload(req: Request, supabase: any, userId: string) {
     .getPublicUrl(uniqueFileName)
 
   // Update user profile with new avatar URL
-  const { error: updateError } = await supabase
+  const { data, error: updateError } = await supabase
     .from('user_profiles')
     .update({ avatar_url: publicUrl })
     .eq('user_id', userId)
+    .select()
 
   if (updateError) {
     throw new Error(`Failed to update profile with avatar: ${updateError.message}`)
+  }
+
+  // If no rows were updated (user doesn't have a profile yet), insert a new one
+  if (!data || data.length === 0) {
+    const { error: insertError } = await supabase
+      .from('user_profiles')
+      .insert({ user_id: userId, avatar_url: publicUrl })
+    if (insertError) {
+      throw new Error(`Failed to insert profile with avatar: ${insertError.message}`)
+    }
   }
 
   return new Response(
