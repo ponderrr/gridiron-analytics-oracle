@@ -4,6 +4,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { SIDEBAR_SECTIONS_CONFIG } from "@/components/layout/SidebarLinks";
 import { useTheme } from "@/contexts/ThemeContext";
+import Logo from "@/components/ui/Logo";
 
 interface AppSidebarProps {
   isMobileOpen?: boolean;
@@ -55,8 +56,12 @@ const AppSidebar: React.FC<AppSidebarProps> = ({
         aria-label="Main sidebar navigation"
         style={{ maxWidth: 320 }}
       >
-        {/* Header Section: Only collapse/expand button, right-aligned */}
-        <div className="flex items-center justify-end px-6 py-6">
+        {/* Header Section: Logo and collapse/expand button */}
+        <div className="flex items-center justify-between px-6 py-6">
+          <Logo size="sm" className={cn(
+            "transition-all duration-300",
+            isCollapsed ? "opacity-0 scale-75" : "opacity-100 scale-100"
+          )} />
           <button
             onClick={() => setIsCollapsed(!isCollapsed)}
             aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
