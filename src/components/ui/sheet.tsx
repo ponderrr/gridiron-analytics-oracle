@@ -6,12 +6,9 @@ const Sheet = SheetPrimitive.Root;
 const SheetTrigger = SheetPrimitive.Trigger;
 const SheetClose = SheetPrimitive.Close;
 
-const SheetPortal = ({
-  className,
-  ...props
-}: React.ComponentPropsWithoutRef<typeof SheetPrimitive.Portal>) => (
-  <SheetPrimitive.Portal className={cn(className)} {...props} />
-);
+const SheetPortal = (
+  props: React.ComponentPropsWithoutRef<typeof SheetPrimitive.Portal>
+) => <SheetPrimitive.Portal {...props} />;
 SheetPortal.displayName = SheetPrimitive.Portal.displayName;
 
 const SheetOverlay = React.forwardRef<
@@ -29,10 +26,20 @@ const SheetOverlay = React.forwardRef<
 ));
 SheetOverlay.displayName = SheetPrimitive.Overlay.displayName;
 
+// Define allowed values for the 'side' prop
+export type SheetSide = "left" | "right" | "top" | "bottom";
+
+// Extend the props for SheetContent to include 'side'
+interface SheetContentProps
+  extends React.ComponentPropsWithoutRef<typeof SheetPrimitive.Content> {
+  side?: SheetSide;
+  className?: string;
+}
+
 const SheetContent = React.forwardRef<
   React.ElementRef<typeof SheetPrimitive.Content>,
-  React.ComponentPropsWithoutRef<typeof SheetPrimitive.Content>
->(({ className, side = "right", ...props }: any, ref) => (
+  SheetContentProps
+>(({ className, side = "right", ...props }, ref) => (
   <SheetPortal>
     <SheetOverlay />
     <SheetPrimitive.Content

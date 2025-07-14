@@ -48,7 +48,7 @@ export default function OptimizedMappingAnalytics() {
 
   const {
     data: analytics,
-    isLoading,
+    isPending,
     error,
     refetch,
   } = useQuery({
@@ -107,7 +107,7 @@ export default function OptimizedMappingAnalytics() {
     }
   };
 
-  if (isLoading) {
+  if (isPending) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {[...Array(6)].map((_, i) => (
@@ -141,11 +141,15 @@ export default function OptimizedMappingAnalytics() {
   );
   const HealthIcon = healthConfig.icon;
   const mappingCoverage =
-    (analytics.total_mappings /
-      (analytics.total_mappings + analytics.unmapped_players.nflverse)) *
-    100;
+    analytics.total_mappings + analytics.unmapped_players.nflverse === 0
+      ? 0
+      : (analytics.total_mappings /
+          (analytics.total_mappings + analytics.unmapped_players.nflverse)) *
+        100;
   const highConfidenceRate =
-    (analytics.by_confidence.high / analytics.total_mappings) * 100;
+    analytics.total_mappings === 0
+      ? 0
+      : (analytics.by_confidence.high / analytics.total_mappings) * 100;
 
   return (
     <div className="space-y-6">
@@ -266,7 +270,10 @@ export default function OptimizedMappingAnalytics() {
           <CardContent>
             <div className="space-y-4">
               {Object.entries(analytics.by_confidence).map(([level, count]) => {
-                const percentage = (count / analytics.total_mappings) * 100;
+                const percentage =
+                  analytics.total_mappings === 0
+                    ? 0
+                    : (count / analytics.total_mappings) * 100;
                 return (
                   <div key={level} className="space-y-2">
                     <div className="flex items-center justify-between text-sm">
@@ -324,9 +331,11 @@ export default function OptimizedMappingAnalytics() {
               </div>
               <Progress
                 value={
-                  (analytics.verification_status.verified /
-                    analytics.total_mappings) *
-                  100
+                  analytics.total_mappings > 0
+                    ? (analytics.verification_status.verified /
+                        analytics.total_mappings) *
+                      100
+                    : 0
                 }
                 className="h-2"
               />
@@ -338,9 +347,11 @@ export default function OptimizedMappingAnalytics() {
               </div>
               <Progress
                 value={
-                  (analytics.verification_status.unverified /
-                    analytics.total_mappings) *
-                  100
+                  analytics.total_mappings > 0
+                    ? (analytics.verification_status.unverified /
+                        analytics.total_mappings) *
+                      100
+                    : 0
                 }
                 className="h-2"
               />

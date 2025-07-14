@@ -1,57 +1,57 @@
 -- Optimize player mapping queries
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_player_mapping_sleeper_confidence 
+CREATE INDEX IF NOT EXISTS idx_player_mapping_sleeper_confidence 
 ON player_id_mapping (sleeper_id, confidence_score DESC);
 
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_player_mapping_nflverse_method 
+CREATE INDEX IF NOT EXISTS idx_player_mapping_nflverse_method 
 ON player_id_mapping (nflverse_id, match_method);
 
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_player_mapping_created_verified 
+CREATE INDEX IF NOT EXISTS idx_player_mapping_created_verified 
 ON player_id_mapping (created_at DESC, verified);
 
 -- Optimize stats queries
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_sleeper_stats_composite 
+CREATE INDEX IF NOT EXISTS idx_sleeper_stats_composite 
 ON sleeper_stats (season, week, player_id, pts_ppr DESC);
 
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_sleeper_stats_player_season 
+CREATE INDEX IF NOT EXISTS idx_sleeper_stats_player_season 
 ON sleeper_stats (player_id, season, week);
 
 -- Optimize unmapped players queries
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_unmapped_players_priority 
+CREATE INDEX IF NOT EXISTS idx_unmapped_players_priority 
 ON unmapped_players (source, attempts_count, last_attempt DESC);
 
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_unmapped_players_position 
+CREATE INDEX IF NOT EXISTS idx_unmapped_players_position 
 ON unmapped_players (position, source) WHERE position IS NOT NULL;
 
 -- Optimize audit queries
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_mapping_audit_mapping_action 
+CREATE INDEX IF NOT EXISTS idx_mapping_audit_mapping_action 
 ON mapping_audit (mapping_id, action, performed_at DESC);
 
 -- Optimize ETL metadata queries
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_etl_metadata_type_status 
+CREATE INDEX IF NOT EXISTS idx_etl_metadata_type_status 
 ON etl_metadata (run_type, status, last_run DESC);
 
 -- Optimize query performance log
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_query_performance_type_time 
+CREATE INDEX IF NOT EXISTS idx_query_performance_type_time 
 ON query_performance_log (query_type, created_at DESC, execution_time_ms);
 
 -- Optimize sleeper cache queries
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_sleeper_cache_position_team 
+CREATE INDEX IF NOT EXISTS idx_sleeper_cache_position_team 
 ON sleeper_players_cache (position, team) WHERE position IS NOT NULL;
 
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_sleeper_cache_updated 
+CREATE INDEX IF NOT EXISTS idx_sleeper_cache_updated 
 ON sleeper_players_cache (last_updated DESC);
 
 -- Partial indexes for active/important data
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_unmapped_active_attempts 
+CREATE INDEX IF NOT EXISTS idx_unmapped_active_attempts 
 ON unmapped_players (source, player_name) 
 WHERE attempts_count <= 5 AND source = 'nflverse';
 
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_mapping_unverified_high_confidence 
+CREATE INDEX IF NOT EXISTS idx_mapping_unverified_high_confidence 
 ON player_id_mapping (confidence_score DESC, created_at DESC) 
 WHERE verified = false AND confidence_score >= 0.8;
 
 -- Composite index for dashboard queries
-CREATE INDEX CONCURRENTLY IF NOT EXISTS idx_sleeper_stats_dashboard 
+CREATE INDEX IF NOT EXISTS idx_sleeper_stats_dashboard 
 ON sleeper_stats (season DESC, week DESC, pts_ppr DESC) 
 WHERE pts_ppr IS NOT NULL;
 

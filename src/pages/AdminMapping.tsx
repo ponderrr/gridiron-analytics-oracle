@@ -1,12 +1,7 @@
 import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  BarChart3,
-  Users,
-  Settings,
-  Zap,
-} from "lucide-react";
+import { BarChart3, Users, Settings, Zap } from "lucide-react";
 import Layout from "@/components/Layout";
 import OptimizedMappingAnalytics from "@/components/admin/mapping/OptimizedMappingAnalytics";
 const OptimizedMappingReview = () => <div>Manual Review UI coming soon</div>;
@@ -65,6 +60,7 @@ export default function AdminMapping() {
   ];
 
   const ActiveComponent = tabs.find((tab) => tab.id === activeTab)?.component;
+  const activeTabConfig = tabs.find((tab) => tab.id === activeTab);
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -133,26 +129,20 @@ export default function AdminMapping() {
                       {/* Tab Header */}
                       <div className="mb-6 pb-4 border-b border-slate-200 dark:border-slate-700">
                         <div className="flex items-center space-x-3">
-                          {tabs.find((tab) => tab.id === activeTab)?.icon && (
+                          {activeTabConfig?.icon && (
                             <div className="p-2 rounded-lg bg-blue-50 dark:bg-blue-900/20">
-                              {React.createElement(
-                                tabs.find((tab) => tab.id === activeTab)!.icon,
-                                {
-                                  className:
-                                    "h-5 w-5 text-blue-600 dark:text-blue-400",
-                                }
-                              )}
+                              {React.createElement(activeTabConfig.icon, {
+                                className:
+                                  "h-5 w-5 text-blue-600 dark:text-blue-400",
+                              })}
                             </div>
                           )}
                           <div>
                             <h2 className="text-xl font-semibold">
-                              {tabs.find((tab) => tab.id === activeTab)?.label}
+                              {activeTabConfig?.label}
                             </h2>
                             <p className="text-sm text-muted-foreground">
-                              {
-                                tabs.find((tab) => tab.id === activeTab)
-                                  ?.description
-                              }
+                              {activeTabConfig?.description}
                             </p>
                           </div>
                         </div>

@@ -5,12 +5,12 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { Eye, CheckCircle, AlertCircle } from 'lucide-react';
-import { Skeleton } from '@/components/ui/skeleton';
+} from "@/components/ui/table";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Eye, CheckCircle, AlertCircle } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface ReviewPlayer {
   id: string;
@@ -41,16 +41,28 @@ export function PlayerReviewTable({
   onPlayerSelect,
   onPlayerClick,
   isLoading,
-  error
+  error,
 }: PlayerReviewTableProps) {
   const getConfidenceBadge = (confidence: string) => {
     switch (confidence) {
-      case 'high':
-        return <Badge variant="default" className="bg-green-100 text-green-800">High</Badge>;
-      case 'medium':
-        return <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">Medium</Badge>;
-      case 'low':
-        return <Badge variant="outline" className="bg-red-100 text-red-800">Low</Badge>;
+      case "high":
+        return (
+          <Badge variant="default" className="bg-green-100 text-green-800">
+            High
+          </Badge>
+        );
+      case "medium":
+        return (
+          <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
+            Medium
+          </Badge>
+        );
+      case "low":
+        return (
+          <Badge variant="outline" className="bg-red-100 text-red-800">
+            Low
+          </Badge>
+        );
       default:
         return <Badge variant="outline">Unknown</Badge>;
     }
@@ -58,11 +70,11 @@ export function PlayerReviewTable({
 
   const getConfidenceIcon = (confidence: string) => {
     switch (confidence) {
-      case 'high':
+      case "high":
         return <CheckCircle className="h-4 w-4 text-green-600" />;
-      case 'medium':
+      case "medium":
         return <AlertCircle className="h-4 w-4 text-yellow-600" />;
-      case 'low':
+      case "low":
         return <AlertCircle className="h-4 w-4 text-red-600" />;
       default:
         return null;
@@ -108,12 +120,19 @@ export function PlayerReviewTable({
           <TableRow>
             <TableHead className="w-12">
               <Checkbox
-                checked={players.length > 0 && selectedPlayers.size === players.length}
+                aria-label="Select all players"
+                checked={
+                  players.length > 0 && selectedPlayers.size === players.length
+                }
                 onCheckedChange={(checked) => {
                   if (checked) {
-                    players.forEach(player => onPlayerSelect(player.id, true));
+                    players.forEach((player) =>
+                      onPlayerSelect(player.id, true)
+                    );
                   } else {
-                    players.forEach(player => onPlayerSelect(player.id, false));
+                    players.forEach((player) =>
+                      onPlayerSelect(player.id, false)
+                    );
                   }
                 }}
               />
@@ -131,19 +150,22 @@ export function PlayerReviewTable({
           {players.map((player) => {
             const bestMatch = player.suggested_matches[0];
             const isSelected = selectedPlayers.has(player.id);
-            
+
             return (
-              <TableRow 
+              <TableRow
                 key={player.id}
                 className={`cursor-pointer transition-colors ${
-                  isSelected ? 'bg-blue-50' : 'hover:bg-muted/50'
+                  isSelected ? "bg-blue-50" : "hover:bg-muted/50"
                 }`}
                 onClick={() => onPlayerClick(player)}
               >
                 <TableCell onClick={(e) => e.stopPropagation()}>
                   <Checkbox
+                    aria-label={`Select player ${player.player_name}`}
                     checked={isSelected}
-                    onCheckedChange={(checked) => onPlayerSelect(player.id, !!checked)}
+                    onCheckedChange={(checked) =>
+                      onPlayerSelect(player.id, !!checked)
+                    }
                   />
                 </TableCell>
                 <TableCell>
@@ -205,4 +227,4 @@ export function PlayerReviewTable({
       </Table>
     </div>
   );
-} 
+}

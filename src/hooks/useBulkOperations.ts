@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useReducer, useCallback, useState } from "react";
 import { v4 as uuidv4 } from "uuid";
 
 interface BulkOperation {
@@ -30,12 +30,82 @@ interface StartOperationParams {
   payload: any;
 }
 
+// Reducer and actions for BulkOperation state
+
+type OperationAction =
+  | { type: "ADD_OPERATION"; payload: BulkOperation }
+  | {
+      type: "UPDATE_PROGRESS_AND_LOGS";
+      payload: {
+        id: string;
+        progress: number;
+        log?: {
+          timestamp: string;
+          level: "info" | "warning" | "error";
+          message: string;
+        };
+      };
+    }
+  | { type: "COMPLETE_OPERATION"; payload: { id: string; results: any } }
+  | { type: "FAIL_OPERATION"; payload: { id: string; error: string } };
+
+function operationsReducer(
+  state: BulkOperation[],
+  action: OperationAction
+): BulkOperation[] {
+  switch (action.type) {
+    case "ADD_OPERATION":
+      return [...state, action.payload];
+    case "UPDATE_PROGRESS_AND_LOGS": {
+      const { id, progress, log } = action.payload;
+      return state.map((op) =>
+        op.id === id
+          ? {
+              ...op,
+              progress,
+              logs: log ? [...op.logs, log] : op.logs,
+            }
+          : op
+      );
+    }
+    case "COMPLETE_OPERATION": {
+      const { id, results } = action.payload;
+      return state.map((op) =>
+        op.id === id
+          ? {
+              ...op,
+              status: "completed",
+              progress: 100,
+              endTime: new Date(),
+              results,
+            }
+          : op
+      );
+    }
+    case "FAIL_OPERATION": {
+      const { id, error } = action.payload;
+      return state.map((op) =>
+        op.id === id
+          ? {
+              ...op,
+              status: "failed",
+              endTime: new Date(),
+              results: { error },
+            }
+          : op
+      );
+    }
+    default:
+      return state;
+  }
+}
+
 export function useBulkOperations() {
-  const [operations, setOperations] = useState<BulkOperation[]>([]);
+  const [operations, dispatch] = useReducer(operationsReducer, []);
   const [systemHealth, setSystemHealth] = useState<SystemHealth | null>(null);
 
   const startOperation = useCallback(
-    async ({ type, endpoint, payload }: StartOperationParams) => {
+    async ({ type, endpoint }: StartOperationParams) => {
       const id = uuidv4();
       const newOperation: BulkOperation = {
         id,
@@ -45,77 +115,90 @@ export function useBulkOperations() {
         startTime: new Date(),
         logs: [],
       };
-      setOperations((prev) => [...prev, newOperation]);
+      dispatch({ type: "ADD_OPERATION", payload: newOperation });
 
-      // Simulate real-time progress and logs
-      let progress = 0;
-      let logs: BulkOperation["logs"] = [];
-      const addLog = (level: "info" | "warning" | "error", message: string) => {
-        logs.push({
-          timestamp: new Date().toLocaleTimeString(),
-          level,
-          message,
+      // Helper to batch log and progress
+      const batchUpdate = (
+        progress: number,
+        logMsg?: { level: "info" | "warning" | "error"; message: string }
+      ) => {
+        dispatch({
+          type: "UPDATE_PROGRESS_AND_LOGS",
+          payload: {
+            id,
+            progress,
+            log: logMsg
+              ? {
+                  timestamp: new Date().toLocaleTimeString(),
+                  ...logMsg,
+                }
+              : undefined,
+          },
         });
-        setOperations((prev) =>
-          prev.map((op) => (op.id === id ? { ...op, logs: [...logs] } : op))
-        );
       };
 
       try {
-        addLog("info", `Starting operation: ${type}`);
+        // Parameter validation
+        const validTypes = ["bulk-mapping", "stats-sync", "system-health"];
+        if (!validTypes.includes(type)) {
+          const errMsg = `Invalid operation type: ${type}`;
+          batchUpdate(0, { level: "error", message: errMsg });
+          throw new Error(errMsg);
+        }
+        if (typeof endpoint !== "string" || endpoint.trim() === "") {
+          const errMsg = `Invalid endpoint: ${endpoint}`;
+          batchUpdate(0, { level: "error", message: errMsg });
+          throw new Error(errMsg);
+        }
+        batchUpdate(0, {
+          level: "info",
+          message: `Starting operation: ${type}`,
+        });
         // Simulate progress
         for (let i = 1; i <= 10; i++) {
           await new Promise((res) => setTimeout(res, 300));
-          progress = i * 10;
-          setOperations((prev) =>
-            prev.map((op) => (op.id === id ? { ...op, progress } : op))
-          );
-          addLog("info", `Progress: ${progress}%`);
+          const progress = i * 10;
+          batchUpdate(progress, {
+            level: "info",
+            message: `Progress: ${progress}%`,
+          });
         }
         // Simulate API call
         let results = null;
         if (endpoint === "system-health-check") {
           // Simulate system health check result
           results = {
-            overall: "healthy",
+            overall: "healthy" as const,
             database: { status: "healthy" },
             edgeFunctions: { status: "healthy" },
             nflverseApi: { status: "healthy" },
             sleeperCache: { status: "healthy" },
           };
           setSystemHealth(results);
-          addLog("info", "System health check completed");
+          batchUpdate(100, {
+            level: "info",
+            message: "System health check completed",
+          });
         } else {
           // Simulate generic operation result
           results = { message: `${type} completed successfully` };
-          addLog("info", `${type} completed successfully`);
+          batchUpdate(100, {
+            level: "info",
+            message: `${type} completed successfully`,
+          });
         }
-        setOperations((prev) =>
-          prev.map((op) =>
-            op.id === id
-              ? {
-                  ...op,
-                  status: "completed",
-                  progress: 100,
-                  endTime: new Date(),
-                  results,
-                }
-              : op
-          )
-        );
+        dispatch({ type: "COMPLETE_OPERATION", payload: { id, results } });
       } catch (error: any) {
-        addLog("error", error.message || "Operation failed");
-        setOperations((prev) =>
-          prev.map((op) =>
-            op.id === id
-              ? {
-                  ...op,
-                  status: "failed",
-                  endTime: new Date(),
-                }
-              : op
-          )
-        );
+        let errorMsg = "Operation failed";
+        if (error instanceof Error) {
+          errorMsg = error.message;
+        } else if (typeof error === "string") {
+          errorMsg = error;
+        } else if (error && typeof error === "object" && "message" in error) {
+          errorMsg = (error as any).message;
+        }
+        batchUpdate(0, { level: "error", message: `Error: ${errorMsg}` });
+        dispatch({ type: "FAIL_OPERATION", payload: { id, error: errorMsg } });
       }
     },
     []

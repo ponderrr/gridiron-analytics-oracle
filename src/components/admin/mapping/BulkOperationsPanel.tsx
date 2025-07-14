@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { OperationProgressCard } from "./OperationProgressCard";
 import { useBulkOperations } from "@/hooks/useBulkOperations";
+import { cn } from "@/lib/utils";
 
 export default function BulkOperationsPanel() {
   const { operations, startOperation, systemHealth } = useBulkOperations();
@@ -77,13 +78,33 @@ export default function BulkOperationsPanel() {
       </div>
 
       {/* System Health Overview */}
-      <Card className={`border-l-4 border-${healthStatus.color}-500`}>
+      <Card
+        className={cn(
+          "border-l-4",
+          healthStatus.color === "green"
+            ? "border-green-500"
+            : healthStatus.color === "yellow"
+              ? "border-yellow-500"
+              : healthStatus.color === "red"
+                ? "border-red-500"
+                : "border-gray-500"
+        )}
+      >
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
             <CardTitle className="text-lg flex items-center space-x-2">
               {HealthIcon && (
                 <HealthIcon
-                  className={`h-5 w-5 text-${healthStatus.color}-600`}
+                  className={cn(
+                    "h-5 w-5",
+                    healthStatus.color === "green"
+                      ? "text-green-600"
+                      : healthStatus.color === "yellow"
+                        ? "text-yellow-600"
+                        : healthStatus.color === "red"
+                          ? "text-red-600"
+                          : "text-gray-600"
+                  )}
                 />
               )}
               <span>System Health</span>

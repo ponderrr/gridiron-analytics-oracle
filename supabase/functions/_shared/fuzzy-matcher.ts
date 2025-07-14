@@ -15,20 +15,13 @@ export interface PlayerCandidate {
   team?: string;
 }
 
-export class FuzzyMatcher {
-  private static readonly HIGH_CONFIDENCE_THRESHOLD = 0.92;
-  private static readonly MEDIUM_CONFIDENCE_THRESHOLD = 0.8;
-  private static readonly MINIMUM_THRESHOLD = 0.75;
-
-  // Simple Dice coefficient implementation (like string-similarity package)
-  private static calculateDiceCoefficient(str1: string, str2: string): number {
+// --- Dice Coefficient Utility ---
+class DiceCoefficient {
+  public static calculate(str1: string, str2: string): number {
     if (str1 === str2) return 1.0;
     if (str1.length < 2 || str2.length < 2) return 0.0;
-
     const bigrams1 = this.getBigrams(str1);
     const bigrams2 = this.getBigrams(str2);
-
-    // Convert bigrams2 to Set for O(1) lookups
     const bigrams2Set = new Set(bigrams2);
     const intersection = bigrams1.filter((bigram) => bigrams2Set.has(bigram));
     return (2.0 * intersection.length) / (bigrams1.length + bigrams2.length);
@@ -41,6 +34,12 @@ export class FuzzyMatcher {
     }
     return bigrams;
   }
+}
+
+export class FuzzyMatcher {
+  private static readonly HIGH_CONFIDENCE_THRESHOLD = 0.92;
+  private static readonly MEDIUM_CONFIDENCE_THRESHOLD = 0.8;
+  private static readonly MINIMUM_THRESHOLD = 0.75;
 
   static findBestMatch(
     targetName: string,
@@ -68,7 +67,7 @@ export class FuzzyMatcher {
       // Try all combinations of variations
       for (const targetVar of targetVariations.variations) {
         for (const candidateVar of candidateVariations.variations) {
-          const score = this.calculateDiceCoefficient(targetVar, candidateVar);
+          const score = DiceCoefficient.calculate(targetVar, candidateVar);
 
           if (score > bestScore && score >= this.MINIMUM_THRESHOLD) {
             bestScore = score;
@@ -111,7 +110,7 @@ export class FuzzyMatcher {
       // Find best score for this candidate across all variations
       for (const targetVar of targetVariations.variations) {
         for (const candidateVar of candidateVariations.variations) {
-          const score = this.calculateDiceCoefficient(targetVar, candidateVar);
+          const score = DiceCoefficient.calculate(targetVar, candidateVar);
           bestScore = Math.max(bestScore, score);
         }
       }
@@ -168,7 +167,8 @@ export class OptimizedFuzzyMatcher {
   static findBestMatchOptimized(
     targetName: string,
     usePositionFilter = false,
-    expectedPosition?: string
+    expectedPosition?: string,
+    maxCandidates: number = 50
   ): FuzzyMatchResult | null {
     const targetVariations = NameNormalizer.createNameVariations(targetName);
     let candidates: IndexedCandidate[] = [];
@@ -189,10 +189,10 @@ export class OptimizedFuzzyMatcher {
     if (uniqueCandidates.length === 0) return null;
     let bestMatch: FuzzyMatchResult | null = null;
     let bestScore = 0;
-    for (const candidate of uniqueCandidates.slice(0, 50)) {
+    for (const candidate of uniqueCandidates.slice(0, maxCandidates)) {
       for (const targetVar of targetVariations.variations) {
         for (const candidateVar of candidate.normalized_variations) {
-          const score = this.calculateDiceCoefficient(targetVar, candidateVar);
+          const score = DiceCoefficient.calculate(targetVar, candidateVar);
           if (score > bestScore && score >= this.MINIMUM_THRESHOLD) {
             bestScore = score;
             bestMatch = {
@@ -207,24 +207,6 @@ export class OptimizedFuzzyMatcher {
       }
     }
     return bestMatch;
-  }
-
-  private static calculateDiceCoefficient(str1: string, str2: string): number {
-    if (str1 === str2) return 1.0;
-    if (str1.length < 2 || str2.length < 2) return 0.0;
-    const bigrams1 = this.getBigrams(str1);
-    const bigrams2 = this.getBigrams(str2);
-    const bigrams2Set = new Set(bigrams2);
-    const intersection = bigrams1.filter((bigram) => bigrams2Set.has(bigram));
-    return (2.0 * intersection.length) / (bigrams1.length + bigrams2.length);
-  }
-
-  private static getBigrams(str: string): string[] {
-    const bigrams: string[] = [];
-    for (let i = 0; i < str.length - 1; i++) {
-      bigrams.push(str.substring(i, i + 2));
-    }
-    return bigrams;
   }
 
   private static getConfidenceLevel(score: number): "high" | "medium" | "low" {

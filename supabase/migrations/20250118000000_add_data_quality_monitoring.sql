@@ -129,41 +129,41 @@ RETURNS TABLE (
 ) AS $$
 BEGIN
   RETURN QUERY
+  WITH calculated AS (
+    SELECT 
+      s.player_id,
+      -- Standard PPR calculation
+      (COALESCE(s.pass_yd, 0) / 25.0 +
+       COALESCE(s.pass_td, 0) * 4 +
+       COALESCE(s.rush_yd, 0) / 10.0 +
+       COALESCE(s.rush_td, 0) * 6 +
+       COALESCE(s.rec_yd, 0) / 10.0 +
+       COALESCE(s.rec_td, 0) * 6 +
+       COALESCE(s.rec, 0) * 1) as calculated_points,
+      s.pts_ppr as stored_points
+    FROM sleeper_stats s
+    WHERE s.season = p_season
+      AND (p_week IS NULL OR s.week = p_week)
+  )
   SELECT 
-    s.player_id,
-    -- Standard PPR calculation
-    (COALESCE(s.pass_yd, 0) / 25.0 +
-     COALESCE(s.pass_td, 0) * 4 +
-     COALESCE(s.rush_yd, 0) / 10.0 +
-     COALESCE(s.rush_td, 0) * 6 +
-     COALESCE(s.rec_yd, 0) / 10.0 +
-     COALESCE(s.rec_td, 0) * 6 +
-     COALESCE(s.rec, 0) * 1) as calculated_points,
-    s.pts_ppr as stored_points,
-    ABS((COALESCE(s.pass_yd, 0) / 25.0 + COALESCE(s.pass_td, 0) * 4 + 
-         COALESCE(s.rush_yd, 0) / 10.0 + COALESCE(s.rush_td, 0) * 6 +
-         COALESCE(s.rec_yd, 0) / 10.0 + COALESCE(s.rec_td, 0) * 6 +
-         COALESCE(s.rec, 0) * 1) - COALESCE(s.pts_ppr, 0)) as difference,
+    c.player_id,
+    c.calculated_points,
+    c.stored_points,
+    ABS(c.calculated_points - COALESCE(c.stored_points, 0)) as difference,
     CASE 
-      WHEN ABS((COALESCE(s.pass_yd, 0) / 25.0 + COALESCE(s.pass_td, 0) * 4 + 
-                COALESCE(s.rush_yd, 0) / 10.0 + COALESCE(s.rush_td, 0) * 6 +
-                COALESCE(s.rec_yd, 0) / 10.0 + COALESCE(s.rec_td, 0) * 6 +
-                COALESCE(s.rec, 0) * 1) - COALESCE(s.pts_ppr, 0)) < 1.0 THEN 'VALID'
-      WHEN ABS((COALESCE(s.pass_yd, 0) / 25.0 + COALESCE(s.pass_td, 0) * 4 + 
-                COALESCE(s.rush_yd, 0) / 10.0 + COALESCE(s.rush_td, 0) * 6 +
-                COALESCE(s.rec_yd, 0) / 10.0 + COALESCE(s.rec_td, 0) * 6 +
-                COALESCE(s.rec, 0) * 1) - COALESCE(s.pts_ppr, 0)) < 3.0 THEN 'WARNING'
+      WHEN ABS(c.calculated_points - COALESCE(c.stored_points, 0)) < 1.0 THEN 'VALID'
+      WHEN ABS(c.calculated_points - COALESCE(c.stored_points, 0)) < 3.0 THEN 'WARNING'
       ELSE 'ERROR'
     END as validation_status
-  FROM sleeper_stats s
-  WHERE s.season = p_season
-    AND (p_week IS NULL OR s.week = p_week)
+  FROM calculated c
   ORDER BY difference DESC;
 END;
 $$ LANGUAGE plpgsql;
 
 -- Function to check for trade detection
-CREATE OR REPLACE FUNCTION detect_player_team_changes()
+CREATE OR REPLACE FUNCTION detect_player_team_changes(
+  p_season integer
+)
 RETURNS TABLE (
   player_id text,
   old_team text,
@@ -181,7 +181,7 @@ BEGIN
       NOW() as detected_at
     FROM sleeper_stats s
     JOIN player_id_mapping m ON s.player_id = m.sleeper_id
-    WHERE s.season = 2024
+    WHERE s.season = p_season
       AND s.created_at > NOW() - INTERVAL '7 days'
   )
   SELECT 

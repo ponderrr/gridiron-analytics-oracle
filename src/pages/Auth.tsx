@@ -10,7 +10,6 @@ import {
   validatePassword,
   getPasswordStrength,
   validateEmailDetailed,
-  passwordStrengthScore,
 } from "@/lib/validation";
 import { VALIDATION_MESSAGES } from "@/lib/validation";
 import { useFormError } from "@/hooks/useFormError";
@@ -21,7 +20,6 @@ const Auth: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { login, signup } = useAuth();
-  useTheme();
   const { error, setError, clearError, formatAndSetError } = useFormError();
 
   // Tab state: true = Sign In, false = Sign Up
@@ -61,9 +59,6 @@ const Auth: React.FC = () => {
   const handlePasswordChange = (value: string) => {
     const sanitized = DOMPurify.sanitize(value);
     setPassword(sanitized);
-    if (!isLogin) {
-      passwordStrengthScore(sanitized);
-    }
   };
 
   const passwordStrength = getPasswordStrength(password);
