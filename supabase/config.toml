@@ -77,3 +77,6 @@ verify_jwt = false
 
 [functions.sync-cache-to-main]
 verify_jwt = false
+
+[functions.profile-management]
+verify_jwt = true

@@ -18,6 +18,8 @@ import { cn } from "@/lib/utils";
 import FloatingNav from "./FloatingNav";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/contexts/ThemeContext";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useUserProfile } from "@/hooks/useUserProfile";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -56,9 +58,8 @@ const SIDEBAR_WIDTH = "16rem"; // 256px
 const SIDEBAR_COLLAPSED_WIDTH = "4rem"; // 64px
 
 const TopRightActions: React.FC = () => {
-  const { user, logout } = useAuth();
-  const userDisplayName = user?.email ? user.email.split("@")[0] : "User";
-  const userEmail = user?.email || "";
+  const { logout } = useAuth();
+  const { profile, isLoading } = useUserProfile();
   const { effectiveTheme } = useTheme();
 
   // Match nav pill style
@@ -90,7 +91,7 @@ const TopRightActions: React.FC = () => {
             variant="ghost"
             size="sm"
             className={cn(
-              "flex items-center gap-2 rounded-full px-5 py-3 font-medium",
+              "flex items-center gap-1 rounded-full px-2 py-2 font-medium",
               pillBg,
               pillText,
               pillOutline,
@@ -98,12 +99,22 @@ const TopRightActions: React.FC = () => {
               "transition-transform duration-200 hover:scale-105 active:scale-95"
             )}
           >
-            <User className="h-4 w-4" />
-            <span className={cn("text-sm font-medium", pillText)}>{userDisplayName}</span>
+            {/* Avatar */}
+            <Avatar className="w-6 h-6">
+              <AvatarImage src={profile?.avatarUrl || undefined} />
+              <AvatarFallback>
+                {profile?.username?.charAt(0).toUpperCase() || "?"}
+              </AvatarFallback>
+            </Avatar>
+            {/* Username */}
+            <span className={cn("text-sm font-medium", pillText)}>
+              {profile?.username || "User"}
+            </span>
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-56 border shadow bg-white dark:bg-zinc-900 rounded-xl mt-2">
-          <div className="px-3 py-2 text-sm text-gray-500 dark:text-zinc-300">{userEmail}</div>
+          {/* Optionally show email or display name here if desired */}
+          {/* <div className="px-3 py-2 text-sm text-gray-500 dark:text-zinc-300">{profile?.email}</div> */}
           <DropdownMenuSeparator className="bg-gray-100 dark:bg-zinc-700" />
           <DropdownMenuItem asChild>
             <a href="/profile" className="cursor-pointer text-gray-700 dark:text-zinc-200 hover:text-blue-600 dark:hover:text-white hover:bg-gray-50 dark:hover:bg-zinc-800 rounded transition-all">Profile</a>

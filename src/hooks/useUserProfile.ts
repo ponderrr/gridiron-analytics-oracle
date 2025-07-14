@@ -28,6 +28,7 @@ interface UseUserProfileReturn {
   error: AppError | null;
   updateProfile: (updates: Partial<UserProfile>) => Promise<void>;
   refreshProfile: () => Promise<void>;
+  debugProfile: () => void;
 }
 
 const extractErrorMessage = (error: unknown): string => {
@@ -86,7 +87,7 @@ export const useUserProfile = (): UseUserProfileReturn => {
         const dbProfile: UserProfile = {
           id: profileData.user_id, // Use user_id as the id
           email: user.email || "",
-          username: user.email?.split('@')[0] || "User", // Generate from email since username isn't in DB
+          username: profileData.username || user.email?.split('@')[0] || "User", // Use DB username or fallback
           bio: profileData.bio,
           memberSince: profileData.created_at || user.created_at || new Date().toISOString(),
           avatarUrl: profileData.avatar_url,
@@ -132,30 +133,85 @@ export const useUserProfile = (): UseUserProfileReturn => {
       setError(null);
 
       try {
-        // In a real implementation, you would update the user_profiles table
-        // For now, we'll just update the local state to demonstrate the functionality
-        const updatedProfile = { ...profile, ...updates };
-        
-        // Simulate API delay in development
-        if (import.meta.env.DEV) {
-          await new Promise(resolve => setTimeout(resolve, 1000));
+        // Handle avatar upload if there's a new avatar
+        let avatarUrl = updates.avatarUrl;
+        if (updates.avatarUrl && updates.avatarUrl !== profile.avatarUrl && updates.avatarUrl.startsWith('data:')) {
+          // This is a base64 image that needs to be uploaded
+          const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/profile-management/avatar`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+            },
+            body: JSON.stringify({
+              file: updates.avatarUrl.split(',')[1], // Remove data:image/...;base64, prefix
+              fileName: `avatar-${Date.now()}.jpg`,
+              contentType: 'image/jpeg',
+            }),
+          });
+
+          if (!response.ok) {
+            throw new Error('Failed to upload avatar');
+          }
+
+          const result = await response.json();
+          avatarUrl = result.avatarUrl;
         }
-        
-        setProfile(updatedProfile);
-        
-        // Update the user_profiles table
-        const { error } = await supabase
+
+        // Check for duplicate username before upsert
+        if (updates.username && updates.username !== profile.username) {
+          const { data: existing, error: checkError } = await supabase
+            .from('user_profiles')
+            .select('user_id')
+            .eq('username', updates.username)
+            .single();
+
+          if (checkError && checkError.code !== 'PGRST116') throw checkError;
+          if (existing && existing.user_id !== user.id) {
+            throw createAppError("Username already taken", "data");
+          }
+        }
+
+        // Check if profile exists for this user
+        const { data: existingProfile, error: profileCheckError } = await supabase
           .from('user_profiles')
-          .upsert({
-            user_id: user.id,
-            display_name: updates.displayName,
-            bio: updates.bio,
-            avatar_url: updates.avatarUrl,
-            favorite_team: updates.favoriteTeam,
-          })
-          .eq('user_id', user.id);
-        
-        if (error) throw error;
+          .select('user_id')
+          .eq('user_id', user.id)
+          .single();
+        if (profileCheckError && profileCheckError.code !== 'PGRST116') throw profileCheckError;
+
+        let dbError;
+        if (existingProfile) {
+          // Profile exists, do an update
+          ({ error: dbError } = await supabase
+            .from('user_profiles')
+            .update({
+              display_name: updates.displayName,
+              bio: updates.bio,
+              avatar_url: avatarUrl,
+              favorite_team: updates.favoriteTeam,
+              username: updates.username,
+            })
+            .eq('user_id', user.id)
+          );
+        } else {
+          // Profile does not exist, do an insert
+          ({ error: dbError } = await supabase
+            .from('user_profiles')
+            .insert({
+              user_id: user.id,
+              display_name: updates.displayName,
+              bio: updates.bio,
+              avatar_url: avatarUrl,
+              favorite_team: updates.favoriteTeam,
+              username: updates.username,
+            })
+          );
+        }
+        if (dbError) throw dbError;
+
+        // Refresh profile data from database to ensure consistency
+        await fetchProfile();
       } catch (error) {
         const appError = createAppError(
           extractErrorMessage(error),
@@ -177,6 +233,12 @@ export const useUserProfile = (): UseUserProfileReturn => {
     await fetchProfile();
   }, [fetchProfile]);
 
+  // Debug function to log current state
+  const debugProfile = useCallback(() => {
+    console.log('Current profile state:', profile);
+    console.log('Current user:', user);
+  }, [profile, user]);
+
   useEffect(() => {
     fetchProfile();
   }, [fetchProfile]);
@@ -187,5 +249,6 @@ export const useUserProfile = (): UseUserProfileReturn => {
     error,
     updateProfile,
     refreshProfile,
+    debugProfile,
   };
 }; 
