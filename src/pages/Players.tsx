@@ -1,23 +1,18 @@
 import React, { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 import {
   Search,
-  Plus,
-  Trophy,
-  Calendar,
-  Grid,
-  List
+  Plus
 } from "lucide-react";
-import Layout from "@/components/Layout";
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import Layout from "../components/Layout.tsx";
+import { Card, CardContent } from "../components/ui/card.tsx";
+import { Button } from "../components/ui/button.tsx";
+import { Input } from "../components/ui/input.tsx";
+import { RankingsProvider } from "../components/PlayerRankings/RankingsProvider.tsx";
+import { CreateSetModal, CreateSetModalRef } from "../components/PlayerRankings/CreateSetModal.tsx";
 import { toast } from "sonner";
-import { useAuth } from "@/contexts/AuthContext";
-import { Player } from "@/lib/database";
-import { cn } from "@/lib/utils";
+import { Player } from "../lib/database.ts";
+import { cn } from "../lib/utils.ts";
 
 // Types for the ranking system
 export interface RankingSet {
@@ -193,54 +188,24 @@ const mockSets: RankingSet[] = [
 
 const positions: string[] = ["overall", "QB", "RB", "WR", "TE", "K", "DEF"];
 
-interface CreateSetModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  onSelectFormat: (format: "dynasty" | "redraft") => void;
+// Add this helper function near the top of the file
+function getPositionGlowColor(position: string): string {
+  switch (position) {
+    case "QB": return "#FFD700"; // gold
+    case "RB": return "#00FF00"; // green
+    case "WR": return "#1E90FF"; // blue
+    case "TE": return "#FF69B4"; // pink
+    case "K":  return "#FFA500"; // orange
+    case "DEF": return "#A9A9A9"; // gray
+    default: return "#FFFFFF"; // white
+  }
 }
 
-const CreateSetModal: React.FC<CreateSetModalProps> = ({ isOpen, onClose, onSelectFormat }) => (
-  <Dialog open={isOpen} onOpenChange={onClose}>
-    <DialogContent className="sm:max-w-md bg-background border-0 shadow-xl rounded-2xl">
-      <DialogHeader>
-        <DialogTitle className="text-2xl font-bold text-center">Create New Ranking Set</DialogTitle>
-      </DialogHeader>
-      <div className="space-y-6 py-4">
-        <p className="text-center text-muted-foreground">Choose your league format:</p>
-        <div className="flex flex-col space-y-3">
-          <Button onClick={() => onSelectFormat("dynasty")} className="h-14 text-lg font-semibold w-full rounded-xl">Dynasty</Button>
-          <Button onClick={() => onSelectFormat("redraft")} className="h-14 text-lg font-semibold w-full rounded-xl">Redraft</Button>
-        </div>
-      </div>
-    </DialogContent>
-  </Dialog>
-);
+interface PlayersContentProps {
+  createSetModalRef: React.RefObject<CreateSetModalRef>;
+}
 
-// Position color mapping for outline
-const positionOutline = {
-  QB: "border-blue-500 text-blue-500",
-  RB: "border-red-500 text-red-500",
-  WR: "border-green-500 text-green-500",
-  TE: "border-purple-500 text-purple-500",
-  K: "border-gray-400 text-gray-400",
-  DEF: "border-gray-400 text-gray-400"
-};
-
-// Position glow color mapping
-const getPositionGlowColor = (position: string) => {
-  switch (position) {
-    case "QB": return "0 10px 25px -3px rgba(59, 130, 246, 0.4), 0 4px 12px -2px rgba(59, 130, 246, 0.3)"; // blue
-    case "RB": return "0 10px 25px -3px rgba(239, 68, 68, 0.4), 0 4px 12px -2px rgba(239, 68, 68, 0.3)"; // red
-    case "WR": return "0 10px 25px -3px rgba(34, 197, 94, 0.4), 0 4px 12px -2px rgba(34, 197, 94, 0.3)"; // green
-    case "TE": return "0 10px 25px -3px rgba(168, 85, 247, 0.4), 0 4px 12px -2px rgba(168, 85, 247, 0.3)"; // purple
-    case "K": return "0 10px 25px -3px rgba(156, 163, 175, 0.4), 0 4px 12px -2px rgba(156, 163, 175, 0.3)"; // gray
-    case "DEF": return "0 10px 25px -3px rgba(156, 163, 175, 0.4), 0 4px 12px -2px rgba(156, 163, 175, 0.3)"; // gray
-    default: return "0 10px 25px -3px rgba(59, 130, 246, 0.4), 0 4px 12px -2px rgba(59, 130, 246, 0.3)"; // default blue
-  }
-};
-
-const PlayersContent: React.FC = () => {
-  const { user } = useAuth();
+const PlayersContent: React.FC<PlayersContentProps> = ({ createSetModalRef }) => {
   const [state, setState] = useState<PlayersState>({
     currentSet: mockSets[0],
     sets: mockSets,
@@ -260,29 +225,12 @@ const PlayersContent: React.FC = () => {
     sortBy: "rank",
     sortOrder: "asc"
   });
-  const [showCreateModal, setShowCreateModal] = useState(false);
   const searchInputRef = React.useRef<HTMLInputElement>(null);
 
   // Autofocus search bar on mount
   useEffect(() => {
     if (searchInputRef.current) searchInputRef.current.focus();
   }, []);
-
-  const handleCreateSet = (format: "dynasty" | "redraft") => {
-    const newSet: RankingSet = {
-      id: Date.now().toString(),
-      name: `${format.charAt(0).toUpperCase() + format.slice(1)} Top 200`,
-      format,
-      rankingType: "top200",
-      isActive: true,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString(),
-      description: `Top 200 ${format} rankings`
-    };
-    setState(prev => ({ ...prev, sets: [...prev.sets, newSet], currentSet: newSet }));
-    setShowCreateModal(false);
-    toast.success(`Created new ${format} ranking set!`);
-  };
 
   // Only filter by player name and active tab (position)
   const filteredPlayers = state.rankedPlayers.filter(player => {
@@ -320,7 +268,7 @@ const PlayersContent: React.FC = () => {
           />
           <div className="flex gap-2 w-full justify-center">
             <Button
-              onClick={() => setShowCreateModal(true)}
+              onClick={() => createSetModalRef.current?.openModal()}
               className="rounded-full px-6 h-12 text-base font-semibold"
             >
               <Plus className="h-5 w-5 mr-2" />Create New
@@ -370,9 +318,7 @@ const PlayersContent: React.FC = () => {
                   <span className="ml-2 text-base text-muted-foreground font-medium truncate">{rankedPlayer.player.team}</span>
                 </div>
                 <div className={cn(
-                  "flex-shrink-0 w-12 h-12 flex items-center justify-center font-bold text-base border-2 bg-background",
-                  positionOutline[rankedPlayer.player.position as keyof typeof positionOutline] || "border-gray-300 text-gray-500",
-                  "rounded-full ml-auto"
+                  "flex-shrink-0 w-12 h-12 flex items-center justify-center font-bold text-base border-2 bg-background rounded-full ml-auto"
                 )}>
                   {rankedPlayer.player.position}
                 </div>
@@ -394,19 +340,21 @@ const PlayersContent: React.FC = () => {
       </div>
 
       {/* Create Set Modal */}
-      <CreateSetModal
-        isOpen={showCreateModal}
-        onClose={() => setShowCreateModal(false)}
-        onSelectFormat={handleCreateSet}
-      />
+      <CreateSetModal ref={createSetModalRef} />
     </div>
   );
 };
 
-const Players: React.FC = () => (
-  <Layout>
-    <PlayersContent />
-  </Layout>
-);
+const Players: React.FC = () => {
+  const createSetModalRef = React.useRef<CreateSetModalRef>(null);
+  return (
+    <Layout>
+      <RankingsProvider>
+        <PlayersContent createSetModalRef={createSetModalRef} />
+        <CreateSetModal ref={createSetModalRef} />
+      </RankingsProvider>
+    </Layout>
+  );
+};
 
 export default Players;
