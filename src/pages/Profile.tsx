@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import React, { useState } from "react";
+import { motion } from "framer-motion";
 import { 
   Settings, 
   Edit
@@ -11,6 +11,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserProfile } from "@/hooks/useUserProfile";
 import LoadingSpinner from "@/components/LoadingSpinner";
+import ProfileEditModal from "@/components/modals/ProfileEditModal";
 
 const formatDate = (dateString: string) => {
   return new Date(dateString).toLocaleDateString('en-US', {
@@ -22,7 +23,8 @@ const formatDate = (dateString: string) => {
 
 const ProfileContent: React.FC = () => {
   const { user } = useAuth();
-  const { profile, isLoading, error } = useUserProfile();
+  const { profile, isLoading, error, updateProfile } = useUserProfile();
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
   // Show loading state while profile is being fetched
   if (isLoading) {
@@ -93,7 +95,12 @@ const ProfileContent: React.FC = () => {
                     )}
                   </div>
                   <div className="flex items-center space-x-2">
-                    <Button variant="outline" size="sm" className="rounded-full">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="rounded-full"
+                      onClick={() => setIsEditModalOpen(true)}
+                    >
                       <Edit className="h-4 w-4 mr-2" />
                       Edit Profile
                     </Button>
@@ -107,6 +114,16 @@ const ProfileContent: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Profile Edit Modal */}
+      {profile && (
+        <ProfileEditModal
+          isOpen={isEditModalOpen}
+          onClose={() => setIsEditModalOpen(false)}
+          profile={profile}
+          onSave={updateProfile}
+        />
+      )}
     </Layout>
   );
 };
