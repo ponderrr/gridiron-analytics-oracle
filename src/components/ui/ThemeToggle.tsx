@@ -1,6 +1,6 @@
 import React from "react";
 import { Sun, Moon, Monitor } from "lucide-react";
-import { useTheme } from "@/contexts/ThemeContext";
+import { useThemeSelector } from "@/hooks/useThemeSelector";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,7 +21,7 @@ export const ThemeToggle: React.FC<ThemeToggleProps> = ({
   size = "default",
   className = "",
 }) => {
-  const { theme, setTheme, effectiveTheme } = useTheme();
+  const { theme, setTheme, effectiveTheme, toggleTheme } = useThemeSelector();
 
   const getIconSize = () => {
     switch (size) {
@@ -43,11 +43,6 @@ export const ThemeToggle: React.FC<ThemeToggleProps> = ({
     ) : (
       <Sun className={cn(getIconSize(), "text-slate-700")} />
     );
-  };
-
-  const toggleTheme = () => {
-    const newTheme = effectiveTheme === "dark" ? "light" : "dark";
-    setTheme(newTheme);
   };
 
   if (variant === "button") {

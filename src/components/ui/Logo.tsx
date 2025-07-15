@@ -8,19 +8,20 @@ interface LogoProps {
 
 const Logo: React.FC<LogoProps> = ({ className = "", size = "md" }) => {
   const { effectiveTheme } = useTheme();
-  
+
   const sizeClasses = {
     sm: "h-16 w-auto",
-    md: "h-24 w-auto", 
-    lg: "h-32 w-auto"
+    md: "h-24 w-auto",
+    lg: "h-32 w-auto",
   };
 
-  const logoSrc = effectiveTheme === "dark" 
-    ? "/ff-meta-dark-logo.svg"
-    : "/ff-meta-light-logo.svg";
+  const logoSrc =
+    effectiveTheme === "dark"
+      ? "/ff-meta-dark-logo.svg"
+      : "/ff-meta-light-logo.svg";
 
   return (
-    <img 
+    <img
       src={logoSrc}
       alt="FF Meta Logo"
       className={`${sizeClasses[size]} ${className}`}
@@ -28,4 +29,4 @@ const Logo: React.FC<LogoProps> = ({ className = "", size = "md" }) => {
   );
 };
 
-export default Logo; 
+export default Logo;

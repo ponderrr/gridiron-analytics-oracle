@@ -27,14 +27,18 @@ export function PlayerSearch() {
 
   return (
     <div className="space-y-4 p-4 bg-slate-800/50 rounded-lg border border-slate-700/50">
-      <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">Search & Filters</h3>
+      <h3 className="text-lg font-semibold text-[var(--color-text-primary)]">
+        Search & Filters
+      </h3>
 
       <div className="space-y-3">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-slate-400 z-10" />
-          <div className={`transition-all duration-300 ${
-            isFocused ? "w-80" : "w-64"
-          }`}>
+          <div
+            className={`transition-all duration-300 ${
+              isFocused ? "w-80" : "w-64"
+            }`}
+          >
             <Input
               placeholder="Search players..."
               value={rawSearchTerm}

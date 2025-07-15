@@ -1,6 +1,8 @@
 import React from "react";
-import ProtectedRoute from "@/components/ProtectedRoute";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import { Navigate, useLocation } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import LoadingSpinner from "@/components/LoadingSpinner";
 
 // Standard error handlers for routes
 const handleRouteError = (error: Error, errorInfo: React.ErrorInfo) => {
@@ -34,9 +36,15 @@ export function createProtectedRoute(
   Component: React.ComponentType,
   errorBoundary: boolean = true
 ) {
-  let element = React.createElement(Component);
-  element = React.createElement(ProtectedRoute, { children: element });
-
+  // Inline protection logic (mimics ProtectedRoute)
+  function ProtectedWrapper(props: any) {
+    const { user, isLoading } = useAuth();
+    const location = useLocation();
+    if (isLoading) return <LoadingSpinner size="lg" />;
+    if (!user) return <Navigate to="/login" state={{ from: location }} replace />;
+    return <Component {...props} />;
+  }
+  let element = React.createElement(ProtectedWrapper);
   if (errorBoundary) {
     element = React.createElement(ErrorBoundary, {
       context: `Protected Route: ${path}`,
@@ -45,7 +53,6 @@ export function createProtectedRoute(
       children: element,
     });
   }
-
   return { path, element };
 }
 

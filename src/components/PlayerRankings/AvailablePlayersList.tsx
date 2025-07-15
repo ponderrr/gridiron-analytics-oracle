@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useCallback } from "react";
 import { Droppable, Draggable } from "react-beautiful-dnd";
 import { FixedSizeList as List, ListChildComponentProps } from "react-window";
 import { Button } from "@/components/ui/button";
@@ -26,58 +26,64 @@ export function AvailablePlayersList() {
     [getFilteredAvailableItems]
   );
 
-  const handleAddToRankings = (item: Player | DraftPick) => {
-    dispatch({ type: "PUSH_UNDO", payload: [...state.rankedItems] });
-    const newRank = state.rankedItems.length + 1;
-    const itemType = "name" in item ? "player" : "pick";
-    dispatch({
-      type: "ADD_RANKED_ITEM",
-      payload: { item, type: itemType, rank: newRank },
-    });
-  };
+  const handleAddToRankings = useCallback(
+    (item: Player | DraftPick) => {
+      dispatch({ type: "PUSH_UNDO", payload: [...state.rankedItems] });
+      const newRank = state.rankedItems.length + 1;
+      const itemType = "name" in item ? "player" : "pick";
+      dispatch({
+        type: "ADD_RANKED_ITEM",
+        payload: { item, type: itemType, rank: newRank },
+      });
+    },
+    [dispatch, state.rankedItems]
+  );
 
   const isPlayer = (item: Player | DraftPick): item is Player => {
     return "name" in item;
   };
 
   // Virtualized row renderer with Draggable
-  const Row = ({ index, style }: ListChildComponentProps) => {
-    const item = filteredItems[index];
-    if (!item) return null;
-
-    const itemType = isPlayer(item) ? "player" : "pick";
-
-    return (
-      <Draggable
-        key={item.id}
-        draggableId={`available-${itemType}-${item.id}`}
-        index={index}
-      >
-        {(provided, snapshot) => (
-          <div
-            ref={provided.innerRef}
-            {...provided.draggableProps}
-            {...provided.dragHandleProps}
-            style={{ ...style, marginBottom: 8 }}
-          >
-            {isPlayer(item) ? (
-              <PlayerCard
-                player={{ ...item, bye_week: item.bye_week ?? undefined }}
-                isDragging={snapshot.isDragging}
-                onAddToRankings={() => handleAddToRankings(item)}
-              />
-            ) : (
-              <DraftPickCard
-                pick={item}
-                className={snapshot.isDragging ? "opacity-50" : ""}
-                onClick={() => handleAddToRankings(item)}
-              />
-            )}
-          </div>
-        )}
-      </Draggable>
-    );
-  };
+  const Row = useCallback(
+    React.memo(({ index, style }: ListChildComponentProps) => {
+      const item = filteredItems[index];
+      if (!item) return null;
+      const itemType = isPlayer(item) ? "player" : "pick";
+      return (
+        <Draggable
+          key={item.id}
+          draggableId={`available-${itemType}-${item.id}`}
+          index={index}
+        >
+          {(provided, snapshot) => (
+            <div
+              ref={provided.innerRef}
+              {...provided.draggableProps}
+              {...provided.dragHandleProps}
+              style={{ ...style, marginBottom: 8 }}
+            >
+              {isPlayer(item) ? (
+                <PlayerCard
+                  player={{ ...item, bye_week: item.bye_week ?? undefined }}
+                  isDragging={snapshot.isDragging}
+                  onAddToRankings={() => handleAddToRankings(item)}
+                  imageProps={{ loading: "lazy" }}
+                />
+              ) : (
+                <DraftPickCard
+                  pick={item}
+                  className={snapshot.isDragging ? "opacity-50" : ""}
+                  onClick={() => handleAddToRankings(item)}
+                  imageProps={{ loading: "lazy" }}
+                />
+              )}
+            </div>
+          )}
+        </Draggable>
+      );
+    }),
+    [filteredItems, handleAddToRankings]
+  );
 
   return (
     <div className="h-full flex flex-col">

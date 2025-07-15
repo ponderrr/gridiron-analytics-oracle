@@ -47,25 +47,26 @@ function App() {
               fallback={<LoadingSpinner size="lg" message="Loading..." />}
             >
               <Routes>
-                {routes.map(
-                  ({
-                    path,
-                    component: Component,
-                    protected: isProtected,
-                    errorBoundary,
-                  }) => {
-                    const routeConfig = isProtected
-                      ? createProtectedRoute(path, Component, errorBoundary)
-                      : createPublicRoute(path, Component, errorBoundary);
-                    return (
-                      <Route
-                        key={routeConfig.path}
-                        path={routeConfig.path}
-                        element={routeConfig.element}
-                      />
-                    );
-                  }
-                )}
+                {(
+                  routes.map(
+                    ({
+                      path,
+                      component: Component,
+                      protected: isProtected,
+                      errorBoundary,
+                    }) => {
+                      return !!isProtected
+                        ? createProtectedRoute(path, Component, errorBoundary)
+                        : createPublicRoute(path, Component, errorBoundary);
+                    }
+                  ) as { path: string; element: React.ReactElement }[]
+                ).map((routeConfig) => (
+                  <Route
+                    key={routeConfig.path}
+                    path={routeConfig.path}
+                    element={routeConfig.element}
+                  />
+                ))}
               </Routes>
             </Suspense>
           </AuthProvider>

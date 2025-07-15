@@ -8,7 +8,6 @@
   }
 
   :root {
-    /* Default theme variables will be set by JavaScript */
     --font-primary: "Inter", system-ui, sans-serif;
     --font-mono: "JetBrains Mono", Monaco, monospace;
     --color-bg-primary: #fff;
@@ -75,7 +74,7 @@
     background: var(--color-bg-primary) !important;
   }
 
-image.png  /* Consistent spacing utilities */
+  image.png  /* Consistent spacing utilities */
   .space-y-theme {
     gap: var(--spacing-md);
   }

@@ -84,6 +84,16 @@ export interface UseTradeAnalysisOptions {
   scaling?: PlayerValueScaling;
 }
 
+function isCustomScaling(
+  scaling: PlayerValueScaling
+): scaling is { type: "custom"; factor: number } {
+  return (
+    typeof scaling === "object" &&
+    scaling.type === "custom" &&
+    typeof scaling.factor === "number"
+  );
+}
+
 /**
  * React hook for analyzing fantasy football trades between two sides using player rankings and value scaling.
  *
@@ -140,10 +150,9 @@ export function useTradeAnalysis(
           baseValue = Math.log2(Math.max(1, maxRank - effectiveRank + 1));
           break;
         case "custom":
-          baseValue = Math.pow(
-            maxRank - effectiveRank,
-            (scaling as any).factor
-          );
+          baseValue = isCustomScaling(scaling)
+            ? Math.pow(maxRank - effectiveRank, scaling.factor)
+            : maxRank - effectiveRank;
           break;
         case "quadratic":
         default:

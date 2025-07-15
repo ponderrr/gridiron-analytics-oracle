@@ -4,6 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "@/components/ui/sonner";
 import { supabase } from "@/integrations/supabase/client";
+import ErrorBoundary from "@/components/ErrorBoundary";
+import LoadingSpinner from "@/components/LoadingSpinner";
 
 interface UnmappedPlayer {
   id: string;
@@ -17,6 +19,11 @@ interface UnmappedPlayer {
     score: number;
     confidence: string;
   }>;
+}
+
+interface MappingReviewError extends Error {
+  code?: string;
+  status?: number;
 }
 
 export default function MappingReview() {
@@ -141,7 +148,11 @@ export default function MappingReview() {
   };
 
   if (loading) {
-    return <div className="p-6">Loading unmapped players...</div>;
+    return (
+      <div className="p-6">
+        <LoadingSpinner size="lg" label="Loading unmapped players..." />
+      </div>
+    );
   }
 
   return (
@@ -262,3 +273,11 @@ export default function MappingReview() {
     </div>
   );
 }
+
+// Wrap export in ErrorBoundary
+const MappingReviewWithBoundary = () => (
+  <ErrorBoundary>
+    <MappingReview />
+  </ErrorBoundary>
+);
+export { MappingReviewWithBoundary as MappingReview };

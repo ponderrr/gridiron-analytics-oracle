@@ -1,5 +1,6 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useState, useMemo } from "react";
 import { Droppable, Draggable } from "react-beautiful-dnd";
+import { FixedSizeList as List, ListChildComponentProps } from "react-window";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -13,13 +14,30 @@ import { List, Grid3X3 } from "lucide-react";
 import PlayerCard from "@/components/ui/cards/PlayerCard";
 import { useRankings } from "./RankingsProvider";
 import { positions } from "@/constants/playerData";
+import { useKeyboardDrag } from "@/hooks/useKeyboardDrag";
 
 export function RankedPlayersList() {
   const { state, dispatch } = useRankings();
   const [viewMode, setViewMode] = React.useState<"linear" | "tiers">("linear");
   const [positionFilter, setPositionFilter] = useState<string>("all");
-  const [kbdDragIndex, setKbdDragIndex] = useState<number | null>(null);
-  const [kbdDragOrigin, setKbdDragOrigin] = useState<number | null>(null);
+
+  const rankedPlayers = useMemo(
+    () =>
+      state.rankedItems
+        .filter((item) => item.type === "player" && item.player)
+        .filter(
+          (item) =>
+            positionFilter === "all" || item.player!.position === positionFilter
+        )
+        .map((item) => ({
+          player_id: item.player_id!,
+          overall_rank: item.overall_rank,
+          tier: item.tier,
+          notes: item.notes,
+          player: item.player!,
+        })),
+    [state.rankedItems, positionFilter]
+  );
 
   const handleRemoveFromRankings = useCallback(
     (playerId: string) => {
@@ -28,20 +46,6 @@ export function RankedPlayersList() {
     },
     [dispatch, state.rankedItems]
   );
-
-  const rankedPlayers = state.rankedItems
-    .filter((item) => item.type === "player" && item.player)
-    .filter(
-      (item) =>
-        positionFilter === "all" || item.player!.position === positionFilter
-    )
-    .map((item) => ({
-      player_id: item.player_id!,
-      overall_rank: item.overall_rank,
-      tier: item.tier,
-      notes: item.notes,
-      player: item.player!,
-    }));
 
   const groupedByTiers = React.useMemo(() => {
     const tiers = new Map<number, typeof rankedPlayers>();
@@ -104,69 +108,94 @@ export function RankedPlayersList() {
     }
   };
 
-  // Keyboard drag handlers
-  const startKbdDrag = (index: number) => {
-    setKbdDragIndex(index);
-    setKbdDragOrigin(index);
-  };
-  const moveKbdDrag = (direction: -1 | 1) => {
-    if (kbdDragIndex === null) return;
-    const newIndex = Math.max(
-      0,
-      Math.min(rankedPlayers.length - 1, kbdDragIndex + direction)
-    );
-    if (newIndex !== kbdDragIndex) {
-      setKbdDragIndex(newIndex);
+  const {
+    dragIndex: kbdDragIndex,
+    dragOrigin: kbdDragOrigin,
+    startDrag: startKbdDrag,
+    moveDrag: moveKbdDrag,
+    dropDrag: dropKbdDrag,
+    cancelDrag: cancelKbdDrag,
+    handleKeyDown: handleListKeyDown,
+  } = useKeyboardDrag(rankedPlayers.length, (from, to) => {
+    dispatch({ type: "PUSH_UNDO", payload: [...state.rankedItems] });
+    const updated = [...rankedPlayers];
+    const [moved] = updated.splice(from, 1);
+    updated.splice(to, 0, moved);
+    const newRankedItems = updated.map((p, i) => ({
+      ...state.rankedItems.find((item) => item.player_id === p.player_id)!,
+      overall_rank: i + 1,
+    }));
+    dispatch({ type: "SET_RANKED_ITEMS", payload: newRankedItems });
+  });
+
+  // Add ARIA live region for drag announcements at the top of the component
+  const liveRegionRef = React.useRef<HTMLDivElement>(null);
+  const announce = (msg: string) => {
+    if (liveRegionRef.current) {
+      liveRegionRef.current.textContent = msg;
+      setTimeout(() => {
+        if (liveRegionRef.current) liveRegionRef.current.textContent = "";
+      }, 1000);
     }
-  };
-  const dropKbdDrag = () => {
-    if (
-      kbdDragIndex !== null &&
-      kbdDragOrigin !== null &&
-      kbdDragIndex !== kbdDragOrigin
-    ) {
-      dispatch({ type: "PUSH_UNDO", payload: [...state.rankedItems] });
-      // Move the item in the array
-      const updated = [...rankedPlayers];
-      const [moved] = updated.splice(kbdDragOrigin, 1);
-      updated.splice(kbdDragIndex, 0, moved);
-      // Update overall_rank
-      const newRankedItems = updated.map((p, i) => ({
-        ...state.rankedItems.find((item) => item.player_id === p.player_id)!,
-        overall_rank: i + 1,
-      }));
-      dispatch({ type: "SET_RANKED_ITEMS", payload: newRankedItems });
-    }
-    setKbdDragIndex(null);
-    setKbdDragOrigin(null);
-  };
-  const cancelKbdDrag = () => {
-    setKbdDragIndex(null);
-    setKbdDragOrigin(null);
   };
 
-  // Keyboard event handler for the list
-  const handleListKeyDown = (e: React.KeyboardEvent) => {
-    if (kbdDragIndex === null) return;
-    if (e.key === "ArrowUp") {
-      e.preventDefault();
-      moveKbdDrag(-1);
-    } else if (e.key === "ArrowDown") {
-      e.preventDefault();
-      moveKbdDrag(1);
-    } else if (e.key === "Enter" || e.key === " ") {
-      e.preventDefault();
-      dropKbdDrag();
-    } else if (e.key === "Escape") {
-      e.preventDefault();
-      cancelKbdDrag();
-    }
-  };
+  // Virtualized row renderer for ranked players
+  const Row = useCallback(
+    ({ index, style }: ListChildComponentProps) => {
+      const rankedPlayer = rankedPlayers[index];
+      if (!rankedPlayer) return null;
+      return (
+        <Draggable
+          key={rankedPlayer.player_id}
+          draggableId={`ranked-${rankedPlayer.player_id}`}
+          index={index}
+        >
+          {(provided, snapshot) => (
+            <div
+              ref={provided.innerRef}
+              {...provided.draggableProps}
+              style={style}
+              aria-grabbed={kbdDragIndex === index ? "true" : "false"}
+              aria-dropeffect="move"
+              tabIndex={0}
+              onFocus={() => announce(`Focused on ${rankedPlayer.player.name}`)}
+            >
+              <PlayerCard
+                player={{
+                  ...rankedPlayer.player,
+                  bye_week: rankedPlayer.player.bye_week ?? undefined,
+                }}
+                rank={rankedPlayer.overall_rank}
+                tier={rankedPlayer.tier}
+                isRanked={true}
+                isDragging={snapshot.isDragging}
+                onRemoveFromRankings={handleRemoveFromRankings}
+                dragHandleProps={provided.dragHandleProps}
+                kbdDragActive={kbdDragIndex === index}
+                tabIndex={0}
+                imageProps={{ loading: "lazy" }}
+                announce={announce}
+              />
+            </div>
+          )}
+        </Draggable>
+      );
+    },
+    [rankedPlayers, handleRemoveFromRankings, kbdDragIndex]
+  );
 
   return (
     <div className="h-full flex flex-col">
+      <div
+        ref={liveRegionRef}
+        aria-live="polite"
+        aria-atomic="true"
+        className="sr-only"
+      />
       <div className="flex items-center justify-between mb-4">
-        <h2 className="text-xl font-bold text-[var(--color-text-primary)]">My Rankings</h2>
+        <h2 className="text-xl font-bold text-[var(--color-text-primary)]">
+          My Rankings
+        </h2>
 
         <div className="flex items-center gap-2">
           <Select value={positionFilter} onValueChange={setPositionFilter}>
@@ -227,44 +256,14 @@ export function RankedPlayersList() {
               onKeyDown={handleListKeyDown}
               aria-label="Ranked players list"
             >
-              {rankedPlayers.map((rankedPlayer, index) => (
-                <Draggable
-                  key={rankedPlayer.player_id}
-                  draggableId={`ranked-${rankedPlayer.player_id}`}
-                  index={index}
-                >
-                  {(provided, snapshot) => (
-                    <div ref={provided.innerRef} {...provided.draggableProps}>
-                      <PlayerCard
-                        player={{
-                          ...rankedPlayer.player,
-                          bye_week: rankedPlayer.player.bye_week ?? undefined,
-                        }}
-                        rank={rankedPlayer.overall_rank}
-                        tier={rankedPlayer.tier}
-                        isRanked={true}
-                        isDragging={snapshot.isDragging}
-                        onRemoveFromRankings={handleRemoveFromRankings}
-                        dragHandleProps={provided.dragHandleProps}
-                        // Keyboard drag props
-                        kbdDragActive={kbdDragIndex === index}
-                        kbdDragMode={kbdDragIndex !== null}
-                        onKbdDragStart={() => startKbdDrag(index)}
-                        onKbdDragDrop={dropKbdDrag}
-                        onKbdDragCancel={cancelKbdDrag}
-                        tabIndex={
-                          kbdDragIndex === null
-                            ? 0
-                            : kbdDragIndex === index
-                              ? 0
-                              : -1
-                        }
-                        aria-selected={kbdDragIndex === index}
-                      />
-                    </div>
-                  )}
-                </Draggable>
-              ))}
+              <List
+                height={600}
+                itemCount={rankedPlayers.length}
+                itemSize={80}
+                width="100%"
+              >
+                {Row}
+              </List>
               {provided.placeholder}
             </div>
           )}

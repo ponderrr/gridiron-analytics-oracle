@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { GripVertical, Plus, X } from "lucide-react";
 import { useTheme } from "@/contexts/ThemeContext";
 import { LoadingState } from "@/components/ui/common/LoadingState";
-import "./PlayerCard.css"; // Import the CSS for micro-interactions
+import "./PlayerCard.css"; 
 
 export interface PlayerCardProps {
   player: {
@@ -117,16 +117,17 @@ const DragHandle: React.FC<{
     type="button"
     {...dragHandleProps}
     className={cn(
-      "cursor-grab active:cursor-grabbing focus:outline-none",
+      "cursor-grab active:cursor-grabbing focus:outline-none focus-visible:ring-2 focus-visible:ring-primary",
       themeClasses.RING,
       kbdDragActive && `${themeClasses.RING} ${themeClasses.BG_ACTIVE}`
     )}
     role="button"
     aria-label={`Drag to reorder player ${playerName}`}
     aria-grabbed={kbdDragActive ? "true" : "false"}
+    aria-describedby={`player-card-desc-${playerName}`}
+    aria-selected={rest["aria-selected"]}
     tabIndex={tabIndex ?? 0}
     ref={dragHandleRef}
-    aria-selected={rest["aria-selected"]}
     onKeyDown={(e) => {
       if (!kbdDragMode && (e.key === "Enter" || e.key === " ")) {
         e.preventDefault();
@@ -148,7 +149,6 @@ const DragHandle: React.FC<{
     onBlur={() => {
       announce(`Dropped ${playerName}`);
     }}
-    aria-describedby={`player-card-desc-${playerName}`}
   >
     <GripVertical className={`h-4 w-4 ${themeClasses.TEXT_MUTED}`} />
   </button>
@@ -173,7 +173,11 @@ const PlayerDisplay: React.FC<{
           {player.name}
         </h4>
         {/* Do not render position badge for K, DEF, or D/ST */}
-        {!(player.position === "K" || player.position === "DEF" || player.position === "D/ST") && (
+        {!(
+          player.position === "K" ||
+          player.position === "DEF" ||
+          player.position === "D/ST"
+        ) && (
           <Badge
             variant="outline"
             className={getPositionColor(player.position, themeClasses)}
@@ -309,6 +313,7 @@ const PlayerCard: React.FC<PlayerCardProps> = (props) => {
       tabIndex={props.tabIndex ?? 0}
       aria-selected={props["aria-selected"]}
       style={{ transition: "all 0.2s ease" }}
+      role="listitem"
     >
       {/* ARIA live region for announcements */}
       <div

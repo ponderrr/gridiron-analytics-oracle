@@ -131,9 +131,6 @@ class ErrorBoundary extends React.Component<
       const { title, message } =
         errorTypeMap[errorType] || errorTypeMap["unknown"];
 
-      // Get theme classes
-      // Removed unused: const { effectiveTheme } = this.context as { effectiveTheme: "light" | "dark" };
-
       return (
         <div
           className={`flex flex-col items-center justify-center min-h-[400px] text-center p-8 bg-[var(--color-bg-primary)]`}

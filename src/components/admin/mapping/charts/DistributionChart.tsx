@@ -25,7 +25,6 @@ export function DistributionChart({
     color: colors[key] || "#64748b",
   }));
 
-  // Calculate cumulative percentages for SVG paths
   let cumulativePercentage = 0;
   const segmentsWithAngles = segments.map((segment) => {
     const startAngle = (cumulativePercentage / 100) * 360;

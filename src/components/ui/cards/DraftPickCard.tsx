@@ -1,9 +1,7 @@
 import React from "react";
 import { cn } from "@/lib/utils";
-import type { Database } from "@/integrations/supabase/types";
-import "./PlayerCard.css"; 
-
-type DraftPick = Database["public"]["Tables"]["draft_picks"]["Row"];
+import type { DraftPick } from "@/lib/database";
+import "./PlayerCard.css";
 
 interface DraftPickCardProps {
   pick: DraftPick;
@@ -11,22 +9,37 @@ interface DraftPickCardProps {
   onClick?: () => void;
 }
 
-const getPickValueColor = (round: number, pick: number) => {
-  if (round === 1) {
-    if (pick <= 3) return "text-amber-400"; // Gold for top 3
-    if (pick <= 6) return "text-emerald-400"; // Green for picks 4-6
-    return "text-blue-400"; // Blue for rest of round 1
+// Map pick_type to color and indicator
+const getPickValueColor = (pick_type: string) => {
+  switch (pick_type) {
+    case "early_1st":
+      return "text-amber-400";
+    case "mid_late_1st":
+      return "text-emerald-400";
+    case "early_2nd":
+      return "text-purple-400";
+    case "mid_late_2nd":
+      return "text-orange-400";
+    case "3rd":
+      return "text-blue-400";
+    case "4th":
+      return "text-slate-400";
+    default:
+      return "text-slate-400";
   }
-  if (round === 2) return "text-purple-400"; // Purple for round 2
-  if (round === 3) return "text-orange-400"; // Orange for round 3
-  return "text-slate-400"; // Gray for round 4+
 };
 
-const getPickValueIndicator = (round: number, pick: number) => {
-  if (round === 1 && pick <= 3) return "★★★"; // Elite
-  if (round === 1 && pick <= 6) return "★★"; // High value
-  if (round === 1 || (round === 2 && pick <= 6)) return "★"; // Good value
-  return ""; // Standard
+const getPickValueIndicator = (pick_type: string) => {
+  switch (pick_type) {
+    case "early_1st":
+      return "★★★";
+    case "mid_late_1st":
+      return "★★";
+    case "early_2nd":
+      return "★";
+    default:
+      return "";
+  }
 };
 
 export const DraftPickCard: React.FC<DraftPickCardProps> = ({
@@ -34,9 +47,9 @@ export const DraftPickCard: React.FC<DraftPickCardProps> = ({
   className,
   onClick,
 }) => {
-  const pickDisplay = `${pick.year} ${pick.round}.${pick.pick.toString().padStart(2, "0")}`;
-  const valueColor = getPickValueColor(pick.round, pick.pick);
-  const valueIndicator = getPickValueIndicator(pick.round, pick.pick);
+  const pickDisplay = `${pick.year} ${pick.display_name}`;
+  const valueColor = getPickValueColor(pick.pick_type);
+  const valueIndicator = getPickValueIndicator(pick.pick_type);
 
   return (
     <div
@@ -58,23 +71,22 @@ export const DraftPickCard: React.FC<DraftPickCardProps> = ({
             )}
           </div>
           <div className="flex items-center space-x-2 mt-1">
-            <span className="text-sm text-muted-foreground">
-              Overall #{pick.overall_pick}
-            </span>
+            {pick.description && (
+              <span className="text-sm text-muted-foreground">
+                {pick.description}
+              </span>
+            )}
             <span className="text-xs px-2 py-1 bg-secondary rounded-full">
-              {pick.league_type}
+              {pick.pick_type.replace(/_/g, " ")}
             </span>
           </div>
         </div>
-
         <div className="text-right">
           <div className={cn("text-sm font-medium", valueColor)}>
-            Round {pick.round}
+            {pick.pick_type.replace(/_/g, " ")}
           </div>
-          <div className="text-xs text-muted-foreground">Pick {pick.pick}</div>
         </div>
       </div>
-
       {/* Pick value indicator bar */}
       <div className="mt-3 flex items-center space-x-2">
         <div className="flex-1 bg-secondary rounded-full h-1.5">
@@ -84,14 +96,26 @@ export const DraftPickCard: React.FC<DraftPickCardProps> = ({
               valueColor.replace("text-", "bg-")
             )}
             style={{
-              width: `${Math.max(10, 100 - (pick.round - 1) * 25 - (pick.pick - 1) * 2)}%`,
+              width:
+                pick.pick_type === "early_1st"
+                  ? "90%"
+                  : pick.pick_type === "mid_late_1st"
+                    ? "75%"
+                    : pick.pick_type === "early_2nd"
+                      ? "60%"
+                      : pick.pick_type === "mid_late_2nd"
+                        ? "45%"
+                        : pick.pick_type === "3rd"
+                          ? "30%"
+                          : "15%",
             }}
           />
         </div>
         <span className={cn("text-xs font-medium", valueColor)}>
-          {pick.round === 1 && pick.pick <= 6
+          {pick.pick_type === "early_1st"
             ? "High"
-            : pick.round <= 2
+            : pick.pick_type === "mid_late_1st" ||
+                pick.pick_type === "early_2nd"
               ? "Mid"
               : "Late"}
         </span>

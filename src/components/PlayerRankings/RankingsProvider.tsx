@@ -13,6 +13,9 @@ import { Player as DatabasePlayer, DraftPick } from "@/lib/database";
 export type { Player } from "@/lib/database";
 export type { DraftPick } from "@/lib/database";
 
+/**
+ * Represents a player that has been ranked, including their player data and optional notes/tier.
+ */
 export interface RankedPlayer {
   player_id: string;
   overall_rank: number;
@@ -21,6 +24,9 @@ export interface RankedPlayer {
   player: DatabasePlayer;
 }
 
+/**
+ * Represents a single item in a ranking set, which can be a player or a draft pick.
+ */
 export interface RankedItem {
   id: string;
   type: "player" | "pick";
@@ -33,6 +39,9 @@ export interface RankedItem {
   pick?: DraftPick;
 }
 
+/**
+ * Represents a set of rankings, including metadata and the list of ranked items.
+ */
 export interface RankingSet {
   id: string;
   name: string;

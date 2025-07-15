@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { supabase } from "@/integrations/supabase/client";
+import ErrorBoundary from "@/components/ErrorBoundary";
+import LoadingSpinner from "@/components/LoadingSpinner";
 
 interface MappingAnalytics {
   total_mappings: number;
@@ -39,6 +41,11 @@ interface LowConfidenceMapping {
   match_method: string;
   verified: boolean;
   notes?: string;
+}
+
+interface MappingAnalyticsError extends Error {
+  code?: string;
+  status?: number;
 }
 
 export default function MappingAnalytics() {
@@ -134,7 +141,11 @@ export default function MappingAnalytics() {
   };
 
   if (loading) {
-    return <div className="p-6">Loading analytics...</div>;
+    return (
+      <div className="p-6">
+        <LoadingSpinner size="lg" label="Loading analytics..." />
+      </div>
+    );
   }
 
   // Show error state if both analytics and low confidence data failed to load
@@ -403,3 +414,11 @@ export default function MappingAnalytics() {
     </div>
   );
 }
+
+// Wrap export in ErrorBoundary
+const MappingAnalyticsWithBoundary = () => (
+  <ErrorBoundary>
+    <MappingAnalytics />
+  </ErrorBoundary>
+);
+export { MappingAnalyticsWithBoundary as MappingAnalytics };

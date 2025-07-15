@@ -53,6 +53,29 @@ export interface SyncState {
   error: AppError | null;
 }
 
+/**
+ * Retry a function up to a specified number of times with delay.
+ * @param fn Function to retry
+ * @param retries Number of retries
+ * @param delayMs Delay between retries in ms
+ */
+async function retry<T>(
+  fn: () => Promise<T>,
+  retries = 3,
+  delayMs = 1000
+): Promise<T> {
+  let lastError: unknown;
+  for (let i = 0; i < retries; i++) {
+    try {
+      return await fn();
+    } catch (err) {
+      lastError = err;
+      if (i < retries - 1) await new Promise((res) => setTimeout(res, delayMs));
+    }
+  }
+  throw lastError;
+}
+
 export const useSyncData = () => {
   const [playerSyncState, setPlayerSyncState] = useState<SyncState>({
     isLoading: false,
@@ -189,6 +212,18 @@ export const useSyncData = () => {
     setStatsSyncState({ isLoading: false, result: null, error: null });
   }, []);
 
+  const retrySyncPlayers = useCallback(() => retry(syncPlayers), [syncPlayers]);
+  const retrySyncWeeklyStats = useCallback(
+    (week: number, season?: number) =>
+      retry(() => syncWeeklyStats(week, season)),
+    [syncWeeklyStats]
+  );
+  const retrySyncPlayerStats = useCallback(
+    (week: number, season?: number) =>
+      retry(() => syncPlayerStats(week, season)),
+    [syncPlayerStats]
+  );
+
   /**
    * React hook for syncing player and stats data with the backend via Supabase edge functions.
    *
@@ -227,6 +262,9 @@ export const useSyncData = () => {
       syncPlayerStats,
       clearPlayerSync,
       clearStatsSync,
+      retrySyncPlayers,
+      retrySyncWeeklyStats,
+      retrySyncPlayerStats,
     }),
     [
       playerSyncState,
@@ -236,6 +274,9 @@ export const useSyncData = () => {
       syncPlayerStats,
       clearPlayerSync,
       clearStatsSync,
+      retrySyncPlayers,
+      retrySyncWeeklyStats,
+      retrySyncPlayerStats,
     ]
   );
 };

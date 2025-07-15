@@ -1,15 +1,21 @@
-import { lazy } from "react";
+import { lazy, Suspense } from "react";
+import LoadingSpinner from "@/components/LoadingSpinner";
 
-// Lazy load heavy components for better performance
-const Dashboard = lazy(() => import("@/pages/Dashboard"));
-const Players = lazy(() => import("@/pages/Players"));
-const Analytics = lazy(() => import("@/pages/Analytics"));
-const Admin = lazy(() => import("@/pages/Admin"));
-const AdminMapping = lazy(() => import("@/pages/AdminMapping"));
-const TradeAnalyzer = lazy(() => import("@/pages/TradeAnalyzer"));
+// Wrap all lazy components in Suspense with fallback
+const withSuspense = (Component: React.LazyExoticComponent<any>) => (props: any) => (
+  <Suspense fallback={<LoadingSpinner size="lg" label="Loading..." />}>
+    <Component {...props} />
+  </Suspense>
+);
 
-const Settings = lazy(() => import("@/pages/Settings"));
-const Profile = lazy(() => import("@/pages/Profile"));
+const Dashboard = withSuspense(lazy(() => import("@/pages/Dashboard")));
+const Players = withSuspense(lazy(() => import("@/pages/Players")));
+const Analytics = withSuspense(lazy(() => import("@/pages/Analytics")));
+const Admin = withSuspense(lazy(() => import("@/pages/Admin")));
+const AdminMapping = withSuspense(lazy(() => import("@/pages/AdminMapping")));
+const TradeAnalyzer = withSuspense(lazy(() => import("@/pages/TradeAnalyzer")));
+const Settings = withSuspense(lazy(() => import("@/pages/Settings")));
+const Profile = withSuspense(lazy(() => import("@/pages/Profile")));
 
 // Regular imports for lighter components
 import Index from "@/pages/Index";

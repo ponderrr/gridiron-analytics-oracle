@@ -125,7 +125,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
     });
 
-    // On mount, check if there's an existing session so the app can restore user state.
     fetchSession();
 
     return () => {

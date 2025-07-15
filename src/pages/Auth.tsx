@@ -4,7 +4,6 @@ import { Eye, EyeOff } from "lucide-react";
 import Layout from "@/components/Layout";
 import LoadingSpinner from "../components/LoadingSpinner";
 import { useAuth } from "@/contexts/AuthContext";
-import { useTheme } from "@/contexts/ThemeContext";
 import {
   validateEmail,
   validatePassword,
@@ -22,7 +21,6 @@ const Auth: React.FC = () => {
   const { login, signup } = useAuth();
   const { error, setError, clearError, formatAndSetError } = useFormError();
 
-  // Tab state: true = Sign In, false = Sign Up
   const [isLogin, setIsLogin] = useState(location.pathname !== "/signup");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");

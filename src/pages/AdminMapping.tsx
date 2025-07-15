@@ -4,7 +4,7 @@ import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BarChart3, Users, Settings, Zap } from "lucide-react";
 import Layout from "@/components/Layout";
 import OptimizedMappingAnalytics from "@/components/admin/mapping/OptimizedMappingAnalytics";
-const OptimizedMappingReview = () => <div>Manual Review UI coming soon</div>;
+import { MappingReview } from "@/components/admin/MappingReview";
 import BulkOperationsPanel from "@/components/admin/mapping/BulkOperationsPanel";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { cn } from "@/lib/utils";
@@ -34,7 +34,7 @@ export default function AdminMapping() {
       id: "review",
       label: "Manual Review",
       icon: Users,
-      component: OptimizedMappingReview,
+      component: MappingReview,
       description: "Review and approve player mappings",
     },
     {

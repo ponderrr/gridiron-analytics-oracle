@@ -1,20 +1,17 @@
 import React, { useState } from "react";
-import {
-  RefreshCw,
-  Users,
-  BarChart3,
-  Target,
-  Zap,
-} from "lucide-react";
+import { RefreshCw, Users, BarChart3, Target, Zap } from "lucide-react";
 import Layout from "@/components/Layout";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
+/**
+ * Represents the state of a sync operation, including loading, result, and error.
+ */
 interface SyncState {
   isLoading: boolean;
-  result: any;
+  result: unknown;
   error: string | null;
 }
 
@@ -51,7 +48,7 @@ const Admin: React.FC = () => {
   const [endWeek, setEndWeek] = useState<string>("18");
 
   // NFL Data Sync Handler
-  const handleNFLDataSync = async () => {
+  const handleNFLDataSync = async (): Promise<void> => {
     setNflDataSync({ isLoading: true, result: null, error: null });
     try {
       const { data, error } =
@@ -59,18 +56,19 @@ const Admin: React.FC = () => {
       if (error) throw error;
       setNflDataSync({ isLoading: false, result: data, error: null });
       toast.success("NFL data sync completed successfully!");
-    } catch (error: any) {
-      const errorMsg =
-        typeof error === "object" && error && "message" in error
-          ? error.message
-          : String(error);
+    } catch (error: unknown) {
+      let errorMsg = "Unknown error";
+      if (error instanceof Error) errorMsg = error.message;
+      else if (typeof error === "object" && error && "message" in error)
+        errorMsg = String((error as { message?: string }).message);
+      else errorMsg = String(error);
       setNflDataSync({ isLoading: false, result: null, error: errorMsg });
       toast.error("NFL data sync failed: " + errorMsg);
     }
   };
 
   // Enhanced Weekly Stats Sync Handler (single week)
-  const handleWeeklyStatsSync = async () => {
+  const handleWeeklyStatsSync = async (): Promise<void> => {
     setWeeklyStatsSync({ isLoading: true, result: null, error: null });
     try {
       const { data, error } =
@@ -83,18 +81,19 @@ const Admin: React.FC = () => {
       if (error) throw error;
       setWeeklyStatsSync({ isLoading: false, result: data, error: null });
       toast.success(`Week ${selectedWeek} stats sync completed!`);
-    } catch (error: any) {
-      const errorMsg =
-        typeof error === "object" && error && "message" in error
-          ? error.message
-          : String(error);
+    } catch (error: unknown) {
+      let errorMsg = "Unknown error";
+      if (error instanceof Error) errorMsg = error.message;
+      else if (typeof error === "object" && error && "message" in error)
+        errorMsg = String((error as { message?: string }).message);
+      else errorMsg = String(error);
       setWeeklyStatsSync({ isLoading: false, result: null, error: errorMsg });
       toast.error("Weekly stats sync failed: " + errorMsg);
     }
   };
 
   // NEW: Bulk Weekly Stats Sync Handler (multiple weeks)
-  const handleBulkWeeklyStatsSync = async () => {
+  const handleBulkWeeklyStatsSync = async (): Promise<void> => {
     setBulkWeeksSync({ isLoading: true, result: null, error: null });
 
     const start = parseInt(startWeek);
@@ -141,11 +140,11 @@ const Admin: React.FC = () => {
           if (week < end) {
             await new Promise((resolve) => setTimeout(resolve, 1000));
           }
-        } catch (weekError: any) {
+        } catch (weekError: unknown) {
           console.error(`Week ${week} error:`, weekError);
           errorCount++;
           results.push(
-            `❌ Week ${week}: ${weekError.message || "Unknown error"}`
+            `❌ Week ${week}: ${weekError instanceof Error ? weekError.message : "Unknown error"}`
           );
         }
       }
@@ -166,18 +165,21 @@ const Admin: React.FC = () => {
           `Sync completed with ${errorCount} errors out of ${successCount + errorCount} weeks`
         );
       }
-    } catch (error: any) {
-      const errorMsg =
-        typeof error === "object" && error && "message" in error
-          ? error.message
-          : String(error);
+    } catch (error: unknown) {
+      let errorMsg = "Unknown error";
+      if (error instanceof Error) errorMsg = error.message;
+      else if (typeof error === "object" && error && "message" in error)
+        errorMsg = String((error as { message?: string }).message);
+      else errorMsg = String(error);
       setBulkWeeksSync({ isLoading: false, result: null, error: errorMsg });
       toast.error("Bulk sync failed: " + errorMsg);
     }
   };
 
   // Top 200 Sync Handler
-  const handleTop200Sync = async (format: "dynasty" | "redraft") => {
+  const handleTop200Sync = async (
+    format: "dynasty" | "redraft"
+  ): Promise<void> => {
     setTop200Sync({ isLoading: true, result: null, error: null });
     try {
       const { data, error } =
@@ -190,18 +192,19 @@ const Admin: React.FC = () => {
       if (error) throw error;
       setTop200Sync({ isLoading: false, result: data, error: null });
       toast.success(`${format} top 200 sync completed!`);
-    } catch (error: any) {
-      const errorMsg =
-        typeof error === "object" && error && "message" in error
-          ? error.message
-          : String(error);
+    } catch (error: unknown) {
+      let errorMsg = "Unknown error";
+      if (error instanceof Error) errorMsg = error.message;
+      else if (typeof error === "object" && error && "message" in error)
+        errorMsg = String((error as { message?: string }).message);
+      else errorMsg = String(error);
       setTop200Sync({ isLoading: false, result: null, error: errorMsg });
       toast.error(`${format} top 200 sync failed: ` + errorMsg);
     }
   };
 
   // Complete Data Population Handler
-  const handleCompleteDataPopulation = async () => {
+  const handleCompleteDataPopulation = async (): Promise<void> => {
     setDataPopulation({ isLoading: true, result: null, error: null });
     try {
       const season = parseInt(selectedSeason);
@@ -275,18 +278,19 @@ const Admin: React.FC = () => {
         error: null,
       });
       toast.success("Complete data population finished successfully!");
-    } catch (error: any) {
-      const errorMsg =
-        typeof error === "object" && error && "message" in error
-          ? error.message
-          : String(error);
+    } catch (error: unknown) {
+      let errorMsg = "Unknown error";
+      if (error instanceof Error) errorMsg = error.message;
+      else if (typeof error === "object" && error && "message" in error)
+        errorMsg = String((error as { message?: string }).message);
+      else errorMsg = String(error);
       setDataPopulation({ isLoading: false, result: null, error: errorMsg });
       toast.error("Data population failed: " + errorMsg);
     }
   };
 
   // Handler for running the full weekly ETL
-  const handleRunWeeklyETL = async () => {
+  const handleRunWeeklyETL = async (): Promise<void> => {
     setEtlLoading(true);
     try {
       const { error } =
@@ -297,11 +301,12 @@ const Admin: React.FC = () => {
       } else {
         toast.success("Weekly ETL started successfully!");
       }
-    } catch (err: any) {
-      const errorMsg =
-        typeof err === "object" && err && "message" in err
-          ? err.message
-          : String(err);
+    } catch (err: unknown) {
+      let errorMsg = "Unknown error";
+      if (err instanceof Error) errorMsg = err.message;
+      else if (typeof err === "object" && err && "message" in err)
+        errorMsg = String((err as { message?: string }).message);
+      else errorMsg = String(err);
       toast.error("Weekly ETL failed: " + errorMsg);
     }
     setEtlLoading(false);

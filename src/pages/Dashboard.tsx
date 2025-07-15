@@ -4,7 +4,6 @@ import Layout from "@/components/Layout";
 import { Player } from "@/lib/database";
 import { cn } from "@/lib/utils";
 
-// Enhanced mock data with more realistic fantasy football information
 const mockTopPlayers: Player[] = [
   {
     id: "1",
